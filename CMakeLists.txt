@@ -1,61 +1,45 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_policy(VERSION 3.20)
+cmake_minimum_required(VERSION 3.0)
+project(EE-Graph LANGUAGES CXX CUDA VERSION 1.0)
+############## DEPENDENCIES ##############
+find_package(CUDA 9 REQUIRED)
 
-# Project name
-project(EEGraph LANGUAGES CXX CUDA)
+message("-- CUDA Version: ${CUDA_VERSION_STRING}")
 
-# CMake variable definitions
-set(GPU_LIB "${CMAKE_SOURCE_DIR}/lib/gpu_lib")
-set(CPU_LIB "${CMAKE_SOURCE_DIR}/lib/cpu_lib")
-set(CMAKE_VERBOSE_MAKEFILE OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+# GFlags
+add_subdirectory(deps/gflags)
+include_directories(${PROJECT_BINARY_DIR}/deps/gflags/include)
+link_directories(${PROJECT_BINARY_DIR}/deps/gflags/lib)
 
-file(GLOB gpu_source_files
-  "${CMAKE_SOURCE_DIR}/src/sssp-sync-push-dd.cu")
+# CUB
+include_directories(${PROJECT_SOURCE_DIR}/deps/cub)
 
+# JSON
+include_directories(${PROJECT_SOURCE_DIR}/deps/json)
+############## BUILD ##############
 
-file(GLOB cpp_source_files
-  "${CMAKE_SOURCE_DIR}/src/cpu-sssp.cpp"
-  "${CMAKE_SOURCE_DIR}/src/edgelist-to-csr.cpp")
+set(EXTRA_LIBS gflags pthread ${CUDA_TOOLKIT_TARGET_DIR}/lib64/stubs/libcuda.so ${CUDA_TOOLKIT_TARGET_DIR}/lib64/libnvToolsExt.so)
 
-file(GLOB main_file "${CMAKE_SOURCE_DIR}/src/main.cpp")
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O3; -std=c++14)
 
-# Include directories
-include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${GPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${CPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR/include})
+set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
-# GPU Library
-add_library(${GPU_LIB} STATIC ${gpu_source_files})
+# Addresses a bug where code is not compiled as C++11 in non-CUDA code and older g++ versions
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O2")
 
-# CPU Library
-add_library(${CPU_LIB} STATIC ${cpp_source_files})
+message("-- Host Compiler: ${CUDA_HOST_COMPILER}")
 
-# Request that ${GPU_LIB} be built with -std=c++11
-# As this is a public compile feature anything that links to
-# will also build with -std=c++11
-target_compile_features(${GPU_LIB} PUBLIC cxx_std_11)
+include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include)
 
-# We need to explicitly state that we need all CUDA files in ${GPU_LIB}
-# to be built with -dc
-set_target_properties(${GPU_LIB} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+# hybrid apps
+#cuda_add_executable(hybrid_pr src/utils/parser.cpp src/utils/utils.cpp src/utils/to_json.cpp #src/groute/graphs/csr_graph.cpp
+#        samples/hybrid_pr/hybrid_pr.cu
+#        samples/hybrid_pr/hybrid_pr_host.cpp
+#        samples/hybrid_pr/main.cpp)
+#target_link_libraries(hybrid_pr ${EXTRA_LIBS})
 
-# Add memory profiling option to program
-if (NOT MEM_OPT EQUAL 0)
-  target_compile_options(${GPU_LIB} PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>)
-endif()
+add_executable(${PROJECT_NAME} src/main.cpp)
 
-# Create executable for main file
-add_executable(${PROJECT_NAME} ${main_file})
-
-# Cuda separable compilation
-set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
-# Link libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE ${GPU_LIB})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${CPU_LIB})
-target_link_libraries(${PROJECT_NAME} PUBLIC -lnvidia-ml)
-
-# Print user variable definitions
-message("\n*** ALL USER DEFINED VARIABLES ***")
-message("MEM_OPT=${MEM_OPT}")
-message("******************************\n")
+add_executable(gtools src/utils/parser.cpp src/utils/utils.cpp
+        src/tools/gtools.cpp)
+target_link_libraries(gtools gflags)
