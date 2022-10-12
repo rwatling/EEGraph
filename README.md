@@ -31,14 +31,13 @@ V1  V2  W
 * soc-orkut
 * soc-twitter-2010
 
-#### [Stanford SNAP Datasets] (https://snap.stanford.edu/data/index.html)
+#### [Stanford SNAP Datasets](https://snap.stanford.edu/data/index.html)
 * twitter-ego
 * facebook_combined
 
 #### [Galois Project](https://github.com/IntelligentSoftwareSystems/Galois)
 * Build the graph convert tool to convert and use to convert from a graph type to edgelist
-
-[SOSP '13] Donald Nguyen, Andrew Lenharth, and Keshav Pingali. A Light-
+* [SOSP '13] Donald Nguyen, Andrew Lenharth, and Keshav Pingali. A Light-
 weight Infrastructure for Graph Analytics. In Proceedings of the Twenty-
 Fourth ACM Symposium on Operating Systems Principles, 2013.
 ACM, New York, NY, USA, 456–471
