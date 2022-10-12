@@ -8,7 +8,7 @@
 
 `$ make`
 
-### Run executable
+### Run executable examples
 
 `$ sssp --help`
 
@@ -25,11 +25,12 @@ V1  V2  W
 ### Dataset sources
 
 #### [Network Repository](https://networkrepository.com/)
-* kron
-* road_usa
-* soc-LiveJournal1
-* soc-orkut
-* soc-twitter-2010
+* [kron-g500-log21](https://networkrepository.com/kron-g500-logn21.php)
+* [road_usa](https://networkrepository.com/road-usa.php)
+* [soc-LiveJournal1](https://networkrepository.com/soc-LiveJournal1.php)
+* [soc-orkut](https://networkrepository.com/soc-orkut.php)
+* [soc-twitter-2010](https://networkrepository.com/soc-twitter-2010.php)
+* Alternatively you can download these datasets from [SEP-Graph](https://github.com/SEP-Graph/ppopp19-artifact)
 
 #### [Stanford SNAP Datasets](https://snap.stanford.edu/data/index.html)
 * twitter-ego
