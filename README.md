@@ -33,8 +33,8 @@ V1  V2  W
 * Alternatively you can download these datasets from [SEP-Graph](https://github.com/SEP-Graph/ppopp19-artifact)
 
 #### [Stanford SNAP Datasets](https://snap.stanford.edu/data/index.html)
-* twitter-ego
-* facebook_combined
+* [twitter-ego](https://snap.stanford.edu/data/ego-Twitter.html)
+* [facebook_combined](https://snap.stanford.edu/data/ego-Facebook.html)
 
 #### [Galois Project](https://github.com/IntelligentSoftwareSystems/Galois)
 * Build the graph convert tool to convert and use to convert from a graph type to edgelist
