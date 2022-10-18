@@ -375,4 +375,4 @@ class nvmlClass {
     }
 };
 
-#endif /* NVMLCLASS_H_ */
+#endif // NVMLCLASS_H_

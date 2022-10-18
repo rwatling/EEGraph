@@ -18,6 +18,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	hasOutput = false;
 	hasDeviceID = false;
 	hasNumberOfItrs = false;
+	debug = false;
 	
 	Parse();
 }
@@ -73,6 +74,12 @@ bool ArgumentParser::Parse()
 				numberOfItrs = atoi(argv[i+1]);
 				hasNumberOfItrs = true;
 			}
+			else if (strcmp(argv[i], "--debug") == 0) {
+				if (strcmp(argv[i+1], "true") == 0 || 
+					strcmp(argv[i+1], "True") == 0 || 
+					strcmp(argv[i+1], "TRUE") == 0)
+					debug = true;
+			}
 			else
 			{
 				cout << "\nThere was an error parsing command line argument <" << argv[i] << ">\n";
@@ -112,6 +119,7 @@ string ArgumentParser::GenerateHelpString(){
 	str += "\n    [--device]: Select GPU device (default: 0). E.g., --device 1";
 	if(canHaveItrs)
 		str += "\n    [--iteration]: Number of iterations (default: 1). E.g., --iterations 10";
+	str += "\n    [--debug]: Check or observe information (Default: false). E.g. --debug true";
 	str += "\n\n";
 	return str;
 }

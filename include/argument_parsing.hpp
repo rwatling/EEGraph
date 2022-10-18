@@ -20,6 +20,7 @@ public:
 	bool hasOutput;
 	bool hasDeviceID;
 	bool hasNumberOfItrs;
+	bool debug;
 	string input;
 	int sourceNode;
 	string output;

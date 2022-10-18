@@ -1,2 +1,5 @@
 build/*
-data/*
+data/kron_g500*
+data/road-usa*
+data/soc-*
+.vscode

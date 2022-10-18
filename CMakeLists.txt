@@ -19,7 +19,7 @@ file(GLOB sssp_main "${CMAKE_SOURCE_DIR}/src/sssp_main.cu")
 file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/argument_parsing.cpp"
   "${CMAKE_SOURCE_DIR}/src/graph.cpp"
-  "${CMAKE_SOURCE_DIR}/src/tigr_utilities.cpp"
+  "${CMAKE_SOURCE_DIR}/src/utilities.cpp"
   "${CMAKE_SOURCE_DIR}/src/timer.cpp")
 
 # Include directories
