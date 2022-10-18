@@ -1,6 +1,4 @@
 #include "argument_parsing.hpp"
-
-
     
 ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool canHaveItrs)
 {
@@ -18,7 +16,10 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	hasOutput = false;
 	hasDeviceID = false;
 	hasNumberOfItrs = false;
+	hasEnergyFile = false;
 	debug = false;
+	variant = ASYNC_PUSH_TD;
+	energy = false;
 	
 	Parse();
 }
@@ -61,31 +62,57 @@ bool ArgumentParser::Parse()
 			else if (strcmp(argv[i], "--output") == 0) {
 				output = string(argv[i+1]);
 				hasOutput = true;
-			}
-			else if (strcmp(argv[i], "--source") == 0 && canHaveSource) {
+			} else if (strcmp(argv[i], "--efile") == 0) {
+				energyFile = string(argv[i+1]);
+				hasEnergyFile = true;
+			} else if (strcmp(argv[i], "--source") == 0 && canHaveSource) {
 				sourceNode = atoi(argv[i+1]);
 				hasSourceNode = true;
-			}
-			else if (strcmp(argv[i], "--device") == 0) {
+			} else if (strcmp(argv[i], "--device") == 0) {
 				deviceID = atoi(argv[i+1]);
 				hasDeviceID = true;
-			}
-			else if (strcmp(argv[i], "--iteration") == 0 && canHaveItrs) {
+			} else if (strcmp(argv[i], "--iteration") == 0 && canHaveItrs) {
 				numberOfItrs = atoi(argv[i+1]);
 				hasNumberOfItrs = true;
-			}
-			else if (strcmp(argv[i], "--debug") == 0) {
+			} else if (strcmp(argv[i], "--debug") == 0) {
 				if (strcmp(argv[i+1], "true") == 0 || 
 					strcmp(argv[i+1], "True") == 0 || 
 					strcmp(argv[i+1], "TRUE") == 0)
 					debug = true;
-			}
-			else
-			{
+			} else if (strcmp(argv[i], "--variant") == 0) {
+
+				if (strcmp(argv[i+1], "async_push_td") == 0) {
+					variant = ASYNC_PUSH_TD;
+				} else if (strcmp(argv[i+1], "async_push_dd") == 0) {
+					variant = ASYNC_PUSH_DD;
+				}else if (strcmp(argv[i+1], "async_pull_td") == 0) {
+					variant = ASYNC_PULL_TD;
+				}else if (strcmp(argv[i+1], "async_pull_dd") == 0) {
+					variant = ASYNC_PULL_DD;
+				} else if (strcmp(argv[i+1], "sync_push_td") == 0) {
+					variant = SYNC_PUSH_TD;
+				} else if (strcmp(argv[i+1], "sync_push_dd") == 0) {
+					variant = SYNC_PUSH_DD;
+				}else if (strcmp(argv[i+1], "sync_pull_td") == 0) {
+					variant = SYNC_PULL_TD;
+				}else if (strcmp(argv[i+1], "sync_pull_dd") == 0) {
+					variant = SYNC_PULL_DD;
+				}
+			} else if (strcmp(argv[i], "--energy") == 0) {
+				if (strcmp(argv[i+1], "true") == 0 || 
+					strcmp(argv[i+1], "True") == 0 || 
+					strcmp(argv[i+1], "TRUE") == 0)
+					energy = true;
+			} else {
 				cout << "\nThere was an error parsing command line argument <" << argv[i] << ">\n";
 				cout << GenerateHelpString();
 				exit(0);
 			}
+		}
+
+		if(energy && !hasEnergyFile) {
+			cout << "The option --energy was true but no energy file was provided\n";
+			exit(0);
 		}
 		
 		if(hasInput)
@@ -120,6 +147,9 @@ string ArgumentParser::GenerateHelpString(){
 	if(canHaveItrs)
 		str += "\n    [--iteration]: Number of iterations (default: 1). E.g., --iterations 10";
 	str += "\n    [--debug]: Check or observe information (Default: false). E.g. --debug true";
+	str += "\n    [--variant]: Check or observe information (Default: async_push_td). E.g. --variant async_push_td";
+	str += "\n    [--energy]: Measure and output GPU energy information (Default: false). E.g. --energy true";
+	str += "\n    [--efile]: Output file for energy (Required if energy == true). E.g. --efile my_experiment_energy";
 	str += "\n\n";
 	return str;
 }

@@ -1,8 +1,6 @@
 
 #include "graph.hpp"
 
-
-
 Graph::Graph(string graphFilePath, bool isWeighted)
 {
 	this->graphFilePath = graphFilePath;
@@ -10,7 +8,6 @@ Graph::Graph(string graphFilePath, bool isWeighted)
 	graphLoaded = false;
 	hasZeroID = false;
 }
-
 
 void Graph::ReadGraph()
 {
