@@ -83,6 +83,11 @@ int main(int argc, char** argv) {
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;
 
+	if (num_nodes  < 1) {
+		cout << "Graph file not read correctly" << endl;
+		return -1;
+	}
+
 	if(arguments.hasDeviceID)
 		gpuErrorcheck(cudaSetDevice(arguments.deviceID));
 
@@ -120,8 +125,8 @@ int main(int argc, char** argv) {
 	Timer timer;
 	uint itr = 0;
 	uint num_threads = 512;
-	uint edges_per_thread = num_edges / num_threads + 1;
-	uint num_blocks = num_nodes / num_threads;
+	uint edges_per_thread = 8;
+	uint num_blocks = (num_edges) / (num_threads * edges_per_thread) + 1;
 
 	timer.Start();
 
@@ -140,9 +145,9 @@ int main(int argc, char** argv) {
 												d_finished	);
 
 		gpuErrorcheck( cudaPeekAtLastError() );
-		gpuErrorcheck( cudaDeviceSynchronize() );	
-		
+		gpuErrorcheck( cudaDeviceSynchronize() );
 		gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+
 	} while (!(finished));
 
 	cout << "Number of iterations = " << itr << endl;
