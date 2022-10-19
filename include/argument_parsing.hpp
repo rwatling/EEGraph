@@ -20,12 +20,15 @@ public:
 	bool hasDeviceID;
 	bool hasNumberOfItrs;
 	bool hasEnergyFile;
+	bool hasEnergyStats;
+
 	bool debug;
 	bool energy;
 
 	string input;
 	string output;
 	string energyFile;
+	string energyStats;
 
 	int sourceNode;
 	int deviceID;

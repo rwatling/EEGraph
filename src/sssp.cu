@@ -38,7 +38,6 @@ __global__ void sssp::async_push_td(  Edge* edges,
 	}
 }
 
-
 void sssp::seq_cpu(  vector<Edge> edges, 
                      vector<uint> weights, 
                      uint num_edges, 

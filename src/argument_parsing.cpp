@@ -65,6 +65,9 @@ bool ArgumentParser::Parse()
 			} else if (strcmp(argv[i], "--efile") == 0) {
 				energyFile = string(argv[i+1]);
 				hasEnergyFile = true;
+			} else if (strcmp(argv[i], "--estats") == 0) {
+				energyStats = string(argv[i+1]);
+				hasEnergyStats = true;
 			} else if (strcmp(argv[i], "--source") == 0 && canHaveSource) {
 				sourceNode = atoi(argv[i+1]);
 				hasSourceNode = true;
@@ -80,7 +83,6 @@ bool ArgumentParser::Parse()
 					strcmp(argv[i+1], "TRUE") == 0)
 					debug = true;
 			} else if (strcmp(argv[i], "--variant") == 0) {
-
 				if (strcmp(argv[i+1], "async_push_td") == 0) {
 					variant = ASYNC_PUSH_TD;
 				} else if (strcmp(argv[i+1], "async_push_dd") == 0) {
@@ -110,8 +112,8 @@ bool ArgumentParser::Parse()
 			}
 		}
 
-		if(energy && !hasEnergyFile) {
-			cout << "The option --energy was true but no energy file was provided\n";
+		if(energy && (!hasEnergyFile || !hasEnergyStats)) {
+			cout << "The option --energy was true but energy file and/or energy stats files were not included\n";
 			exit(0);
 		}
 		
@@ -150,6 +152,7 @@ string ArgumentParser::GenerateHelpString(){
 	str += "\n    [--variant]: Check or observe information (Default: async_push_td). E.g. --variant async_push_td";
 	str += "\n    [--energy]: Measure and output GPU energy information (Default: false). E.g. --energy true";
 	str += "\n    [--efile]: Output file for energy (Required if energy == true). E.g. --efile my_experiment_energy";
+	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";
 	str += "\n\n";
 	return str;
 }

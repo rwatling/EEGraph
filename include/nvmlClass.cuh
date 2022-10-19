@@ -131,12 +131,12 @@ class nvmlClass {
 
             time_steps_.push_back( device_stats );
 
-            std::this_thread::sleep_for( std::chrono::milliseconds(5));
+            std::this_thread::sleep_for( std::chrono::milliseconds(10));
         }
 
         // Collect information for a short period of time (cooldown) after loop_ is flagged to be false
-        //1000 * ~5 ms = 5s
-        for (int i = 0; i < 1000; i++) {
+        //500 * 10 ms = 5s
+        for (int i = 0; i < 500; i++) {
 
           device_stats.timestamp = std::chrono::high_resolution_clock::now( ).time_since_epoch( ).count( );
           NVML_RT_CALL( nvmlDeviceGetTemperature( device_, NVML_TEMPERATURE_GPU, &device_stats.temperature ) );
@@ -150,7 +150,7 @@ class nvmlClass {
           time_steps_.push_back( device_stats );
 
           // Sleep for a short period of time
-          std::this_thread::sleep_for( std::chrono::milliseconds(5));
+          std::this_thread::sleep_for( std::chrono::milliseconds(10));
         }
 
         writeData();
@@ -177,15 +177,15 @@ class nvmlClass {
       printHeader( );
     }
 
-    void ping_start() {
+    void log_start() {
 
       // Retrieve empty samples for 5s
       std::this_thread::sleep_for( std::chrono::seconds(5));
 
-      ping_point();
+      log_point();
     }
 
-    void ping_point() {
+    void log_point() {
       
       stat_pts device_stats {};
 

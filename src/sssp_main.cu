@@ -9,11 +9,14 @@
 #include "../include/sssp.cuh"
 #include <iostream>
 
+using namespace std;
+
 int main(int argc, char** argv) {
 	
 	//Parse arguments and initialize
 	ArgumentParser arguments(argc, argv, true, false);
 
+	// Initialize graph
 	Graph graph(arguments.input, true);
 	graph.ReadGraph();
 
@@ -25,6 +28,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
+	// Set device
 	if(arguments.hasDeviceID)
 		gpuErrorcheck(cudaSetDevice(arguments.deviceID));
 
@@ -38,6 +42,20 @@ int main(int argc, char** argv) {
 	}
 	
 	dist[arguments.sourceNode] = 0;
+
+	// Energy structures initilization
+	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass
+	vector<thread> cpu_threads;
+	nvmlClass nvml(arguments.deviceID, arguments.energyFile, arguments.energyStats, to_string(arguments.variant));
+
+	if (arguments.energy) {
+		cout << "Starting energy measurements. Timing information will be affected..." << endl;
+
+		cpu_threads.emplace_back(std::thread(&nvmlClass::getStats, &nvml));
+
+  		nvml.log_start();
+	}
+
 
 	// GPU variable declarations
 	Edge* d_edges;
@@ -68,24 +86,26 @@ int main(int argc, char** argv) {
 	timer.Start();
 
 	//Main algorithm
-	do {
-		itr++;
-		finished = true;
-		gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+	if (arguments.variant == ASYNC_PUSH_TD) {
+		do {
+			itr++;
+			finished = true;
+			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
-		sssp::async_push_td<<<num_blocks, num_threads>>>(  d_edges, 
-                                                           d_weights, 
-                                                           num_edges, 
-                                                           edges_per_thread, 
-                                                           arguments.sourceNode, 
-                                                           d_dist, 
-                                                           d_finished	);
+			sssp::async_push_td<<<num_blocks, num_threads>>>(  d_edges, 
+															d_weights, 
+															num_edges, 
+															edges_per_thread, 
+															arguments.sourceNode, 
+															d_dist, 
+															d_finished	);
 
-		gpuErrorcheck( cudaPeekAtLastError() );
-		gpuErrorcheck( cudaDeviceSynchronize() );
-		gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );
+			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 
-	} while (!(finished));
+		} while (!(finished));
+	}
 
 	cout << "Number of iterations = " << itr << endl;
 
@@ -94,6 +114,19 @@ int main(int argc, char** argv) {
 
 	// Copy back to host
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
+
+
+	// Stop measuring energy consumption, clean up structures
+	if (arguments.energy) {
+		cpu_threads.emplace_back(thread( &nvmlClass::killThread, &nvml));
+
+		for (auto& th : cpu_threads) {
+			th.join();
+			th.~thread();
+		}
+
+		cpu_threads.clear();
+	}
 
 	// Run sequential cpu version and print out useful information
 	if (arguments.debug) {

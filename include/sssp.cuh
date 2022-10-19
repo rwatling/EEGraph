@@ -7,12 +7,12 @@
 
 namespace sssp {
     __global__ void async_push_td(  Edge* edges, 
-                                          uint* weights, 
-                                          uint num_edges,
-                                          uint edges_per_thread, 
-                                          int source,
-                                          unsigned int* dist,
-                                          bool* finished  );
+                                    uint* weights, 
+                                    uint num_edges,
+                                    uint edges_per_thread, 
+                                    int source,
+                                    unsigned int* dist,
+                                    bool* finished  );
 
 
     void seq_cpu(  vector<Edge> edges, 
