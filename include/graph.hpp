@@ -30,14 +30,19 @@ private:
 
 public:
 	string graphFilePath;
+
 	bool isWeighted;
 	bool hasZeroID;
+    bool graphLoaded;
+
 	uint num_nodes;
 	uint num_edges;
+
     vector<Edge> edges;
     vector<uint> weights;
-    bool graphLoaded;
+
     Graph(string graphFilePath, bool isWeighted);
+
     void ReadGraph();
 };
 

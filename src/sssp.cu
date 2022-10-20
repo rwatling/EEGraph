@@ -6,7 +6,7 @@ __global__ void sssp::async_push_td(  Edge* edges,
                                       uint edges_per_thread, 
                                       int source,
                                       unsigned int* dist,
-                                      bool* finished  ) {
+                                      bool* finished) {
 
     // Get identifiers
 	int threadId = blockDim.x * blockIdx.x + threadIdx.x;
@@ -25,7 +25,7 @@ __global__ void sssp::async_push_td(  Edge* edges,
 	uint e_w8;
 	uint final_dist;
 
-    // Execute relaxation
+    // Execute edge relaxation
 	for (int partId = startId; partId < endId; partId++) {
 		e = edges[partId];
 		e_w8 = weights[partId];
@@ -34,6 +34,60 @@ __global__ void sssp::async_push_td(  Edge* edges,
 		if (final_dist < dist[e.end]) {
 			atomicMin(&dist[e.end], final_dist);
 			*finished = false;
+		}
+	}
+}
+
+__global__ void sssp::sync_push_td(  Edge* edges, 
+                                     uint* weights, 
+                                     uint num_edges,
+                                     uint edges_per_thread, 
+                                     int source,
+                                     unsigned int* dist,
+									 bool* finished,
+									 bool* finished1,
+									 bool evenPass  ) {
+
+    // Get identifiers
+	int threadId = blockDim.x * blockIdx.x + threadIdx.x;
+    int startId = threadId * edges_per_thread;
+    
+    if (startId >= num_edges) {
+        return;
+    }
+    
+    int endId = (threadId + 1) * edges_per_thread;
+    if (endId >= num_edges) {
+        endId = num_edges;
+    }
+
+	Edge e;
+	uint e_w8;
+	uint final_dist;
+
+	// Execute edge relaxation
+	if (evenPass) {
+
+		for (int partId = startId; partId < endId; partId += 2) {
+			e = edges[partId];
+			e_w8 = weights[partId];
+			final_dist = dist[e.source] + e_w8;
+
+			if (final_dist < dist[e.end]) {
+				atomicMin(&dist[e.end], final_dist);
+				*finished = false;
+			}
+		}
+	} else {
+		for (int partId = startId + 1; partId < endId; partId += 2) {
+			e = edges[partId];
+			e_w8 = weights[partId];
+			final_dist = dist[e.source] + e_w8;
+
+			if (final_dist < dist[e.end]) {
+				atomicMin(&dist[e.end], final_dist);
+				*finished1 = false;
+			}
 		}
 	}
 }

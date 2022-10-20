@@ -99,6 +99,9 @@ bool ArgumentParser::Parse()
 					variant = SYNC_PULL_TD;
 				}else if (strcmp(argv[i+1], "sync_pull_dd") == 0) {
 					variant = SYNC_PULL_DD;
+				} else {
+					cout << "Variant not recognized\n";
+					exit(0);
 				}
 			} else if (strcmp(argv[i], "--energy") == 0) {
 				if (strcmp(argv[i+1], "true") == 0 || 
