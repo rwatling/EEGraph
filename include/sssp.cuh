@@ -21,9 +21,22 @@ namespace sssp {
                                    int source,
                                    unsigned int* dist,
                                    bool* finished,
-                                   bool* finished_odd,
                                    bool evenPass );
 
+    __global__ void sync_push_dd(  Edge* edges, 
+                                   uint* weights, 
+                                   uint num_edges,
+                                   uint edges_per_thread, 
+                                   int source,
+                                   unsigned int* dist,
+                                   bool* finished,
+                                   bool* active_current,
+                                   bool* active_next,
+                                   bool evenPass );
+
+    __global__ void sync_dd_clear_active(bool* active_list,
+                                        uint num_nodes,
+                                        uint nodes_per_thread);
 
     void seq_cpu(  vector<Edge> edges, 
                    vector<uint> weights, 

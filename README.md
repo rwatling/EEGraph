@@ -36,9 +36,6 @@ V1  V2  W
 * [twitter-ego](https://snap.stanford.edu/data/ego-Twitter.html) --included--
 * [facebook_combined](https://snap.stanford.edu/data/ego-Facebook.html) --included--
 
-#### Other
-* test.txt (small test case)
-
 #### [Galois Project](https://github.com/IntelligentSoftwareSystems/Galois)
 * Build the graph convert tool to convert and use to convert from a graph type to edgelist
 * [SOSP '13] Donald Nguyen, Andrew Lenharth, and Keshav Pingali. A Light-
