@@ -6,6 +6,7 @@ project(EEGraph LANGUAGES CXX CUDA)
 set(GPU_LIB "_cuda")
 set(CPU_LIB "_cpp")
 set(SSSP_PROJECT "sssp")
+set(SSSP_TIGR_PROJECT "tigr-sssp")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2")
 
@@ -15,12 +16,14 @@ endif()
 
 ##### FILES
 file(GLOB sssp_main "${CMAKE_SOURCE_DIR}/src/sssp_main.cu")
+file(GLOB tigr-sssp "${CMAKE_SOURCE_DIR}/src/sssp-tigr.cu")
 
 file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/argument_parsing.cpp"
   "${CMAKE_SOURCE_DIR}/src/graph.cpp"
   "${CMAKE_SOURCE_DIR}/src/utilities.cpp"
-  "${CMAKE_SOURCE_DIR}/src/timer.cpp")
+  "${CMAKE_SOURCE_DIR}/src/timer.cpp"
+  "${CMAKE_SOURCE_DIR}/src/virtual_graph.cpp")
 
   file(GLOB gpu_source_files
     "${CMAKE_SOURCE_DIR}/src/sssp.cu")
@@ -52,3 +55,9 @@ target_link_libraries(${SSSP_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${SSSP_PROJECT} PUBLIC -lnvidia-ml)
 
 set_property(TARGET ${SSSP_PROJECT} PROPERTY CXX_STANDARD 11)
+
+add_executable(${SSSP_TIGR_PROJECT} ${tigr-sssp})
+
+target_link_libraries(${SSSP_TIGR_PROJECT} PRIVATE ${GPU_LIB})
+target_link_libraries(${SSSP_TIGR_PROJECT} PRIVATE ${CPU_LIB})
+target_link_libraries(${SSSP_TIGR_PROJECT} PUBLIC -lnvidia-ml)

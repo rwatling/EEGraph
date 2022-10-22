@@ -71,14 +71,12 @@ int main(int argc, char** argv) {
 	bool* d_active_current;
 	bool* d_active_next;
 	bool* d_finished;
-	bool* d_finished_odd;
 
 	// Allocate on GPU device
 	gpuErrorcheck(cudaMalloc(&d_edges, num_edges * sizeof(Edge)));
 	gpuErrorcheck(cudaMalloc(&d_weights, num_edges * sizeof(uint)));
 	gpuErrorcheck(cudaMalloc(&d_dist, num_nodes * sizeof(uint)));
 	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
-	gpuErrorcheck(cudaMalloc(&d_finished_odd, sizeof(bool)))
 	gpuErrorcheck(cudaMalloc(&d_active_current, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_active_next, num_nodes * sizeof(bool)));
 
@@ -98,12 +96,11 @@ int main(int argc, char** argv) {
 	uint num_blocks_edgelist = (num_edges) / (num_threads * edges_per_thread) + 1;
 	uint num_blocks_node_centric = (num_nodes) / (num_threads * nodes_per_thread) + 1;
 	bool finished;
-	bool finished_odd;
 
 	timer.Start();
 
 	//Main algorithm
-	if (arguments.variant == ASYNC_PUSH_TD) {
+	/*if (arguments.variant == ASYNC_PUSH_TD) {
 		do {
 
 			itr++;
@@ -126,11 +123,11 @@ int main(int argc, char** argv) {
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do {
 			itr++;
+			finished = true;
+			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
 			if (itr % 2 == 0) {
-				finished = true;
-				gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
+				
 				sssp::sync_push_td<<<num_blocks_edgelist, num_threads>>>(  d_edges, 
 																d_weights, 
 																num_edges, 
@@ -140,34 +137,31 @@ int main(int argc, char** argv) {
 																d_finished,
 																true  );
 			} else {
-				finished_odd = true;
-				gpuErrorcheck(cudaMemcpy(d_finished_odd, &finished_odd, sizeof(bool), cudaMemcpyHostToDevice));
-
 				sssp::sync_push_td<<<num_blocks_edgelist, num_threads>>>(  d_edges, 
 																d_weights, 
 																num_edges, 
 																edges_per_thread, 
 																arguments.sourceNode, 
 																d_dist,
-																d_finished_odd,
+																d_finished,
 																false  );
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			gpuErrorcheck(cudaMemcpy(&finished_odd, d_finished_odd, sizeof(bool), cudaMemcpyDeviceToHost));
 
-		} while (!finished && !finished_odd);
+		} while (!finished);
 
 	} else if (arguments.variant == SYNC_PUSH_DD) {
 
 		do {
 			itr++;
-
+			finished = true;
+			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			
 			if (itr % 2 == 0) {
-				finished = true;
-				gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+
 
 				sssp::sync_dd_clear_active<<<num_blocks_node_centric, num_threads>>>(d_active_next, num_nodes, nodes_per_thread);
 
@@ -182,9 +176,6 @@ int main(int argc, char** argv) {
 																  d_active_next,
 																  true  );
 			} else {
-				finished_odd = true;
-				gpuErrorcheck(cudaMemcpy(d_finished_odd, &finished_odd, sizeof(bool), cudaMemcpyHostToDevice));
-
 				sssp::sync_dd_clear_active<<<num_blocks_node_centric, num_threads>>>(d_active_current, num_nodes, nodes_per_thread);
 
 				sssp::sync_push_dd<<<num_blocks_node_centric, num_threads>>>(  d_edges, 
@@ -193,7 +184,7 @@ int main(int argc, char** argv) {
 																  edges_per_thread, 
 																  arguments.sourceNode, 
 																  d_dist,
-																  d_finished_odd,
+																  d_finished,
 																  d_active_next,
 																  d_active_current,
 																  false  );
@@ -203,13 +194,11 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			gpuErrorcheck(cudaMemcpy(&finished_odd, d_finished_odd, sizeof(bool), cudaMemcpyDeviceToHost));
 			gpuErrorcheck(cudaMemcpy(active_current, d_active_current, num_nodes * sizeof(bool), cudaMemcpyDeviceToHost));
 			gpuErrorcheck(cudaMemcpy(active_next, d_active_next, num_nodes * sizeof(bool), cudaMemcpyDeviceToHost));
 
-		} while (!finished && !finished_odd);
-
-	}
+		} while (!finished);
+	}*/
 
 	// Copy back to host
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
@@ -265,7 +254,6 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaFree(d_weights));
 	gpuErrorcheck(cudaFree(d_dist));
 	gpuErrorcheck(cudaFree(d_finished));
-	gpuErrorcheck(cudaFree(d_finished_odd));
 	gpuErrorcheck(cudaFree(d_active_current));
 	gpuErrorcheck(cudaFree(d_active_next));
 }
