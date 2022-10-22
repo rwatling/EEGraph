@@ -45,7 +45,7 @@ __global__ void sssp::sync_push_td(  Edge* edges,
                                      int source,
                                      unsigned int* dist,
 									 bool* finished,
-									 bool* finished1,
+									 bool* finished_odd,
 									 bool evenPass  ) {
 
     // Get identifiers
@@ -86,7 +86,7 @@ __global__ void sssp::sync_push_td(  Edge* edges,
 
 			if (final_dist < dist[e.end]) {
 				atomicMin(&dist[e.end], final_dist);
-				*finished1 = false;
+				*finished_odd = false;
 			}
 		}
 	}

@@ -21,7 +21,7 @@ namespace sssp {
                                    int source,
                                    unsigned int* dist,
                                    bool* finished,
-                                   bool* finished1,
+                                   bool* finished_odd,
                                    bool evenPass );
 
 
