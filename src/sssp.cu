@@ -51,11 +51,46 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 									 PartPointer *partNodePointer, 
                                      unsigned int *edgeList,
                                      unsigned int* dist,
-									 bool* finished) {
+									 bool* finished,
+									 bool even) {
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-	if(partId < numParts)
+	if((partId < numParts) && (partId % 2 == 0) && even)
 	{
+		int id = partNodePointer[partId].node;
+		int part = partNodePointer[partId].part;
+
+		int sourceWeight = dist[id];
+
+		int thisPointer = nodePointer[id];
+		int degree = edgeList[thisPointer];
+
+		int numParts;
+		if(degree % Part_Size == 0)
+			numParts = degree / Part_Size ;
+		else
+			numParts = degree / Part_Size + 1;
+		
+		int end;
+		int w8;
+		int finalDist;
+		int ofs = thisPointer + 2*part +1;
+
+		for(int i=0; i<Part_Size; i++)
+		{
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts*2;
+			w8 = end + 1;
+			finalDist = sourceWeight + edgeList[w8];
+			if(finalDist < dist[edgeList[end]])
+			{
+				atomicMin(&dist[edgeList[end]] , finalDist);
+				*finished = false;
+			}
+		}
+	
+	} else if (partId < numParts) {
 		int id = partNodePointer[partId].node;
 		int part = partNodePointer[partId].part;
 

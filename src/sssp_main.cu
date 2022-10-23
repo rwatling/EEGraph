@@ -62,12 +62,15 @@ int main(int argc, char** argv) {
 	bool *d_label2;
 	
 	bool finished;
+	bool finished2;
 	bool *d_finished;
+	bool *d_finished2;
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_dist, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
+	gpuErrorcheck(cudaMalloc(&d_finished2, sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_label1, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_label2, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_partNodePointer, vGraph.numParts * sizeof(PartPointer)));
@@ -163,73 +166,42 @@ int main(int argc, char** argv) {
 		do
 		{
 			itr++;
-			finished = true;
-			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 			if(itr % 2 == 1)
 			{
+				finished = true;
+				gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+
 				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
 															d_dist, 
-															d_finished);
+															d_finished,
+															false);
 			}
 			else
 			{
+				finished2 = true;
+				gpuErrorcheck(cudaMemcpy(d_finished2, &finished2, sizeof(bool), cudaMemcpyHostToDevice));
 				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															d_nodePointer, 
 															d_partNodePointer,
 															d_edgeList, 
 															d_dist, 
-															d_finished);
+															d_finished2,
+															true);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			gpuErrorcheck(cudaMemcpy(&finished2, d_finished2, sizeof(bool), cudaMemcpyDeviceToHost));
 			
 
-		} while (!(finished));
+		} while (!(finished) && !(finished2));
 	}
 
-	//Main algorithm
-	/*if (arguments.variant == SYNC_PUSH_TD) {
-		do {
-			itr++;
-			finished = true;
-			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
-			if (itr % 2 == 0) {
-				
-				sssp::sync_push_td<<<num_blocks_edgelist, num_threads>>>(  d_edges, 
-																d_weights, 
-																num_edges, 
-																edges_per_thread, 
-																arguments.sourceNode, 
-																d_dist,
-																d_finished,
-																true  );
-			} else {
-				sssp::sync_push_td<<<num_blocks_edgelist, num_threads>>>(  d_edges, 
-																d_weights, 
-																num_edges, 
-																edges_per_thread, 
-																arguments.sourceNode, 
-																d_dist,
-																d_finished,
-																false  );
-			}
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );
-			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-
-		} while (!finished);
-
-	}*/
-
-	// Copy back to host
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
 	cout << "Number of iterations = " << itr << endl;
