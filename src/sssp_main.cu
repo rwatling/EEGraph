@@ -10,17 +10,6 @@
 #include "../include/virtual_graph.hpp"
 #include <iostream>
 
-__global__ void kernel(unsigned int numParts, 
-							unsigned int *nodePointer, 
-							PartPointer *partNodePointer,
-							unsigned int *edgeList, 
-							unsigned int *dist, 
-							bool *finished,
-							bool *label1,
-							bool *label2)
-{
-	
-}
 
 __global__ void clearLabel(bool *label, unsigned int size)
 {
@@ -149,6 +138,27 @@ int main(int argc, char** argv) {
 															d_label1);
 				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
+
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+			
+			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			
+
+		} while (!(finished));
+	} else if (arguments.variant == ASYNC_PUSH_TD) {
+		do
+		{
+			itr++;
+			finished = true;
+			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+
+			sssp::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+														d_nodePointer,
+														d_partNodePointer,
+														d_edgeList, 
+														d_dist, 
+														d_finished);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	

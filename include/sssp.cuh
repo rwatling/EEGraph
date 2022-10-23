@@ -7,13 +7,12 @@
 #include "virtual_graph.hpp"
 
 namespace sssp {
-    __global__ void async_push_td(  Edge* edges, 
-                                    uint* weights, 
-                                    uint num_edges,
-                                    uint edges_per_thread, 
-                                    int source,
-                                    unsigned int* dist,
-                                    bool* finished  );
+    __global__ void async_push_td(  unsigned int numParts, 
+                                   unsigned int *nodePointer,
+                                   PartPointer *partNodePointer,
+                                   unsigned int *edgeList,
+                                   unsigned int* dist,
+								   bool* finished);
 
     __global__ void sync_push_td(  Edge* edges, 
                                    uint* weights, 
