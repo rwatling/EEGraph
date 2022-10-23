@@ -7,18 +7,39 @@
 #include "../include/cuda_includes.cuh"
 #include "../include/nvmlClass.cuh"
 #include "../include/sssp.cuh"
+#include "../include/virtual_graph.hpp"
 #include <iostream>
 
-using namespace std;
+__global__ void kernel(unsigned int numParts, 
+							unsigned int *nodePointer, 
+							PartPointer *partNodePointer,
+							unsigned int *edgeList, 
+							unsigned int *dist, 
+							bool *finished,
+							bool *label1,
+							bool *label2)
+{
+	
+}
+
+__global__ void clearLabel(bool *label, unsigned int size)
+{
+	unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
+	if(id < size)
+		label[id] = false;
+}
 
 int main(int argc, char** argv) {
-	
-	//Parse arguments and initialize
+
 	ArgumentParser arguments(argc, argv, true, false);
 
-	// Initialize graph
+	// Initialize graph and virtual graph
 	Graph graph(arguments.input, true);
 	graph.ReadGraph();
+
+	VirtualGraph vGraph(graph);
+
+	vGraph.MakeGraph();
 
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;
@@ -31,26 +52,52 @@ int main(int argc, char** argv) {
 	if(arguments.hasDeviceID)
 		gpuErrorcheck(cudaSetDevice(arguments.deviceID));
 
-	// Distance and active initialization
+	cudaFree(0);
+
 	unsigned int *dist;
-	bool* active_current;
-	bool* active_next;
+	dist  = new unsigned int[num_nodes];
 
-	dist = new unsigned int[num_nodes];
-	active_current = new bool[num_nodes];
-	active_next = new bool[num_nodes];
-
+	bool *label1;
+	bool *label2;
+	label1 = new bool[num_nodes];
+	label2 = new bool[num_nodes];
+	
 	for(int i=0; i<num_nodes; i++)
 	{
-		dist[i] = DIST_INFINITY;
-		active_current[i] = false;
-		active_next[i] = false;
+			dist[i] = DIST_INFINITY;
+			label1[i] = false;
+			label2[i] = false;
 	}
 	
 	dist[arguments.sourceNode] = 0;
-	active_current[arguments.sourceNode] = true;
-	active_next[arguments.sourceNode] = true;
+	label1[arguments.sourceNode] = true;
+	
 
+	uint *d_nodePointer;
+	uint *d_edgeList;
+	uint *d_dist;
+	PartPointer *d_partNodePointer; 
+	bool *d_label1;
+	bool *d_label2;
+	
+	bool finished;
+	bool *d_finished;
+
+	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
+	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
+	gpuErrorcheck(cudaMalloc(&d_dist, num_nodes * sizeof(unsigned int)));
+	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
+	gpuErrorcheck(cudaMalloc(&d_label1, num_nodes * sizeof(bool)));
+	gpuErrorcheck(cudaMalloc(&d_label2, num_nodes * sizeof(bool)));
+	gpuErrorcheck(cudaMalloc(&d_partNodePointer, vGraph.numParts * sizeof(PartPointer)));
+
+	gpuErrorcheck(cudaMemcpy(d_nodePointer, vGraph.nodePointer, num_nodes * sizeof(unsigned int), cudaMemcpyHostToDevice));
+	gpuErrorcheck(cudaMemcpy(d_edgeList, vGraph.edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemcpyHostToDevice));
+	gpuErrorcheck(cudaMemcpy(d_dist, dist, num_nodes * sizeof(unsigned int), cudaMemcpyHostToDevice));
+	gpuErrorcheck(cudaMemcpy(d_label1, label1, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
+	gpuErrorcheck(cudaMemcpy(d_label2, label2, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
+	gpuErrorcheck(cudaMemcpy(d_partNodePointer, vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemcpyHostToDevice));
+	
 	// Energy structures initilization
 	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass
 	vector<thread> cpu_threads;
@@ -63,41 +110,54 @@ int main(int argc, char** argv) {
 
   		nvml.log_start();
 	}
-
-	// GPU variable declarations
-	Edge* d_edges;
-	uint* d_weights;
-	unsigned int* d_dist;
-	bool* d_active_current;
-	bool* d_active_next;
-	bool* d_finished;
-
-	// Allocate on GPU device
-	gpuErrorcheck(cudaMalloc(&d_edges, num_edges * sizeof(Edge)));
-	gpuErrorcheck(cudaMalloc(&d_weights, num_edges * sizeof(uint)));
-	gpuErrorcheck(cudaMalloc(&d_dist, num_nodes * sizeof(uint)));
-	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
-	gpuErrorcheck(cudaMalloc(&d_active_current, num_nodes * sizeof(bool)));
-	gpuErrorcheck(cudaMalloc(&d_active_next, num_nodes * sizeof(bool)));
-
-	// Copy to GPU device
-	gpuErrorcheck(cudaMemcpy(d_edges, graph.edges.data(), num_edges * sizeof(Edge), cudaMemcpyHostToDevice));
-	gpuErrorcheck(cudaMemcpy(d_weights, graph.weights.data(), num_edges * sizeof(uint), cudaMemcpyHostToDevice));
-	gpuErrorcheck(cudaMemcpy(d_dist, dist, num_nodes * sizeof(unsigned int), cudaMemcpyHostToDevice));
-	gpuErrorcheck(cudaMemcpy(d_active_current, active_current, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
-	gpuErrorcheck(cudaMemcpy(d_active_next, active_next, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
-	
 	// Algorithm control variable declarations
 	Timer timer;
-	uint itr = 0;
+	int itr = 0;
 	uint num_threads = 512;
-	uint edges_per_thread = 8;
-	uint nodes_per_thread = 8;
-	uint num_blocks_edgelist = (num_edges) / (num_threads * edges_per_thread) + 1;
-	uint num_blocks_node_centric = (num_nodes) / (num_threads * nodes_per_thread) + 1;
-	bool finished;
+	uint num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
+
+
+	if (arguments.variant == SYNC_PUSH_DD) {
+		do
+		{
+			itr++;
+			finished = true;
+			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			if(itr % 2 == 1)
+			{
+				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															d_nodePointer,
+															d_partNodePointer,
+															d_edgeList, 
+															d_dist, 
+															d_finished,
+															d_label1,
+															d_label2);
+				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
+			}
+			else
+			{
+				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															d_nodePointer, 
+															d_partNodePointer,
+															d_edgeList, 
+															d_dist, 
+															d_finished,
+															d_label2,
+															d_label1);
+				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
+			}
+
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+			
+			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			
+
+		} while (!(finished));
+	}
 
 	//Main algorithm
 	/*if (arguments.variant == ASYNC_PUSH_TD) {
@@ -153,51 +213,6 @@ int main(int argc, char** argv) {
 
 		} while (!finished);
 
-	} else if (arguments.variant == SYNC_PUSH_DD) {
-
-		do {
-			itr++;
-			finished = true;
-			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-			
-			if (itr % 2 == 0) {
-
-
-				sssp::sync_dd_clear_active<<<num_blocks_node_centric, num_threads>>>(d_active_next, num_nodes, nodes_per_thread);
-
-				sssp::sync_push_dd<<<num_blocks_edgelist, num_threads>>>(  d_edges, 
-																  d_weights, 
-																  num_edges, 
-																  edges_per_thread, 
-																  arguments.sourceNode, 
-																  d_dist,
-																  d_finished,
-																  d_active_current,
-																  d_active_next,
-																  true  );
-			} else {
-				sssp::sync_dd_clear_active<<<num_blocks_node_centric, num_threads>>>(d_active_current, num_nodes, nodes_per_thread);
-
-				sssp::sync_push_dd<<<num_blocks_node_centric, num_threads>>>(  d_edges, 
-																  d_weights, 
-																  num_edges, 
-																  edges_per_thread, 
-																  arguments.sourceNode, 
-																  d_dist,
-																  d_finished,
-																  d_active_next,
-																  d_active_current,
-																  false  );
-
-			}
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );
-			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			gpuErrorcheck(cudaMemcpy(active_current, d_active_current, num_nodes * sizeof(bool), cudaMemcpyDeviceToHost));
-			gpuErrorcheck(cudaMemcpy(active_next, d_active_next, num_nodes * sizeof(bool), cudaMemcpyDeviceToHost));
-
-		} while (!finished);
 	}*/
 
 	// Copy back to host
@@ -249,11 +264,11 @@ int main(int argc, char** argv) {
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}
 
-
-	gpuErrorcheck(cudaFree(d_edges));
-	gpuErrorcheck(cudaFree(d_weights));
+	gpuErrorcheck(cudaFree(d_nodePointer));
+	gpuErrorcheck(cudaFree(d_edgeList));
 	gpuErrorcheck(cudaFree(d_dist));
 	gpuErrorcheck(cudaFree(d_finished));
-	gpuErrorcheck(cudaFree(d_active_current));
-	gpuErrorcheck(cudaFree(d_active_next));
+	gpuErrorcheck(cudaFree(d_label1));
+	gpuErrorcheck(cudaFree(d_label2));
+	gpuErrorcheck(cudaFree(d_partNodePointer));
 }

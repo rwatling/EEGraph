@@ -4,6 +4,7 @@
 #include "globals.hpp"
 #include "gpu_error_check.cuh"
 #include "cuda_includes.cuh"
+#include "virtual_graph.hpp"
 
 namespace sssp {
     __global__ void async_push_td(  Edge* edges, 
@@ -23,20 +24,14 @@ namespace sssp {
                                    bool* finished,
                                    bool evenPass );
 
-    __global__ void sync_push_dd(  Edge* edges, 
-                                   uint* weights, 
-                                   uint num_edges,
-                                   uint edges_per_thread, 
-                                   int source,
+    __global__ void sync_push_dd(  unsigned int numParts, 
+                                   unsigned int *nodePointer,
+                                   PartPointer *partNodePointer,
+                                   unsigned int *edgeList,
                                    unsigned int* dist,
-                                   bool* finished,
-                                   bool* active_current,
-                                   bool* active_next,
-                                   bool evenPass );
-
-    __global__ void sync_dd_clear_active(bool* active_list,
-                                        uint num_nodes,
-                                        uint nodes_per_thread);
+								   bool* finished,
+								   bool* label1,
+								   bool* label2);
 
     void seq_cpu(  vector<Edge> edges, 
                    vector<uint> weights, 

@@ -18,7 +18,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	hasNumberOfItrs = false;
 	hasEnergyFile = false;
 	debug = false;
-	variant = ASYNC_PUSH_TD;
+	variant = SYNC_PUSH_DD;
 	energy = false;
 	
 	Parse();
