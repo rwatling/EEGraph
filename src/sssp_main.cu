@@ -10,14 +10,6 @@
 #include "../include/virtual_graph.hpp"
 #include <iostream>
 
-
-__global__ void clearLabel(bool *label, unsigned int size)
-{
-	unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
-	if(id < size)
-		label[id] = false;
-}
-
 int main(int argc, char** argv) {
 
 	ArgumentParser arguments(argc, argv, true, false);
@@ -124,7 +116,7 @@ int main(int argc, char** argv) {
 															d_finished,
 															d_label1,
 															d_label2);
-				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
+				sssp::clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
 			{
@@ -136,7 +128,7 @@ int main(int argc, char** argv) {
 															d_finished,
 															d_label2,
 															d_label1);
-				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
+				sssp::clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
@@ -167,30 +159,42 @@ int main(int argc, char** argv) {
 			
 
 		} while (!(finished));
-	}
-
-	//Main algorithm
-	/*if (arguments.variant == ASYNC_PUSH_TD) {
-		do {
-
+	} else if (arguments.variant == SYNC_PUSH_TD) {
+		do
+		{
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
-			sssp::async_push_td<<<num_blocks_edgelist, num_threads>>>(  d_edges, 
-															d_weights, 
-															num_edges, 
-															edges_per_thread, 
-															arguments.sourceNode, 
+			if(itr % 2 == 1)
+			{
+				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															d_nodePointer,
+															d_partNodePointer,
+															d_edgeList, 
 															d_dist, 
-															d_finished	);
+															d_finished);
+			}
+			else
+			{
+				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															d_nodePointer, 
+															d_partNodePointer,
+															d_edgeList, 
+															d_dist, 
+															d_finished);
+			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			
 
 		} while (!(finished));
-	} else if (arguments.variant == SYNC_PUSH_TD) {
+	}
+
+	//Main algorithm
+	/*if (arguments.variant == SYNC_PUSH_TD) {
 		do {
 			itr++;
 			finished = true;

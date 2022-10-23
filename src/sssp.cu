@@ -46,56 +46,49 @@ __global__ void sssp::async_push_td(  unsigned int numParts,
 	}
 }
 
-__global__ void sssp::sync_push_td(  Edge* edges, 
-                                     uint* weights, 
-                                     uint num_edges,
-                                     uint edges_per_thread, 
-                                     int source,
+__global__ void sssp::sync_push_td(  unsigned int numParts, 
+                                     unsigned int *nodePointer,
+									 PartPointer *partNodePointer, 
+                                     unsigned int *edgeList,
                                      unsigned int* dist,
-									 bool* finished,
-									 bool evenPass  ) {
+									 bool* finished) {
+   int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-    // Get identifiers
-	int threadId = blockDim.x * blockIdx.x + threadIdx.x;
-    int startId = threadId * edges_per_thread;
-    
-    if (startId >= num_edges) {
-        return;
-    }
-    
-    int endId = (threadId + 1) * edges_per_thread;
-    if (endId >= num_edges) {
-        endId = num_edges;
-    }
+	if(partId < numParts)
+	{
+		int id = partNodePointer[partId].node;
+		int part = partNodePointer[partId].part;
 
-	Edge e;
-	uint e_w8;
-	uint final_dist;
+		int sourceWeight = dist[id];
 
-	// Execute edge relaxation
-	if (evenPass) {
+		int thisPointer = nodePointer[id];
+		int degree = edgeList[thisPointer];
 
-		for (int partId = startId; partId < endId; partId += 2) {
-			e = edges[partId];
-			e_w8 = weights[partId];
-			final_dist = dist[e.source] + e_w8;
+		int numParts;
+		if(degree % Part_Size == 0)
+			numParts = degree / Part_Size ;
+		else
+			numParts = degree / Part_Size + 1;
+		
+		int end;
+		int w8;
+		int finalDist;
+		int ofs = thisPointer + 2*part +1;
 
-			if (final_dist < dist[e.end]) {
-				atomicMin(&dist[e.end], final_dist);
+		for(int i=0; i<Part_Size; i++)
+		{
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts*2;
+			w8 = end + 1;
+			finalDist = sourceWeight + edgeList[w8];
+			if(finalDist < dist[edgeList[end]])
+			{
+				atomicMin(&dist[edgeList[end]] , finalDist);
 				*finished = false;
 			}
 		}
-	} else {
-		for (int partId = startId + 1; partId < endId; partId += 2) {
-			e = edges[partId];
-			e_w8 = weights[partId];
-			final_dist = dist[e.source] + e_w8;
-
-			if (final_dist < dist[e.end]) {
-				atomicMin(&dist[e.end], final_dist);
-				*finished = false;
-			}
-		}
+	
 	}
 }
 
@@ -178,4 +171,11 @@ void sssp::seq_cpu(  vector<Edge> edges,
 			}
 		}
 	}
+}
+
+__global__ void sssp::clearLabel(bool *label, unsigned int size)
+{
+	unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
+	if(id < size)
+		label[id] = false;
 }
