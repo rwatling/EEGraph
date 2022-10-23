@@ -200,6 +200,28 @@ int main(int argc, char** argv) {
 			
 
 		} while (!(finished) && !(finished2));
+	} else if (arguments.variant == ASYNC_PUSH_DD) {
+		do
+		{
+			itr++;
+			finished = true;
+			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+
+			sssp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+														d_nodePointer,
+														d_partNodePointer,
+														d_edgeList, 
+														d_dist, 
+														d_finished,
+														d_label1);
+
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+			
+			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			
+
+		} while (!(finished));
 	}
 
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));

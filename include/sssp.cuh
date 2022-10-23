@@ -41,6 +41,14 @@ namespace sssp {
                                         bool* finished,
                                         bool even);
 
+    __global__ void async_push_dd(  unsigned int numParts, 
+                                     unsigned int *nodePointer,
+									 PartPointer *partNodePointer, 
+                                     unsigned int *edgeList,
+                                     unsigned int* dist,
+									 bool* finished,
+                                     bool* label1);
+
     __global__ void clearLabel(bool *label, unsigned int size);
 
     void seq_cpu(  vector<Edge> edges, 
