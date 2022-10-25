@@ -1,0 +1,7 @@
+Reading the input graph from the following file:
+>> ../data/road-usa.txt
+Done reading.
+Number of nodes = 23947346
+Number of edges = 28854312
+Number of iterations = 1
+Processing finished in 25.964 (ms).

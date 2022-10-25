@@ -14,15 +14,6 @@ namespace sssp {
                                    unsigned int* dist,
 								   bool* finished);
 
-    __global__ void sync_push_td(  Edge* edges, 
-                                   uint* weights, 
-                                   uint num_edges,
-                                   uint edges_per_thread, 
-                                   int source,
-                                   unsigned int* dist,
-                                   bool* finished,
-                                   bool evenPass );
-
     __global__ void sync_push_dd(  unsigned int numParts, 
                                    unsigned int *nodePointer,
                                    PartPointer *partNodePointer,
@@ -31,7 +22,6 @@ namespace sssp {
 								   bool* finished,
 								   bool* label1,
 								   bool* label2);
-
 
     __global__ void sync_push_td(  unsigned int numParts, 
                                         unsigned int *nodePointer,

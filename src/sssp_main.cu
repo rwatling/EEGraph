@@ -52,7 +52,6 @@ int main(int argc, char** argv) {
 	
 	dist[arguments.sourceNode] = 0;
 	label1[arguments.sourceNode] = true;
-	
 
 	uint *d_nodePointer;
 	uint *d_edgeList;
@@ -94,6 +93,7 @@ int main(int argc, char** argv) {
 
   		nvml.log_start();
 	}
+
 	// Algorithm control variable declarations
 	Timer timer;
 	int itr = 0;
@@ -101,7 +101,6 @@ int main(int argc, char** argv) {
 	uint num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
-
 
 	if (arguments.variant == SYNC_PUSH_DD) {
 		do
@@ -272,10 +271,14 @@ int main(int argc, char** argv) {
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}
 
+	if(arguments.hasOutput)
+		utilities::SaveResults(arguments.output, dist, num_nodes);
+
 	gpuErrorcheck(cudaFree(d_nodePointer));
 	gpuErrorcheck(cudaFree(d_edgeList));
 	gpuErrorcheck(cudaFree(d_dist));
 	gpuErrorcheck(cudaFree(d_finished));
+	gpuErrorcheck(cudaFree(d_finished2));
 	gpuErrorcheck(cudaFree(d_label1));
 	gpuErrorcheck(cudaFree(d_label2));
 	gpuErrorcheck(cudaFree(d_partNodePointer));

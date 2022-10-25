@@ -1,0 +1,7 @@
+Reading the input graph from the following file:
+>> ../data/soc-orkut.txt
+Done reading.
+Number of nodes = 2997166
+Number of edges = 106349209
+Number of iterations = 1
+Processing finished in 4.93 (ms).

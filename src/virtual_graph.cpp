@@ -1,6 +1,4 @@
-#include "virtual_graph.hpp"
-
-
+#include "../include/virtual_graph.hpp"
     
 VirtualGraph::VirtualGraph(Graph &graph)
 {

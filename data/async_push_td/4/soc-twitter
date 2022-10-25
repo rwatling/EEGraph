@@ -1,0 +1,7 @@
+Reading the input graph from the following file:
+>> ../data/soc-twitter.txt
+Done reading.
+Number of nodes = 21297772
+Number of edges = 265025809
+Number of iterations = 1
+Processing finished in 30.717 (ms).

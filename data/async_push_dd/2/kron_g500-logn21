@@ -1,0 +1,7 @@
+Reading the input graph from the following file:
+>> ../data/kron_g500-logn21.txt
+Done reading.
+Number of nodes = 2097152
+Number of edges = 91042010
+Number of iterations = 1
+Processing finished in 2.402 (ms).
