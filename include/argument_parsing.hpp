@@ -24,6 +24,7 @@ public:
 
 	bool debug;
 	bool energy;
+	bool unifiedMem;
 
 	string input;
 	string output;

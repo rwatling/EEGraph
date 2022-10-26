@@ -1,5 +1,5 @@
 
-#include "graph.hpp"
+#include "../include/graph.hpp"
 
 Graph::Graph(string graphFilePath, bool isWeighted)
 {

@@ -1,4 +1,4 @@
-#include "argument_parsing.hpp"
+#include "../include/argument_parsing.hpp"
     
 ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool canHaveItrs)
 {
@@ -20,6 +20,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	debug = false;
 	variant = SYNC_PUSH_DD;
 	energy = false;
+	unifiedMem = false;
 	
 	Parse();
 }
@@ -108,7 +109,12 @@ bool ArgumentParser::Parse()
 					strcmp(argv[i+1], "True") == 0 || 
 					strcmp(argv[i+1], "TRUE") == 0)
 					energy = true;
-			} else {
+			} else if (strcmp(argv[i], "--um") == 0) {
+				if (strcmp(argv[i+1], "true") == 0 || 
+					strcmp(argv[i+1], "True") == 0 || 
+					strcmp(argv[i+1], "TRUE") == 0)
+					unifiedMem = true; 
+			}else {
 				cout << "\nThere was an error parsing command line argument <" << argv[i] << ">\n";
 				cout << GenerateHelpString();
 				exit(0);
