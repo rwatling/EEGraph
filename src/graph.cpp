@@ -27,7 +27,7 @@ void Graph::ReadGraph()
 	}	
 	
 	graphLoaded = true;
-	
+
 	uint source;
 	uint end;
 	uint w8;

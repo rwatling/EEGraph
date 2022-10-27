@@ -186,8 +186,10 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
                                      unsigned int *edgeList,
                                      unsigned int* dist,
 									 bool* finished,
-									 bool* label1) {
-      int partId = blockDim.x * blockIdx.x + threadIdx.x;
+									 bool* label1,
+									 bool* label2) {
+    
+	int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
 	{
@@ -196,6 +198,8 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
 
 		if(label1[id] == false)
 			return;
+
+		label1[id] = false;
 
 		int sourceWeight = dist[id];
 
@@ -225,7 +229,7 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
 				atomicMin(&dist[edgeList[end]] , finalDist);
 				*finished = false;
 
-				label1[edgeList[end]] = true;
+				label2[edgeList[end]] = true;
 			}
 		}
 	

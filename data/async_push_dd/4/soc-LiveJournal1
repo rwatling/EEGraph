@@ -1,7 +1,0 @@
-Reading the input graph from the following file:
->> ../data/soc-LiveJournal1.txt
-Done reading.
-Number of nodes = 4847571
-Number of edges = 68993773
-Number of iterations = 11
-Processing finished in 24.809 (ms).

@@ -37,7 +37,8 @@ namespace sssp {
                                      unsigned int *edgeList,
                                      unsigned int* dist,
 									 bool* finished,
-                                     bool* label1);
+                                     bool* label1,
+                                     bool* label2);
 
     __global__ void clearLabel(bool *label, unsigned int size);
 

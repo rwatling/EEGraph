@@ -150,7 +150,6 @@ int main_unified_memory(ArgumentParser arguments) {
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			
 			gpuErrorcheck(cudaMemcpy(&finished, finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			
 
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
@@ -197,7 +196,8 @@ int main_unified_memory(ArgumentParser arguments) {
 														edgeList, 
 														dist, 
 														finished,
-														label1);
+														(itr%2==1) ? label1 : label2,
+														(itr%2==1) ? label2 : label1);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
@@ -480,7 +480,8 @@ int main(int argc, char** argv) {
 														d_edgeList, 
 														d_dist, 
 														d_finished,
-														d_label1);
+														(itr%2==1) ? label1 : label2,
+														(itr%2==1) ? label2 : label1);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	

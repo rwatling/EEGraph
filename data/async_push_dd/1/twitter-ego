@@ -1,7 +1,0 @@
-Reading the input graph from the following file:
->> ../data/twitter-ego.txt
-Done reading.
-Number of nodes = 568770231
-Number of edges = 2420766
-Number of iterations = 1
-Processing finished in 688.112 (ms).
