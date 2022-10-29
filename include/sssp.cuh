@@ -7,7 +7,7 @@
 #include "virtual_graph.hpp"
 
 namespace sssp {
-    __global__ void async_push_td(  unsigned int numParts, 
+    __global__ void async_push_td( unsigned int numParts, 
                                    unsigned int *nodePointer,
                                    PartPointer *partNodePointer,
                                    unsigned int *edgeList,
@@ -24,21 +24,21 @@ namespace sssp {
 								   bool* label2);
 
     __global__ void sync_push_td(  unsigned int numParts, 
-                                        unsigned int *nodePointer,
-                                        PartPointer *partNodePointer, 
-                                        unsigned int *edgeList,
-                                        unsigned int* dist,
-                                        bool* finished,
-                                        bool even);
+                                   unsigned int *nodePointer,
+                                   PartPointer *partNodePointer, 
+                                   unsigned int *edgeList,
+                                   unsigned int* dist,
+                                   bool* finished,
+                                   bool even);
 
     __global__ void async_push_dd(  unsigned int numParts, 
-                                     unsigned int *nodePointer,
-									 PartPointer *partNodePointer, 
-                                     unsigned int *edgeList,
-                                     unsigned int* dist,
-									 bool* finished,
-                                     bool* label1,
-                                     bool* label2);
+                                    unsigned int *nodePointer,
+									PartPointer *partNodePointer, 
+                                    unsigned int *edgeList,
+                                    unsigned int* dist,
+									bool* finished,
+                                    bool* label1,
+                                    bool* label2);
 
     __global__ void clearLabel(bool *label, unsigned int size);
 

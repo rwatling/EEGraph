@@ -92,6 +92,16 @@ int main_unified_memory(ArgumentParser arguments) {
 		partNodePointer[i] = vGraph.partNodePointer[i];
 	}
 
+	// Tell GPU this data is mostly read
+	gpuErrorcheck(cudaMemAdvise(nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetReadMostly, arguments.deviceID));
+
+	// Recommend that most of the data are just used on device
+	gpuErrorcheck(cudaMemAdvise(nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetPreferredLocation, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetPreferredLocation, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetPreferredLocation, arguments.deviceID));
+
 	// Algorithm control variable declarations
 	Timer timer;
 	int itr = 0;
@@ -480,8 +490,8 @@ int main(int argc, char** argv) {
 														d_edgeList, 
 														d_dist, 
 														d_finished,
-														(itr%2==1) ? label1 : label2,
-														(itr%2==1) ? label2 : label1);
+														(itr%2==1) ? d_label1 : d_label2,
+														(itr%2==1) ? d_label2 : d_label1);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	

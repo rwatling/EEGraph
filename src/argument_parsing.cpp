@@ -162,6 +162,7 @@ string ArgumentParser::GenerateHelpString(){
 	str += "\n    [--energy]: Measure and output GPU energy information (Default: false). E.g. --energy true";
 	str += "\n    [--efile]: Output file for energy (Required if energy == true). E.g. --efile my_experiment_energy";
 	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";
+	str += "\n    [--um]: Use unified memory for graph algorithms. E.g. --um true";
 	str += "\n\n";
 	return str;
 }
