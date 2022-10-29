@@ -30,6 +30,7 @@ private:
 
 public:
 	string graphFilePath;
+    string graphFormat;
 
 	bool isWeighted;
 	bool hasZeroID;
@@ -44,6 +45,7 @@ public:
     Graph(string graphFilePath, bool isWeighted);
 
     void ReadGraph();
+    string getFileExtension(string fileName);
 };
 
 #endif	//	GRAPH_HPP

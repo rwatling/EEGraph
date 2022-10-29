@@ -320,8 +320,8 @@ int main(int argc, char** argv) {
 	vGraph.MakeGraph();
 
 	if (!sssp::checkSize(graph, vGraph, arguments.deviceID)) {
-		cout << "Graph too large! Switching to subway!" << endl;
-		main_subway(arguments);
+		cout << "Graph too large! Switching to unified memory" << endl;
+		main_unified_memory(arguments);
 	}
 
 	uint num_nodes = graph.num_nodes;
