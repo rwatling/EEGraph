@@ -1,5 +1,5 @@
 #include "../include/virtual_graph.hpp"
-    
+
 VirtualGraph::VirtualGraph(Graph &graph)
 {
 	if(graph.hasZeroID == false)

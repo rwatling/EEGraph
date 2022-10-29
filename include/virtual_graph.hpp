@@ -19,7 +19,6 @@ public:
     PartPointer *partNodePointer;
     
 	VirtualGraph(Graph &graph);
-	
 	void MakeGraph();
 	void MakeUGraph();
 };

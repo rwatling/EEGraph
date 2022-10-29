@@ -10,6 +10,10 @@
 #include "../include/virtual_graph.hpp"
 #include <iostream>
 
+int main_subway(ArgumentParser arguments) {
+	cout << "Subway graph partitioning" << endl;
+	exit(0);
+}
 int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
 		
@@ -291,6 +295,8 @@ int main(int argc, char** argv) {
 
 	if (arguments.unifiedMem) {
 		main_unified_memory(arguments);
+	} else if (arguments.subway) {
+		main_subway(arguments);
 	}
 
 	// Energy structures initilization
@@ -312,6 +318,11 @@ int main(int argc, char** argv) {
 
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
+
+	if (!sssp::checkSize(graph, vGraph, arguments.deviceID)) {
+		cout << "Graph too large! Switching to subway!" << endl;
+		main_subway(arguments);
+	}
 
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;

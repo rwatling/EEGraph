@@ -42,6 +42,8 @@ namespace sssp {
 
     __global__ void clearLabel(bool *label, unsigned int size);
 
+    bool checkSize(Graph graph, VirtualGraph vGraph, int deviceId);
+
     void seq_cpu(  vector<Edge> edges, 
                     vector<uint> weights, 
                     uint num_edges, 
