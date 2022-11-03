@@ -54,6 +54,8 @@ int main_unified_memory(ArgumentParser arguments) {
 	bool *label1;
 	bool *label2;
 
+	if (arguments.energy) nvml.log_point();
+
 	gpuErrorcheck(cudaMallocManaged(&dist, sizeof(unsigned int) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
@@ -105,6 +107,8 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaMemAdvise(nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetPreferredLocation, arguments.deviceID));
 	gpuErrorcheck(cudaMemAdvise(edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetPreferredLocation, arguments.deviceID));
 	gpuErrorcheck(cudaMemAdvise(partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetPreferredLocation, arguments.deviceID));
+
+	if (arguments.energy) nvml.log_point();
 
 	// Algorithm control variable declarations
 	Timer timer;
@@ -229,6 +233,8 @@ int main_unified_memory(ArgumentParser arguments) {
 
 		cpu_threads.clear();
 	}
+
+	if (arguments.energy) nvml.log_point();
 
 	cout << "Number of iterations = " << itr << endl;
 
@@ -367,6 +373,8 @@ int main(int argc, char** argv) {
 	bool *d_finished;
 	bool *d_finished2;
 
+	if (arguments.energy) nvml.log_point();
+
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_dist, num_nodes * sizeof(unsigned int)));
@@ -382,6 +390,8 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaMemcpy(d_label1, label1, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_label2, label2, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_partNodePointer, vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemcpyHostToDevice));
+
+	if (arguments.energy) nvml.log_point();
 
 	// Algorithm control variable declarations
 	Timer timer;
@@ -515,6 +525,8 @@ int main(int argc, char** argv) {
 
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
+	if (arguments.energy) nvml.log_point();
+
 	cout << "Number of iterations = " << itr << endl;
 
 	float runtime = timer.Finish();
@@ -554,8 +566,8 @@ int main(int argc, char** argv) {
 			utilities::PrintResults(cpu_dist, num_nodes);
 			utilities::PrintResults(dist, num_nodes);
 		} else {
-			utilities::PrintResults(cpu_dist, 20);
-			utilities::PrintResults(dist, 20);
+			utilities::PrintResults(cpu_dist, 50);
+			utilities::PrintResults(dist, 50);
 		}
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);

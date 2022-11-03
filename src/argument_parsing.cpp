@@ -169,6 +169,7 @@ string ArgumentParser::GenerateHelpString(){
 	str += "\n    [--efile]: Output file for energy (Required if energy == true). E.g. --efile my_experiment_energy";
 	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";
 	str += "\n    [--um]: Use unified memory for graph algorithms. E.g. --um true";
+	str += "\n    [--subway]: Use for subway graph partitioning on large graphs E.g. --subway true";
 	str += "\n\n";
 	return str;
 }
