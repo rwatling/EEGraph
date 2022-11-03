@@ -1,4 +1,3 @@
 build/*
-data/sssp/*
-data/*.edges
+data/*
 .vscode
