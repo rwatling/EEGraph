@@ -31,11 +31,12 @@ V1  V2  W
 * [soc-orkut](https://networkrepository.com/soc-orkut.php)
 * [soc-twitter-2010](https://networkrepository.com/soc-twitter-2010.php)
 * Alternatively you can download these datasets from [SEP-Graph](https://github.com/SEP-Graph/ppopp19-artifact)
+* bio-yeast
+* cit-patent
 
 #### [Stanford SNAP Datasets](https://snap.stanford.edu/data/index.html)
-* [twitter-ego](https://snap.stanford.edu/data/ego-Twitter.html) --included--
-* [facebook_combined](https://snap.stanford.edu/data/ego-Facebook.html) --included--
-
+* [twitter-ego](https://snap.stanford.edu/data/ego-Twitter.html)
+* Web-Google
 #### [Galois Project](https://github.com/IntelligentSoftwareSystems/Galois)
 * Build the graph convert tool to convert and use to convert from a graph type to edgelist
 * [SOSP '13] Donald Nguyen, Andrew Lenharth, and Keshav Pingali. A Light-
