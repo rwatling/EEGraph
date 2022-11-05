@@ -320,6 +320,12 @@ int main(int argc, char** argv) {
 
 	// Initialize graph and virtual graph
 	Graph graph(arguments.input, true);
+	
+	if ((graph.getFileExtension(graph.graphFilePath) == "bcsr") || (graph.getFileExtension(graph.graphFilePath) == "bwcsr")) {
+		cout << "bcsr and bwcsr files are inteded to run on um or subway only" << endl;
+		exit(0);
+	}
+
 	graph.ReadGraph();
 
 	VirtualGraph vGraph(graph);

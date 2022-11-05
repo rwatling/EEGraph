@@ -25,7 +25,7 @@ do
 
         echo $file
 
-			randNum=$((RANDOM % 64))
+		randNum=$((RANDOM % 64))
 
         ./build/sssp --input "${i}" --variant async_push_td --source "${randNum}" --energy true --efile "./data/regular-energy/async_push_td/${j}-${file}-readings" --estats "./data/regular-energy/async_push_td/${j}-${file}-stats" > "./data/regular-energy/async_push_td/${j}-${file}"
         sleep 5

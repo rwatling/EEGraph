@@ -16,7 +16,23 @@ void Graph::ReadGraph()
 
 	this->graphFormat = getFileExtension(graphFilePath);
 
-	if (graphFormat == "edges" || graphFormat == "el" || graphFormat == "wel") {	
+	if(graphFormat == "bcsr" || graphFormat == "bwcsr") {
+		ifstream infile (graphFilePath, ios::in | ios::binary);
+	
+		infile.read ((char*)&num_nodes, sizeof(uint));
+		infile.read ((char*)&num_edges, sizeof(uint));
+		
+		uint* nodePointer = new uint[num_nodes+1];	//This is extra but should hopefully maintain correctness from Subway
+		Edge* tempEdgelist = (Edge*) malloc((num_edges) * sizeof(Edge));
+		
+		infile.read ((char*)nodePointer, sizeof(uint)*num_nodes);
+		infile.read ((char*)tempEdgelist, sizeof(Edge)*num_edges);
+
+		edges.insert(edges.end(), &tempEdgelist[0], &tempEdgelist[num_edges]);
+
+		free(nodePointer);
+		free(tempEdgelist);
+	} else if (graphFormat == "edges" || graphFormat == "el" || graphFormat == "wel") {	
 
 		ifstream infile;
 		infile.open(graphFilePath);
@@ -86,13 +102,13 @@ void Graph::ReadGraph()
 		num_nodes = max;
 		if (hasZeroID)
 			num_nodes++;
-
-		cout << "Done reading.\n";
-		cout << "Number of nodes = " << num_nodes << endl;
-		cout << "Number of edges = " << num_edges << endl;
 	} else {
 		cout << "Graph file type not recognized" << endl;
 	}
+
+	cout << "Done reading.\n";
+	cout << "Number of nodes = " << num_nodes << endl;
+	cout << "Number of edges = " << num_edges << endl;
 }
 
 string Graph::getFileExtension(string fileName)
