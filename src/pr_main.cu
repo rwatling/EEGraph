@@ -6,7 +6,7 @@
 #include "../include/gpu_error_check.cuh"
 #include "../include/cuda_includes.cuh"
 #include "../include/nvmlClass.cuh"
-#include "../include/sssp.cuh"
+#include "../include/pr.cuh"
 #include "../include/virtual_graph.hpp"
 #include <iostream>
 
@@ -120,107 +120,9 @@ int main_unified_memory(ArgumentParser arguments) {
 	timer.Start();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
-		do
-		{
-			itr++;
-			*finished = true;
-			if(itr % 2 == 1)
-			{
-				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															nodePointer,
-															partNodePointer,
-															edgeList, 
-															dist, 
-															finished,
-															label1,
-															label2);
-				sssp::clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
-			}
-			else
-			{
-				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															nodePointer, 
-															partNodePointer,
-															edgeList, 
-															dist, 
-															finished,
-															label2,
-															label1);
-				sssp::clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
-			}
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );
-		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
-		do
-		{
-			itr++;
-			*finished = true;
-
-			sssp::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-														nodePointer,
-														partNodePointer,
-														edgeList, 
-														dist, 
-														finished);
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
-			gpuErrorcheck(cudaMemcpy(&finished, finished, sizeof(bool), cudaMemcpyDeviceToHost));
-
-		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
-		do
-		{
-			itr++;
-			if(itr % 2 == 1)
-			{
-				*finished = true;
-				gpuErrorcheck(cudaMemcpy(finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
-				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															nodePointer,
-															partNodePointer,
-															edgeList, 
-															dist, 
-															finished,
-															false);
-			}
-			else
-			{
-				*finished2 = true;
-				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															nodePointer, 
-															partNodePointer,
-															edgeList, 
-															dist, 
-															finished2,
-															true);
-			}
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );
-		} while (!(finished) && !(finished2));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
-		do
-		{
-			itr++;
-			*finished = true;
-
-			sssp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-														nodePointer,
-														partNodePointer,
-														edgeList, 
-														dist, 
-														finished,
-														(itr%2==1) ? label1 : label2,
-														(itr%2==1) ? label2 : label1);
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );
-		} while (!(finished));
 	}
 
 	// Stop measuring energy consumption, clean up structures
@@ -255,7 +157,7 @@ int main_unified_memory(ArgumentParser arguments) {
 	}
 
 	// Run sequential cpu version and print out useful information
-	if (arguments.debug) {
+	/*if (arguments.debug) {
 		unsigned int* cpu_dist;
 		cpu_dist = new unsigned int[num_nodes];
 
@@ -266,7 +168,7 @@ int main_unified_memory(ArgumentParser arguments) {
 		
 		cpu_dist[arguments.sourceNode] = 0;
 
-		sssp::seq_cpu(	graph.edges, 
+		pr::seq_cpu(	graph.edges, 
 					    graph.weights, 
 					    num_edges, 
 					    arguments.sourceNode, 
@@ -281,7 +183,7 @@ int main_unified_memory(ArgumentParser arguments) {
 		}
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
-	}
+	}*/
 
 	if(arguments.hasOutput)
 		utilities::SaveResults(arguments.output, dist, num_nodes);
@@ -333,7 +235,7 @@ int main(int argc, char** argv) {
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
-	/*if (!sssp::checkSize(graph, vGraph, arguments.deviceID)) {
+	/*if (!pr::checkSize(graph, vGraph, arguments.deviceID)) {
 		cout << "Graph too large! Switching to unified memory" << endl;
 		main_unified_memory(arguments);
 	}*/
@@ -410,125 +312,9 @@ int main(int argc, char** argv) {
 	timer.Start();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
-		do
-		{
-			itr++;
-			finished = true;
-			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-			if(itr % 2 == 1)
-			{
-				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															d_nodePointer,
-															d_partNodePointer,
-															d_edgeList, 
-															d_dist, 
-															d_finished,
-															d_label1,
-															d_label2);
-				sssp::clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
-			}
-			else
-			{
-				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															d_nodePointer, 
-															d_partNodePointer,
-															d_edgeList, 
-															d_dist, 
-															d_finished,
-															d_label2,
-															d_label1);
-				sssp::clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
-			}
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
-			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			
-
-		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
-		do
-		{
-			itr++;
-			finished = true;
-			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
-			sssp::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-														d_nodePointer,
-														d_partNodePointer,
-														d_edgeList, 
-														d_dist, 
-														d_finished);
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
-			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			
-
-		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
-		do
-		{
-			itr++;
-			if(itr % 2 == 1)
-			{
-				finished = true;
-				gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
-				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															d_nodePointer,
-															d_partNodePointer,
-															d_edgeList, 
-															d_dist, 
-															d_finished,
-															false);
-			}
-			else
-			{
-				finished2 = true;
-				gpuErrorcheck(cudaMemcpy(d_finished2, &finished2, sizeof(bool), cudaMemcpyHostToDevice));
-				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															d_nodePointer, 
-															d_partNodePointer,
-															d_edgeList, 
-															d_dist, 
-															d_finished2,
-															true);
-			}
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
-			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			gpuErrorcheck(cudaMemcpy(&finished2, d_finished2, sizeof(bool), cudaMemcpyDeviceToHost));
-			
-
-		} while (!(finished) && !(finished2));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
-		do
-		{
-			itr++;
-			finished = true;
-			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
-			sssp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-														d_nodePointer,
-														d_partNodePointer,
-														d_edgeList, 
-														d_dist, 
-														d_finished,
-														(itr%2==1) ? d_label1 : d_label2,
-														(itr%2==1) ? d_label2 : d_label1);
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
-			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			
-
-		} while (!(finished));
 	}
 
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
@@ -553,7 +339,7 @@ int main(int argc, char** argv) {
 	}
 
 	// Run sequential cpu version and print out useful information
-	if (arguments.debug) {
+	/*if (arguments.debug) {
 		unsigned int* cpu_dist;
 		cpu_dist = new unsigned int[num_nodes];
 
@@ -564,7 +350,7 @@ int main(int argc, char** argv) {
 		
 		cpu_dist[arguments.sourceNode] = 0;
 
-		sssp::seq_cpu(	graph.edges, 
+		pr::seq_cpu(	graph.edges, 
 					    graph.weights, 
 					    num_edges, 
 					    arguments.sourceNode, 
@@ -579,7 +365,7 @@ int main(int argc, char** argv) {
 		}
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
-	}
+	}*/
 
 	if(arguments.hasOutput)
 		utilities::SaveResults(arguments.output, dist, num_nodes);

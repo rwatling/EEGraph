@@ -6,6 +6,7 @@ project(EEGraph LANGUAGES CXX CUDA)
 set(GPU_LIB "_cuda")
 set(CPU_LIB "_cpp")
 set(SSSP_PROJECT "sssp")
+set(PR_PROJECT "pr")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2")
 
@@ -15,6 +16,7 @@ endif()
 
 ##### FILES
 file(GLOB sssp_main "${CMAKE_SOURCE_DIR}/src/sssp_main.cu")
+file(GLOB pr_main "${CMAKE_SOURCE_DIR}/src/pr_main.cu")
 
 file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/argument_parsing.cpp"
@@ -24,7 +26,8 @@ file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/virtual_graph.cpp")
 
   file(GLOB gpu_source_files
-    "${CMAKE_SOURCE_DIR}/src/sssp.cu")
+    "${CMAKE_SOURCE_DIR}/src/sssp.cu"
+    "${CMAKE_SOURCE_DIR}/src/pr.cu")
 
 ##### Include directories
 include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -52,4 +55,13 @@ target_link_libraries(${SSSP_PROJECT} PRIVATE ${GPU_LIB})
 target_link_libraries(${SSSP_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${SSSP_PROJECT} PUBLIC -lnvidia-ml)
 
+##### Executables - PR
+add_executable(${PR_PROJECT} ${pr_main})
+
+##### Link libraries - PR
+target_link_libraries(${PR_PROJECT} PRIVATE ${GPU_LIB})
+target_link_libraries(${PR_PROJECT} PRIVATE ${CPU_LIB})
+target_link_libraries(${PR_PROJECT} PUBLIC -lnvidia-ml)
+
 set_property(TARGET ${SSSP_PROJECT} PROPERTY CXX_STANDARD 11)
+set_property(TARGET ${PR_PROJECT} PROPERTY CXX_STANDARD 11)
