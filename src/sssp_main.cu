@@ -570,13 +570,8 @@ int main(int argc, char** argv) {
 					    arguments.sourceNode, 
 					    cpu_dist);
 
-		if (num_nodes < 20) {
-			utilities::PrintResults(cpu_dist, num_nodes);
-			utilities::PrintResults(dist, num_nodes);
-		} else {
-			utilities::PrintResults(cpu_dist, 20);
-			utilities::PrintResults(dist, 20);
-		}
+		utilities::PrintResults(cpu_dist, min(30, num_nodes));
+		utilities::PrintResults(dist, min(30, num_nodes));
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}

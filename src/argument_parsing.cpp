@@ -10,6 +10,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	this->sourceNode = 0;
 	this->deviceID = 0;
 	this->numberOfItrs = 1;
+	this->acc = 0.01;
 	
 	hasInput = false;
 	hasSourceNode = false;
@@ -22,6 +23,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	energy = false;
 	unifiedMem = false;
 	subway = false;
+	hasAcc = false;
 	
 	Parse();
 }
@@ -120,6 +122,9 @@ bool ArgumentParser::Parse()
 					strcmp(argv[i+1], "True") == 0 || 
 					strcmp(argv[i+1], "TRUE") == 0)
 					unifiedMem = true; 
+			} else if (strcmp(argv[i], "--accuracy") == 0) {
+				acc = (float) atof(argv[i+1]);
+				hasAcc = true;
 			} else {
 				cout << "\nThere was an error parsing command line argument <" << argv[i] << ">\n";
 				cout << GenerateHelpString();
@@ -170,6 +175,7 @@ string ArgumentParser::GenerateHelpString(){
 	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";
 	str += "\n    [--um]: Use unified memory for graph algorithms. E.g. --um true";
 	str += "\n    [--subway]: Use for subway graph partitioning on large graphs E.g. --subway true";
+	str += "\n    [--acc]: supply accuracy for algorithm E.g. --accuracy 0.01";
 	str += "\n\n";
 	return str;
 }

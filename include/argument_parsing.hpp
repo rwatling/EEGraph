@@ -21,6 +21,7 @@ public:
 	bool hasNumberOfItrs;
 	bool hasEnergyFile;
 	bool hasEnergyStats;
+	bool hasAcc;
 
 	bool debug;
 	bool energy;
@@ -35,6 +36,8 @@ public:
 	int sourceNode;
 	int deviceID;
 	int numberOfItrs;
+
+	float acc;
 
 	Variant variant;
 	
