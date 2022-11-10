@@ -14,14 +14,14 @@ namespace pr {
                                    unsigned int* dist,
 								   bool* finished);
 
-    __global__ void sync_push_dd(  unsigned int numParts, 
-                                   unsigned int *nodePointer,
-                                   PartPointer *partNodePointer,
-                                   unsigned int *edgeList,
-                                   unsigned int* dist,
-								   bool* finished,
-								   bool* label1,
-								   bool* label2);
+    __global__ void sync_push_dd(unsigned int numParts, 
+								unsigned int *nodePointer, 
+								PartPointer *partNodePointer,
+								unsigned int *edgeList,
+								float *pr1,
+								float *pr2,
+                                bool* label1,
+                                bool* label2);
 
     __global__ void sync_push_td(unsigned int numParts, 
                                     unsigned int *nodePointer, 

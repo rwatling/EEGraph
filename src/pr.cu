@@ -77,19 +77,48 @@ __global__ void pr::sync_push_td(unsigned int numParts,
 	}
 }
 
-__global__ void pr::sync_push_dd(  unsigned int numParts, 
-                                     unsigned int *nodePointer,
-									 PartPointer *partNodePointer, 
-                                     unsigned int *edgeList,
-                                     unsigned int* dist,
-									 bool* finished,
-									 bool* label1,
-									 bool* label2) 
+__global__ void pr::sync_push_dd(unsigned int numParts, 
+								unsigned int *nodePointer, 
+								PartPointer *partNodePointer,
+								unsigned int *edgeList,
+								float *pr1,
+								float *pr2,
+								bool* label1,
+								bool* label2) 
 {
-   int partId = blockDim.x * blockIdx.x + threadIdx.x;
+
+	int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
 	{
+		int id = partNodePointer[partId].node;
+		int part = partNodePointer[partId].part;
+		
+		if(label1[id] == false) return;
+
+		int thisPointer = nodePointer[id];
+		int degree = edgeList[thisPointer];
+		
+		float sourcePR = (float) pr2[id] / degree;
+			
+		int numParts;
+		if(degree % Part_Size == 0)
+			numParts = degree / Part_Size ;
+		else
+			numParts = degree / Part_Size + 1;
+		
+		int end;
+		int ofs = thisPointer + part + 1;
+
+		for(int i=0; i<Part_Size; i++)
+		{
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts;
+
+			atomicAdd(&pr1[edgeList[end]], sourcePR);
+			label2[edgeList[end]] = true;
+		}	
 	}
 }
 

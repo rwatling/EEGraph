@@ -283,6 +283,49 @@ int main(int argc, char** argv) {
 	timer.Start();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
+		do
+		{
+			itr++;
+			if(itr % 2 == 1)
+			{
+				pr::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															d_nodePointer,
+															d_partNodePointer,
+															d_edgeList, 
+															d_pr1,
+															d_pr2,
+															d_label1,
+															d_label2);
+				pr::clearVal<<< num_blocks , num_threads >>>(d_pr1, d_pr2, num_nodes, base);
+				pr::clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
+			}
+			else
+			{
+				pr::sync_push_dd<<<num_blocks , num_threads >>>(vGraph.numParts, 
+															d_nodePointer, 
+															d_partNodePointer,
+															d_edgeList,
+															d_pr2,
+															d_pr1,
+															d_label2,
+															d_label1);
+				pr::clearVal<<< num_blocks , num_threads >>>(d_pr2, d_pr1, num_nodes, base);
+				pr::clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);												
+			}
+		
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );
+			
+		} while(itr < arguments.numberOfItrs);
+
+		if(itr % 2 == 1)
+		{
+			gpuErrorcheck(cudaMemcpy(pr1, d_pr1, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
+		}
+		else
+		{
+			gpuErrorcheck(cudaMemcpy(pr1, d_pr2, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
+		}
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -313,16 +356,17 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			
 		} while(itr < arguments.numberOfItrs);
-	} else if (arguments.variant == ASYNC_PUSH_DD) {
-	}
 
-	if(itr % 2 == 1)
-	{
-		gpuErrorcheck(cudaMemcpy(pr1, d_pr1, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
-	}
-	else
-	{
-		gpuErrorcheck(cudaMemcpy(pr1, d_pr2, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
+		if(itr % 2 == 1)
+		{
+			gpuErrorcheck(cudaMemcpy(pr1, d_pr1, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
+		}
+		else
+		{
+			gpuErrorcheck(cudaMemcpy(pr1, d_pr2, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
+		}
+
+	} else if (arguments.variant == ASYNC_PUSH_DD) {
 	}
 
 	if (arguments.energy) nvml.log_point();
