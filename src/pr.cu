@@ -1,6 +1,7 @@
 #include "../include/pr.cuh"
 
-bool pr::checkSize(Graph graph, VirtualGraph vGraph, int deviceId) {
+bool pr::checkSize(Graph graph, VirtualGraph vGraph, int deviceId) 
+{
 	cudaProfilerStart();
 	cudaError_t error;
 	cudaDeviceProp dev;
@@ -27,7 +28,8 @@ __global__ void pr::async_push_td(  unsigned int numParts,
 									 PartPointer *partNodePointer, 
                                      unsigned int *edgeList,
                                      unsigned int* dist,
-									 bool* finished) {
+									 bool* finished) 
+{
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
@@ -35,20 +37,43 @@ __global__ void pr::async_push_td(  unsigned int numParts,
 	}
 }
 
-__global__ void pr::sync_push_td(  unsigned int numParts, 
-                                     unsigned int *nodePointer,
-									 PartPointer *partNodePointer, 
-                                     unsigned int *edgeList,
-                                     unsigned int* dist,
-									 bool* finished,
-									 bool even) {
-   int partId = blockDim.x * blockIdx.x + threadIdx.x;
+__global__ void pr::sync_push_td(unsigned int numParts, 
+								unsigned int *nodePointer, 
+								PartPointer *partNodePointer,
+								unsigned int *edgeList,
+								float *pr1,
+								float *pr2) 
+{
 
-	if((partId < numParts) && (partId % 2 == 0) && even)
+	int partId = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(partId < numParts)
 	{
+		int id = partNodePointer[partId].node;
+		int part = partNodePointer[partId].part;
 		
-	} else if (partId < numParts && (partId % 2 == 1)) {
+		int thisPointer = nodePointer[id];
+		int degree = edgeList[thisPointer];
+		
+		float sourcePR = (float) pr2[id] / degree;
+			
+		int numParts;
+		if(degree % Part_Size == 0)
+			numParts = degree / Part_Size ;
+		else
+			numParts = degree / Part_Size + 1;
+		
+		int end;
+		int ofs = thisPointer + part + 1;
 
+		for(int i=0; i<Part_Size; i++)
+		{
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts;
+
+			atomicAdd(&pr1[edgeList[end]], sourcePR);
+		}	
 	}
 }
 
@@ -59,7 +84,8 @@ __global__ void pr::sync_push_dd(  unsigned int numParts,
                                      unsigned int* dist,
 									 bool* finished,
 									 bool* label1,
-									 bool* label2) {
+									 bool* label2) 
+{
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
@@ -74,7 +100,8 @@ __global__ void pr::async_push_dd(  unsigned int numParts,
                                      unsigned int* dist,
 									 bool* finished,
 									 bool* label1,
-									 bool* label2) {
+									 bool* label2) 
+{
     
 	int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -83,32 +110,42 @@ __global__ void pr::async_push_dd(  unsigned int numParts,
 	}
 }
 
-void pr::seq_cpu(  vector<Edge> edges, 
-                     vector<uint> weights, 
-                     uint num_edges, 
-                     int source, 
-                     unsigned int* dist  ) {
+void pr::seq_cpu(unsigned int numParts, 
+				unsigned int *nodePointer, 
+				PartPointer *partNodePointer,
+				unsigned int *edgeList,
+				float *pr1,
+				float *pr2)
+{
 
-	bool finished = false;
+	for (int partId = 0; partId < numParts; partId++) {
+		int id = partNodePointer[partId].node;
+		int part = partNodePointer[partId].part;
+		
+		int thisPointer = nodePointer[id];
+		int degree = edgeList[thisPointer];
+		
+		float sourcePR = (float) pr2[id] / degree;
+			
+		int numParts;
+		if(degree % Part_Size == 0)
+			numParts = degree / Part_Size ;
+		else
+			numParts = degree / Part_Size + 1;
+		
+		int end;
+		int ofs = thisPointer + part + 1;
 
-	while (!finished) {
-		finished = true;
+		for(int i=0; i<Part_Size; i++)
+		{
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts;
 
-		Edge e;
-		uint e_w8;
-		uint final_dist;
-
-		for (int i = 0; i < num_edges; i++) {
-			e = edges[i];
-			e_w8 = weights[i];
-			final_dist = dist[e.source] + e_w8;
-
-			if (final_dist < dist[e.end]) {
-				dist[e.end] = final_dist;
-				finished = false;
-			}
-		}
+			pr1[edgeList[end]] += sourcePR;
+		}	
 	}
+
 }
 
 __global__ void pr::clearLabel(bool *label, unsigned int size)
@@ -116,4 +153,22 @@ __global__ void pr::clearLabel(bool *label, unsigned int size)
 	unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
 	if(id < size)
 		label[id] = false;
+}
+
+__global__ void pr::clearVal(float *prA, float *prB, unsigned int num_nodes, float base)
+{
+	unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
+	if(id < num_nodes)
+	{
+		prA[id] = base + prA[id] * 0.85;
+		prB[id] = 0;
+	}
+}
+
+void pr::cpu_clearVal(float *prA, float *prB, unsigned int num_nodes, float base)
+{
+	for (int i = 0; i < num_nodes; i++) {
+		prA[i] = base + prA[i] * 0.85;
+		prB[i] = 0;
+	}
 }

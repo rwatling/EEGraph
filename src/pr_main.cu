@@ -15,7 +15,7 @@
 	exit(0);
 }*/
 
-int main_unified_memory(ArgumentParser arguments) {
+/*int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
 		
 	// Energy structures initilization
@@ -157,33 +157,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	}
 
 	// Run sequential cpu version and print out useful information
-	/*if (arguments.debug) {
-		unsigned int* cpu_dist;
-		cpu_dist = new unsigned int[num_nodes];
-
-		for(int i=0; i<num_nodes; i++)
-		{
-			cpu_dist[i] = DIST_INFINITY;
-		}
-		
-		cpu_dist[arguments.sourceNode] = 0;
-
-		pr::seq_cpu(	graph.edges, 
-					    graph.weights, 
-					    num_edges, 
-					    arguments.sourceNode, 
-					    cpu_dist);
-
-		if (num_nodes < 20) {
-			utilities::PrintResults(cpu_dist, num_nodes);
-			utilities::PrintResults(dist, num_nodes);
-		} else {
-			utilities::PrintResults(cpu_dist, 20);
-			utilities::PrintResults(dist, 20);
-		}
-
-		utilities::CompareArrays(cpu_dist, dist, num_nodes);
-	}*/
 
 	if(arguments.hasOutput)
 		utilities::SaveResults(arguments.output, dist, num_nodes);
@@ -196,16 +169,16 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaFree(partNodePointer));
 
 	exit(0);
-}
+}*/
 
 int main(int argc, char** argv) {
 
-	ArgumentParser arguments(argc, argv, true, false);
+	ArgumentParser arguments(argc, argv, false, true);
 
 	if (arguments.unifiedMem) {
-		main_unified_memory(arguments);
+		//main_unified_memory(arguments);
 	} else if (arguments.subway) {
-		/*main_subway(arguments);*/
+		//main_subway(arguments);
 		cout << "Subway not yet implemented" << endl;
 	}
 
@@ -253,52 +226,49 @@ int main(int argc, char** argv) {
 
 	cudaFree(0);
 
-	unsigned int *dist;
-	dist  = new unsigned int[num_nodes];
-
 	bool *label1;
 	bool *label2;
 	label1 = new bool[num_nodes];
 	label2 = new bool[num_nodes];
+
+	float *pr1, *pr2;
+	pr1 = new float[num_nodes];
+	pr2 = new float[num_nodes];
+
+	float initPR = (float) 1 / num_nodes;
 	
 	for(int i=0; i<num_nodes; i++)
 	{
-			dist[i] = DIST_INFINITY;
-			label1[i] = false;
-			label2[i] = false;
+		pr1[i] = 0;
+		pr2[i] = initPR;
+		label1[i] = false;
+		label2[i] = false;
 	}
-	
-	dist[arguments.sourceNode] = 0;
+
 	label1[arguments.sourceNode] = true;
 
 	uint *d_nodePointer;
 	uint *d_edgeList;
-	uint *d_dist;
 	PartPointer *d_partNodePointer; 
 	bool *d_label1;
 	bool *d_label2;
-	
-	bool finished;
-	bool finished2;
-	bool *d_finished;
-	bool *d_finished2;
+	float *d_pr1;
+	float *d_pr2;
 
 	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
-	gpuErrorcheck(cudaMalloc(&d_dist, num_nodes * sizeof(unsigned int)));
-	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
-	gpuErrorcheck(cudaMalloc(&d_finished2, sizeof(bool)));
+	gpuErrorcheck(cudaMalloc(&d_pr1, num_nodes * sizeof(float)));
+	gpuErrorcheck(cudaMalloc(&d_pr2, num_nodes * sizeof(float)));
 	gpuErrorcheck(cudaMalloc(&d_label1, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_label2, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_partNodePointer, vGraph.numParts * sizeof(PartPointer)));
 
 	gpuErrorcheck(cudaMemcpy(d_nodePointer, vGraph.nodePointer, num_nodes * sizeof(unsigned int), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_edgeList, vGraph.edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemcpyHostToDevice));
-	gpuErrorcheck(cudaMemcpy(d_dist, dist, num_nodes * sizeof(unsigned int), cudaMemcpyHostToDevice));
-	gpuErrorcheck(cudaMemcpy(d_label1, label1, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
-	gpuErrorcheck(cudaMemcpy(d_label2, label2, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
+	gpuErrorcheck(cudaMemcpy(d_pr1, pr1, num_nodes * sizeof(float), cudaMemcpyHostToDevice));
+	gpuErrorcheck(cudaMemcpy(d_pr2, pr2, num_nodes * sizeof(float), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_partNodePointer, vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemcpyHostToDevice));
 
 	if (arguments.energy) nvml.log_point();
@@ -308,16 +278,52 @@ int main(int argc, char** argv) {
 	int itr = 0;
 	uint num_threads = 512;
 	uint num_blocks = vGraph.numParts / num_threads + 1;
+	float base = (float)0.15/num_nodes;
 
 	timer.Start();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 	} else if (arguments.variant == SYNC_PUSH_TD) {
+		do
+		{
+			itr++;
+			if(itr % 2 == 1)
+			{
+				pr::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															d_nodePointer,
+															d_partNodePointer,
+															d_edgeList, 
+															d_pr1,
+															d_pr2);
+				pr::clearVal<<< num_blocks , num_threads >>>(d_pr1, d_pr2, num_nodes, base);	
+			}
+			else
+			{
+				pr::sync_push_td<<<num_blocks , num_threads >>>(vGraph.numParts, 
+															d_nodePointer, 
+															d_partNodePointer,
+															d_edgeList,
+															d_pr2,
+															d_pr1);
+				pr::clearVal<<< num_blocks , num_threads >>>(d_pr2, d_pr1, num_nodes, base);												
+			}
+		
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );
+			
+		} while(itr < arguments.numberOfItrs);
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 	}
 
-	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
+	if(itr % 2 == 1)
+	{
+		gpuErrorcheck(cudaMemcpy(pr1, d_pr1, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
+	}
+	else
+	{
+		gpuErrorcheck(cudaMemcpy(pr1, d_pr2, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
+	}
 
 	if (arguments.energy) nvml.log_point();
 
@@ -338,43 +344,32 @@ int main(int argc, char** argv) {
 		cpu_threads.clear();
 	}
 
-	// Run sequential cpu version and print out useful information
-	/*if (arguments.debug) {
-		unsigned int* cpu_dist;
-		cpu_dist = new unsigned int[num_nodes];
-
-		for(int i=0; i<num_nodes; i++)
-		{
-			cpu_dist[i] = DIST_INFINITY;
+	// Naive checks
+	if (arguments.debug) {
+		float sum = 0;
+		for (int i = 0; i < num_nodes; i++) {
+			sum += pr1[i];
+			if (pr1[i] < 0) {
+				cout << "Error: negative node value at " << i << endl;
+			}
 		}
+
+		cout << "Sum: " << sum << endl;
 		
-		cpu_dist[arguments.sourceNode] = 0;
-
-		pr::seq_cpu(	graph.edges, 
-					    graph.weights, 
-					    num_edges, 
-					    arguments.sourceNode, 
-					    cpu_dist);
-
 		if (num_nodes < 20) {
-			utilities::PrintResults(cpu_dist, num_nodes);
-			utilities::PrintResults(dist, num_nodes);
+			utilities::PrintResults(pr1, num_nodes);
 		} else {
-			utilities::PrintResults(cpu_dist, 20);
-			utilities::PrintResults(dist, 20);
+			utilities::PrintResults(pr1, 20);
 		}
-
-		utilities::CompareArrays(cpu_dist, dist, num_nodes);
-	}*/
+	}
 
 	if(arguments.hasOutput)
-		utilities::SaveResults(arguments.output, dist, num_nodes);
+		utilities::SaveResults(arguments.output, pr1, num_nodes);
 
 	gpuErrorcheck(cudaFree(d_nodePointer));
 	gpuErrorcheck(cudaFree(d_edgeList));
-	gpuErrorcheck(cudaFree(d_dist));
-	gpuErrorcheck(cudaFree(d_finished));
-	gpuErrorcheck(cudaFree(d_finished2));
+	gpuErrorcheck(cudaFree(d_pr1));
+	gpuErrorcheck(cudaFree(d_pr2));
 	gpuErrorcheck(cudaFree(d_label1));
 	gpuErrorcheck(cudaFree(d_label2));
 	gpuErrorcheck(cudaFree(d_partNodePointer));

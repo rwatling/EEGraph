@@ -56,3 +56,26 @@ void utilities::CompareArrays(unsigned int* arr1, unsigned int* arr2, int n) {
 		}
 	}
 }
+
+void utilities::CompareArrays(float* arr1, float* arr2, int n) {
+	float a;
+	float b;
+	float diff;
+	float tolerance = 1.0e-9;
+	
+	for (int i = 0; i < n; i++) {
+		a = arr1[i];
+		b = arr2[i];
+
+		diff = fabs(a-b);
+		a = fabs(a);
+		b = fabs(b);
+
+		float largest = (b > a) ? b : a;
+		
+		if (diff > largest * tolerance) {
+			cout << "Array difference exceeds tolerance at " << i << endl;
+			break;
+		}
+	}
+}

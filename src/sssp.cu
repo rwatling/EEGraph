@@ -1,6 +1,7 @@
 #include "../include/sssp.cuh"
 
-bool sssp::checkSize(Graph graph, VirtualGraph vGraph, int deviceId) {
+bool sssp::checkSize(Graph graph, VirtualGraph vGraph, int deviceId) 
+{
 	cudaProfilerStart();
 	cudaError_t error;
 	cudaDeviceProp dev;
@@ -27,7 +28,8 @@ __global__ void sssp::async_push_td(  unsigned int numParts,
 									 PartPointer *partNodePointer, 
                                      unsigned int *edgeList,
                                      unsigned int* dist,
-									 bool* finished) {
+									 bool* finished)
+{
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
@@ -74,7 +76,8 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
                                      unsigned int *edgeList,
                                      unsigned int* dist,
 									 bool* finished,
-									 bool even) {
+									 bool even) 
+{
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if((partId < numParts) && (partId % 2 == 0) && even)
@@ -156,7 +159,8 @@ __global__ void sssp::sync_push_dd(  unsigned int numParts,
                                      unsigned int* dist,
 									 bool* finished,
 									 bool* label1,
-									 bool* label2) {
+									 bool* label2) 
+{
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
@@ -209,7 +213,8 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
                                      unsigned int* dist,
 									 bool* finished,
 									 bool* label1,
-									 bool* label2) {
+									 bool* label2)
+{
     
 	int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -262,7 +267,8 @@ void sssp::seq_cpu(  vector<Edge> edges,
                      vector<uint> weights, 
                      uint num_edges, 
                      int source, 
-                     unsigned int* dist  ) {
+                     unsigned int* dist  )
+{
 
 	bool finished = false;
 
