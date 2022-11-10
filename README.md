@@ -35,7 +35,6 @@ V1  V2  W
 * cit-patent
 
 #### [Stanford SNAP Datasets](https://snap.stanford.edu/data/index.html)
-* [twitter-ego](https://snap.stanford.edu/data/ego-Twitter.html)
 * Web-Google
 #### [Galois Project](https://github.com/IntelligentSoftwareSystems/Galois)
 * Build the graph convert tool to convert and use to convert from a graph type to edgelist
