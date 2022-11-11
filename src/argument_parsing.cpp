@@ -10,7 +10,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	this->sourceNode = 0;
 	this->deviceID = 0;
 	this->numberOfItrs = 1;
-	this->acc = 0.01;
+	this->acc = 0.001;
 	
 	hasInput = false;
 	hasSourceNode = false;
