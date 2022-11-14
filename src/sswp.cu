@@ -171,6 +171,8 @@ __global__ void sswp::sync_push_dd(  unsigned int numParts,
 		if(label1[id] == false)
 			return;
 
+		label1[id] = false;
+
 		int sourceWeight = dist[id];
 
 		int thisPointer = nodePointer[id];
@@ -226,7 +228,9 @@ __global__ void sswp::async_push_dd(  unsigned int numParts,
 		if(label1[id] == false)
 			return;
 
-		int sourceWeight = dist[id];
+		label1[id] = false;
+
+		unsigned int sourceWeight = dist[id];
 
 		int thisPointer = nodePointer[id];
 		int degree = edgeList[thisPointer];
@@ -248,6 +252,7 @@ __global__ void sswp::async_push_dd(  unsigned int numParts,
 				break;
 			end = ofs + i*numParts*2;
 			w8 = end + 1;
+
 			finalDist = min(sourceWeight, edgeList[w8]);
 			if(finalDist > dist[edgeList[end]])
 			{
@@ -270,6 +275,8 @@ void sswp::seq_cpu(  vector<Edge> edges,
 
 	bool finished = false;
 
+	dist[source] = 0;
+
 	while (!finished) {
 		finished = true;
 
@@ -280,6 +287,7 @@ void sswp::seq_cpu(  vector<Edge> edges,
 		for (int i = 0; i < num_edges; i++) {
 			e = edges[i];
 			e_w8 = weights[i];
+
 			final_dist = min(dist[e.source], e_w8);
 
 			if (final_dist > dist[e.end]) {
@@ -288,4 +296,6 @@ void sswp::seq_cpu(  vector<Edge> edges,
 			}
 		}
 	}
+
+	dist[source] = 0;
 }

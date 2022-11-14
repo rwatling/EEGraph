@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
 		cpu_dist[arguments.sourceNode] = 0;
 
 		sswp::seq_cpu(	graph.edges, 
-					    graph.weights, 
+					    graph.weights,
 					    num_edges, 
 					    arguments.sourceNode, 
 					    cpu_dist);
@@ -290,6 +290,7 @@ int main(int argc, char** argv) {
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}
+
 
 	if(arguments.hasOutput)
 		utilities::SaveResults(arguments.output, dist, num_nodes);
