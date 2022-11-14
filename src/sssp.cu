@@ -292,9 +292,3 @@ void sssp::seq_cpu(  vector<Edge> edges,
 	}
 }
 
-__global__ void sssp::clearLabel(bool *label, unsigned int size)
-{
-	unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
-	if(id < size)
-		label[id] = false;
-}

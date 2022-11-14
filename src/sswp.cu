@@ -226,8 +226,6 @@ __global__ void sswp::async_push_dd(  unsigned int numParts,
 		if(label1[id] == false)
 			return;
 
-		label1[id] = false;
-
 		int sourceWeight = dist[id];
 
 		int thisPointer = nodePointer[id];
@@ -290,11 +288,4 @@ void sswp::seq_cpu(  vector<Edge> edges,
 			}
 		}
 	}
-}
-
-__global__ void sswp::clearLabel(bool *label, unsigned int size)
-{
-	unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
-	if(id < size)
-		label[id] = false;
 }

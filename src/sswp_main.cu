@@ -8,91 +8,8 @@
 #include "../include/nvmlClass.cuh"
 #include "../include/sswp.cuh"
 #include "../include/virtual_graph.hpp"
+#include "../include/gpu_utils.cuh"
 #include <iostream>
-
-/*int main_subway(ArgumentParser arguments) {
-	cout << "Subway graph partitioning" << endl;
-	exit(0);
-}*/
-
-// Tried this but kept getting segfaults
-/*long long MakeGraphUM(Graph* graph, uint* nodePointer, uint* edgeList, PartPointer* partNodePointer, uint* outDegree)
-{ 
-	/*nodePointer = new uint[graph->num_nodes];
-	edgeList = new uint[2*graph->num_edges + graph->num_nodes];*/
-	/*cout << "Entered function" << endl;
-	gpuErrorcheck(cudaMallocManaged(&nodePointer, graph->num_nodes * sizeof(unsigned int)));
-	gpuErrorcheck(cudaMallocManaged(&edgeList, (2*graph->num_edges + graph->num_nodes) * sizeof(unsigned int)));
-	
-	uint outDegreeCounter[graph->num_nodes];
-	uint source;
-	uint end;
-	uint w8;		
-	
-	
-	long long counter=0;
-	long long numParts = 0;
-	int numZero = 0;
-	
-	for(int i=0; i<graph->num_nodes; i++)
-	{
-		nodePointer[i] = counter;
-		edgeList[counter] = outDegree[i];
-		
-		if(outDegree[i] == 0)
-			numZero++;
-		
-		if(outDegree[i] % Part_Size == 0)
-			numParts += outDegree[i] / Part_Size ;
-		else
-			numParts += outDegree[i] / Part_Size + 1;
-		
-		counter = counter + outDegree[i]*2 + 1;
-	}
-
-	//outDegreeCounter  = new uint[graph->num_nodes];
-	
-	for(int i=0; i<graph->num_edges; i++)
-	{
-		source = graph->edges[i].source;
-		end = graph->edges[i].end;
-		w8 = graph->weights[i];
-		
-		uint location = nodePointer[source]+1+2*outDegreeCounter[source];
-
-		cout << "Nodepointer:" << nodePointer[source] << endl;
-		cout << "Outdeg:" << outDegreeCounter[source] << endl; // Outdeg is larger than graph!
-		cout << "Source:" << source << endl;
-		cout << "Location:" << location << endl;
-
-		edgeList[location] = end; // Seg faults here
-		edgeList[location+1] = w8;
-
-		outDegreeCounter[source]++;  
-	}
-	
-	
-	//partNodePointer = new PartPointer[numParts];
-
-	gpuErrorcheck(cudaMallocManaged(&partNodePointer, numParts * sizeof(PartPointer)));
-	
-	int thisNumParts;
-	long long countParts = 0;
-	for(int i=0; i<graph->num_nodes; i++)
-	{
-		if(outDegree[i] % Part_Size == 0)
-			thisNumParts = outDegree[i] / Part_Size ;
-		else
-			thisNumParts = outDegree[i] / Part_Size + 1;
-		for(int j=0; j<thisNumParts; j++)
-		{
-			partNodePointer[countParts].node = i;
-			partNodePointer[countParts++].part = j;
-		}
-	}
-
-	return numParts;
-}*/
 
 int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
@@ -218,7 +135,7 @@ int main_unified_memory(ArgumentParser arguments) {
 															finished,
 															label1,
 															label2);
-				sswp::clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
 			}
 			else
 			{
@@ -230,7 +147,7 @@ int main_unified_memory(ArgumentParser arguments) {
 															finished,
 															label2,
 															label1);
-				sswp::clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
@@ -509,7 +426,7 @@ int main(int argc, char** argv) {
 															d_finished,
 															d_label1,
 															d_label2);
-				sswp::clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
 			{
@@ -521,7 +438,7 @@ int main(int argc, char** argv) {
 															d_finished,
 															d_label2,
 															d_label1);
-				sswp::clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );

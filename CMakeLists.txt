@@ -31,7 +31,8 @@ file(GLOB cpp_source_files
   file(GLOB gpu_source_files
     "${CMAKE_SOURCE_DIR}/src/sssp.cu"
     "${CMAKE_SOURCE_DIR}/src/pr.cu"
-    "${CMAKE_SOURCE_DIR}/src/sswp.cu")
+    "${CMAKE_SOURCE_DIR}/src/sswp.cu"
+    "${CMAKE_SOURCE_DIR}/src/gpu_utils.cu")
 
 ##### Include directories
 include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

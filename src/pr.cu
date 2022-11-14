@@ -298,10 +298,3 @@ __global__ void pr::async_push_dd(unsigned int numParts,
 		}
 	}
 }
-
-__global__ void pr::clearLabel(bool *label, unsigned int size)
-{
-	unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
-	if(id < size)
-		label[id] = false;
-}

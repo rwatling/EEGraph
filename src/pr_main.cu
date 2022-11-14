@@ -8,6 +8,7 @@
 #include "../include/nvmlClass.cuh"
 #include "../include/pr.cuh"
 #include "../include/virtual_graph.hpp"
+#include "../include/gpu_utils.cuh"
 #include <iostream>
 
 int main(int argc, char** argv) {
@@ -161,7 +162,7 @@ int main(int argc, char** argv) {
 																acc,
 																d_label1,
 																d_label2);
-				pr::clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
 			{
@@ -175,7 +176,7 @@ int main(int argc, char** argv) {
 															acc,
 															d_label2,
 															d_label1);
-				pr::clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );

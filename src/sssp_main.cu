@@ -8,6 +8,7 @@
 #include "../include/nvmlClass.cuh"
 #include "../include/sssp.cuh"
 #include "../include/virtual_graph.hpp"
+#include "../include/gpu_utils.cuh"
 #include <iostream>
 
 /*int main_subway(ArgumentParser arguments) {
@@ -218,7 +219,7 @@ int main_unified_memory(ArgumentParser arguments) {
 															finished,
 															label1,
 															label2);
-				sssp::clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
 			}
 			else
 			{
@@ -230,7 +231,7 @@ int main_unified_memory(ArgumentParser arguments) {
 															finished,
 															label2,
 															label1);
-				sssp::clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
@@ -509,7 +510,7 @@ int main(int argc, char** argv) {
 															d_finished,
 															d_label1,
 															d_label2);
-				sssp::clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
 			{
@@ -521,7 +522,7 @@ int main(int argc, char** argv) {
 															d_finished,
 															d_label2,
 															d_label1);
-				sssp::clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
+				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
