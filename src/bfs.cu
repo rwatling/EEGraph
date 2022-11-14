@@ -1,6 +1,6 @@
-#include "../include/sssp.cuh"
+#include "../include/bfs.cuh"
 
-bool sssp::checkSize(Graph graph, VirtualGraph vGraph, int deviceId) 
+bool bfs::checkSize(Graph graph, VirtualGraph vGraph, int deviceId) 
 {
 	cudaProfilerStart();
 	cudaError_t error;
@@ -23,21 +23,20 @@ bool sssp::checkSize(Graph graph, VirtualGraph vGraph, int deviceId)
 	return (total_size < dev.totalGlobalMem);
 }
 
-__global__ void sssp::async_push_td(  unsigned int numParts, 
+__global__ void bfs::async_push_td(  unsigned int numParts, 
                                      unsigned int *nodePointer,
 									 PartPointer *partNodePointer, 
                                      unsigned int *edgeList,
                                      unsigned int* dist,
-									 bool* finished)
+									 bool* finished,
+									 unsigned int level)
 {
-   int partId = blockDim.x * blockIdx.x + threadIdx.x;
+   	int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
 	{
 		int id = partNodePointer[partId].node;
 		int part = partNodePointer[partId].part;
-
-		int sourceWeight = dist[id];
 
 		int thisPointer = nodePointer[id];
 		int degree = edgeList[thisPointer];
@@ -49,8 +48,6 @@ __global__ void sssp::async_push_td(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		int end;
-		int w8;
-		int finalDist;
 		int ofs = thisPointer + 2*part +1;
 
 		for(int i=0; i<Part_Size; i++)
@@ -58,11 +55,10 @@ __global__ void sssp::async_push_td(  unsigned int numParts,
 			if(part + i*numParts >= degree)
 				break;
 			end = ofs + i*numParts*2;
-			w8 = end + 1;
-			finalDist = sourceWeight + edgeList[w8];
-			if(finalDist < dist[edgeList[end]])
+
+			if((level + 1) < dist[edgeList[end]])
 			{
-				atomicMin(&dist[edgeList[end]] , finalDist);
+				atomicMin(&dist[edgeList[end]], level + 1);
 				*finished = false;
 			}
 		}
@@ -70,13 +66,14 @@ __global__ void sssp::async_push_td(  unsigned int numParts,
 	}
 }
 
-__global__ void sssp::sync_push_td(  unsigned int numParts, 
+__global__ void bfs::sync_push_td(  unsigned int numParts, 
                                      unsigned int *nodePointer,
 									 PartPointer *partNodePointer, 
                                      unsigned int *edgeList,
                                      unsigned int* dist,
 									 bool* finished,
-									 bool even) 
+									 bool even,
+									 unsigned int level) 
 {
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -85,8 +82,6 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 		int id = partNodePointer[partId].node;
 		int part = partNodePointer[partId].part;
 
-		int sourceWeight = dist[id];
-
 		int thisPointer = nodePointer[id];
 		int degree = edgeList[thisPointer];
 
@@ -97,8 +92,6 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		int end;
-		int w8;
-		int finalDist;
 		int ofs = thisPointer + 2*part +1;
 
 		for(int i=0; i<Part_Size; i++)
@@ -106,11 +99,10 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 			if(part + i*numParts >= degree)
 				break;
 			end = ofs + i*numParts*2;
-			w8 = end + 1;
-			finalDist = sourceWeight + edgeList[w8];
-			if(finalDist < dist[edgeList[end]])
+
+			if((level + 1) < dist[edgeList[end]])
 			{
-				atomicMin(&dist[edgeList[end]] , finalDist);
+				atomicMin(&dist[edgeList[end]], level + 1);
 				*finished = false;
 			}
 		}
@@ -119,8 +111,6 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 		int id = partNodePointer[partId].node;
 		int part = partNodePointer[partId].part;
 
-		int sourceWeight = dist[id];
-
 		int thisPointer = nodePointer[id];
 		int degree = edgeList[thisPointer];
 
@@ -131,8 +121,6 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		int end;
-		int w8;
-		int finalDist;
 		int ofs = thisPointer + 2*part +1;
 
 		for(int i=0; i<Part_Size; i++)
@@ -140,11 +128,10 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 			if(part + i*numParts >= degree)
 				break;
 			end = ofs + i*numParts*2;
-			w8 = end + 1;
-			finalDist = sourceWeight + edgeList[w8];
-			if(finalDist < dist[edgeList[end]])
+
+			if((level+1) < dist[edgeList[end]])
 			{
-				atomicMin(&dist[edgeList[end]] , finalDist);
+				atomicMin(&dist[edgeList[end]], level + 1);
 				*finished = false;
 			}
 		}
@@ -152,14 +139,15 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 	}
 }
 
-__global__ void sssp::sync_push_dd(  unsigned int numParts, 
+__global__ void bfs::sync_push_dd(  unsigned int numParts, 
                                      unsigned int *nodePointer,
 									 PartPointer *partNodePointer, 
                                      unsigned int *edgeList,
                                      unsigned int* dist,
 									 bool* finished,
 									 bool* label1,
-									 bool* label2) 
+									 bool* label2,
+									 unsigned int level) 
 {
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -170,8 +158,8 @@ __global__ void sssp::sync_push_dd(  unsigned int numParts,
 
 		if(label1[id] == false)
 			return;
-
-		int sourceWeight = dist[id];
+			
+		//label1[id] = false;
 
 		int thisPointer = nodePointer[id];
 		int degree = edgeList[thisPointer];
@@ -183,8 +171,6 @@ __global__ void sssp::sync_push_dd(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		int end;
-		int w8;
-		int finalDist;
 		int ofs = thisPointer + 2*part +1;
 
 		for(int i=0; i<Part_Size; i++)
@@ -192,11 +178,10 @@ __global__ void sssp::sync_push_dd(  unsigned int numParts,
 			if(part + i*numParts >= degree)
 				break;
 			end = ofs + i*numParts*2;
-			w8 = end + 1;
-			finalDist = sourceWeight + edgeList[w8];
-			if(finalDist < dist[edgeList[end]])
+
+			if((level+1) < dist[edgeList[end]])
 			{
-				atomicMin(&dist[edgeList[end]] , finalDist);
+				atomicMin(&dist[edgeList[end]], level + 1);
 				*finished = false;
 
 				label2[edgeList[end]] = true;
@@ -206,14 +191,15 @@ __global__ void sssp::sync_push_dd(  unsigned int numParts,
 	}
 }
 
-__global__ void sssp::async_push_dd(  unsigned int numParts, 
+__global__ void bfs::async_push_dd(  unsigned int numParts, 
                                      unsigned int *nodePointer,
 									 PartPointer *partNodePointer, 
                                      unsigned int *edgeList,
                                      unsigned int* dist,
 									 bool* finished,
 									 bool* label1,
-									 bool* label2)
+									 bool* label2,
+									 unsigned int level)
 {
     
 	int partId = blockDim.x * blockIdx.x + threadIdx.x;
@@ -226,9 +212,7 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
 		if(label1[id] == false)
 			return;
 
-		label1[id] = false;
-
-		int sourceWeight = dist[id];
+		//label1[id] = false;
 
 		int thisPointer = nodePointer[id];
 		int degree = edgeList[thisPointer];
@@ -240,20 +224,19 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		int end;
-		int w8;
-		int finalDist;
 		int ofs = thisPointer + 2*part +1;
+
+		int sourceWeight = dist[id];
 
 		for(int i=0; i<Part_Size; i++)
 		{
 			if(part + i*numParts >= degree)
 				break;
 			end = ofs + i*numParts*2;
-			w8 = end + 1;
-			finalDist = sourceWeight + edgeList[w8];
-			if(finalDist < dist[edgeList[end]])
+
+			if((level+1) < dist[edgeList[end]])
 			{
-				atomicMin(&dist[edgeList[end]] , finalDist);
+				atomicMin(&dist[edgeList[end]], level + 1);
 				*finished = false;
 
 				label2[edgeList[end]] = true;
@@ -263,31 +246,30 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
 	}
 }
 
-void sssp::seq_cpu(  vector<Edge> edges, 
+void bfs::seq_cpu(  vector<Edge> edges, 
                      vector<uint> weights, 
                      uint num_edges, 
                      int source, 
-                     unsigned int* dist  )
+                     unsigned int* dist)
 {
 
 	bool finished = false;
+	unsigned int level = 0;
 
 	while (!finished) {
 		finished = true;
 
 		Edge e;
-		uint e_w8;
-		uint final_dist;
 
 		for (int i = 0; i < num_edges; i++) {
 			e = edges[i];
-			e_w8 = weights[i];
-			final_dist = dist[e.source] + e_w8;
 
-			if (final_dist < dist[e.end]) {
-				dist[e.end] = final_dist;
+			if (dist[e.end] == DIST_INFINITY) {
+				dist[e.end] = level + 1;
 				finished = false;
 			}
 		}
+
+		level++;
 	}
 }

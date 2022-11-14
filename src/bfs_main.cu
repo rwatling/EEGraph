@@ -6,7 +6,7 @@
 #include "../include/gpu_error_check.cuh"
 #include "../include/cuda_includes.cuh"
 #include "../include/nvmlClass.cuh"
-#include "../include/sswp.cuh"
+#include "../include/bfs.cuh"
 #include "../include/virtual_graph.hpp"
 #include "../include/gpu_utils.cuh"
 #include <iostream>
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
-	/*if (!sswp::checkSize(graph, vGraph, arguments.deviceID)) {
+	/*if (!bfs::checkSize(graph, vGraph, arguments.deviceID)) {
 		cout << "Graph too large! Switching to unified memory" << endl;
 		main_unified_memory(arguments);
 	}*/
@@ -77,12 +77,11 @@ int main(int argc, char** argv) {
 	for(int i=0; i<num_nodes; i++)
 	{
 			dist[i] = DIST_INFINITY;
-			label1[i] = false;
+			label1[i] = true;
 			label2[i] = false;
 	}
 	
 	dist[arguments.sourceNode] = 0;
-	label1[arguments.sourceNode] = true;
 
 	uint *d_nodePointer;
 	uint *d_edgeList;
@@ -119,6 +118,7 @@ int main(int argc, char** argv) {
 	// Algorithm control variable declarations
 	Timer timer;
 	int itr = 0;
+	unsigned int level = 0;
 	uint num_threads = 512;
 	uint num_blocks = vGraph.numParts / num_threads + 1;
 
@@ -133,33 +133,40 @@ int main(int argc, char** argv) {
 			
 			if(itr % 2 == 1)
 			{
-				sswp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+
+				bfs::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
 															d_dist, 
 															d_finished,
 															d_label1,
-															d_label2);
-				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
+															d_label2,
+															level);
+
+				moveUpLabels<<< num_blocks , num_threads >>>(d_label2, d_label1, num_nodes);
 			}
 			else
 			{
-				sswp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+				bfs::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															d_nodePointer, 
 															d_partNodePointer,
 															d_edgeList, 
 															d_dist, 
 															d_finished,
 															d_label2,
-															d_label1);
-				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
+															d_label1,
+															level);
+				
+				moveUpLabels<<< num_blocks , num_threads >>>(d_label1, d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+
+			level++;
 
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
@@ -169,21 +176,26 @@ int main(int argc, char** argv) {
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
-			sswp::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+			bfs::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														d_nodePointer,
 														d_partNodePointer,
 														d_edgeList, 
 														d_dist, 
-														d_finished);
+														d_finished,
+														level);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			
+			level++;
 
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
+		
+		unsigned int level2 = 0;
+		
 		do
 		{
 			itr++;
@@ -192,25 +204,30 @@ int main(int argc, char** argv) {
 				finished = true;
 				gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
-				sswp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+				bfs::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
 															d_dist, 
 															d_finished,
-															false);
+															false,
+															level);
+
+				level++;
 			}
 			else
 			{
 				finished2 = true;
 				gpuErrorcheck(cudaMemcpy(d_finished2, &finished2, sizeof(bool), cudaMemcpyHostToDevice));
-				sswp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+				bfs::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															d_nodePointer, 
 															d_partNodePointer,
 															d_edgeList, 
 															d_dist, 
 															d_finished2,
-															true);
+															true,
+															level2);
+				level2++;
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
@@ -218,7 +235,6 @@ int main(int argc, char** argv) {
 			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			gpuErrorcheck(cudaMemcpy(&finished2, d_finished2, sizeof(bool), cudaMemcpyDeviceToHost));
-			
 
 		} while (!(finished) && !(finished2));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
@@ -228,20 +244,23 @@ int main(int argc, char** argv) {
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
-			sswp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+			bfs::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														d_nodePointer,
 														d_partNodePointer,
 														d_edgeList, 
 														d_dist, 
 														d_finished,
 														(itr%2==1) ? d_label1 : d_label2,
-														(itr%2==1) ? d_label2 : d_label1);
+														(itr%2==1) ? d_label2 : d_label1,
+														level);
+			mixLabels<<<num_blocks, num_threads>>>((itr%2==1)? d_label1 : d_label2, (itr%2==1)? d_label2 : d_label1, num_nodes);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			
+			level++;
 
 		} while (!(finished));
 	}
@@ -279,7 +298,7 @@ int main(int argc, char** argv) {
 		
 		cpu_dist[arguments.sourceNode] = 0;
 
-		sswp::seq_cpu(	graph.edges, 
+		bfs::seq_cpu(	graph.edges, 
 					    graph.weights, 
 					    num_edges, 
 					    arguments.sourceNode, 

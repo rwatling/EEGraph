@@ -52,6 +52,8 @@ void utilities::CompareArrays(unsigned int* arr1, unsigned int* arr2, int n) {
 	for (int i = 0; i < n; i++) {
 		if (arr1[i] != arr2[i]) {
 			cout << "Arrays begin to differ at element " << i << endl;
+			cout << "Arr1[" << i << "]: " << arr1[i] << endl;
+			cout << "Arr2[" << i << "]:" << arr2[i] << endl;
 			break;
 		}
 	}

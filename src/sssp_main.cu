@@ -7,93 +7,13 @@
 #include "../include/cuda_includes.cuh"
 #include "../include/nvmlClass.cuh"
 #include "../include/sssp.cuh"
+#include "../include/sssp_um.cuh"
 #include "../include/virtual_graph.hpp"
 #include "../include/gpu_utils.cuh"
+#include "../include/um_globals.cuh"
+#include "../include/um_virtual_graph.cuh"
+#include "../include/um_graph.cuh"
 #include <iostream>
-
-/*int main_subway(ArgumentParser arguments) {
-	cout << "Subway graph partitioning" << endl;
-	exit(0);
-}*/
-
-// Tried this but kept getting segfaults
-/*long long MakeGraphUM(Graph* graph, uint* nodePointer, uint* edgeList, PartPointer* partNodePointer, uint* outDegree)
-{ 
-	/*nodePointer = new uint[graph->num_nodes];
-	edgeList = new uint[2*graph->num_edges + graph->num_nodes];*/
-	/*cout << "Entered function" << endl;
-	gpuErrorcheck(cudaMallocManaged(&nodePointer, graph->num_nodes * sizeof(unsigned int)));
-	gpuErrorcheck(cudaMallocManaged(&edgeList, (2*graph->num_edges + graph->num_nodes) * sizeof(unsigned int)));
-	
-	uint outDegreeCounter[graph->num_nodes];
-	uint source;
-	uint end;
-	uint w8;		
-	
-	
-	long long counter=0;
-	long long numParts = 0;
-	int numZero = 0;
-	
-	for(int i=0; i<graph->num_nodes; i++)
-	{
-		nodePointer[i] = counter;
-		edgeList[counter] = outDegree[i];
-		
-		if(outDegree[i] == 0)
-			numZero++;
-		
-		if(outDegree[i] % Part_Size == 0)
-			numParts += outDegree[i] / Part_Size ;
-		else
-			numParts += outDegree[i] / Part_Size + 1;
-		
-		counter = counter + outDegree[i]*2 + 1;
-	}
-
-	//outDegreeCounter  = new uint[graph->num_nodes];
-	
-	for(int i=0; i<graph->num_edges; i++)
-	{
-		source = graph->edges[i].source;
-		end = graph->edges[i].end;
-		w8 = graph->weights[i];
-		
-		uint location = nodePointer[source]+1+2*outDegreeCounter[source];
-
-		cout << "Nodepointer:" << nodePointer[source] << endl;
-		cout << "Outdeg:" << outDegreeCounter[source] << endl; // Outdeg is larger than graph!
-		cout << "Source:" << source << endl;
-		cout << "Location:" << location << endl;
-
-		edgeList[location] = end; // Seg faults here
-		edgeList[location+1] = w8;
-
-		outDegreeCounter[source]++;  
-	}
-	
-	
-	//partNodePointer = new PartPointer[numParts];
-
-	gpuErrorcheck(cudaMallocManaged(&partNodePointer, numParts * sizeof(PartPointer)));
-	
-	int thisNumParts;
-	long long countParts = 0;
-	for(int i=0; i<graph->num_nodes; i++)
-	{
-		if(outDegree[i] % Part_Size == 0)
-			thisNumParts = outDegree[i] / Part_Size ;
-		else
-			thisNumParts = outDegree[i] / Part_Size + 1;
-		for(int j=0; j<thisNumParts; j++)
-		{
-			partNodePointer[countParts].node = i;
-			partNodePointer[countParts++].part = j;
-		}
-	}
-
-	return numParts;
-}*/
 
 int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
@@ -112,14 +32,14 @@ int main_unified_memory(ArgumentParser arguments) {
 	}
 
 	// Initialize graph and virtual graph
-	Graph graph(arguments.input, true);
-	graph.ReadGraph();
+	UMGraph* graph = new UMGraph(arguments.input, true);
+	graph->ReadGraph();
 
-	VirtualGraph vGraph(graph);
-	vGraph.MakeGraph();
+	UMVirtualGraph* vGraph = new UMVirtualGraph(*graph);
+	vGraph->MakeGraph();
 
-	uint num_nodes = graph.num_nodes;
-	uint num_edges = graph.num_edges;
+	uint num_nodes = graph->num_nodes;
+	uint num_edges = graph->num_edges;
 
 	if (num_nodes  < 1) {
 		cout << "Graph file not read correctly" << endl;
@@ -151,48 +71,16 @@ int main_unified_memory(ArgumentParser arguments) {
 	dist[arguments.sourceNode] = 0;
 	label1[arguments.sourceNode] = true;
 
-	uint *nodePointer;
-	uint *edgeList;
-	PartPointer *partNodePointer; 
 	bool *finished;
 	bool *finished2;
-	//long long numParts;
 
 	gpuErrorcheck(cudaMallocManaged(&finished, sizeof(bool)));
 	gpuErrorcheck(cudaMallocManaged(&finished2, sizeof(bool)));
 
-	gpuErrorcheck(cudaMallocManaged(&nodePointer, num_nodes * sizeof(unsigned int)));
-	gpuErrorcheck(cudaMallocManaged(&edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
-	gpuErrorcheck(cudaMallocManaged(&partNodePointer, vGraph.numParts * sizeof(PartPointer)));
-
-	//numParts = MakeGraphUM(vGraph.graph, nodePointer, edgeList, partNodePointer, vGraph.outDegree);
-
-	// Copy from structures into unified memory versions of structures. 
-	// Doubles memory size?
-	//Node pointer
-	for (int i = 0; i < num_nodes; i++) {
-		nodePointer[i] = vGraph.nodePointer[i];
-	}
-
-	//Edgelist
-	for (int i = 0; i < (2 * num_edges + num_nodes); i++) {
-		edgeList[i] = vGraph.edgeList[i];
-	}
-
-	//partNodePointer
-	for (int i = 0; i < (vGraph.numParts); i++) {
-		partNodePointer[i] = vGraph.partNodePointer[i];
-	}
-
 	// Tell GPU this data is mostly read
-	gpuErrorcheck(cudaMemAdvise(nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
-	gpuErrorcheck(cudaMemAdvise(edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
-	gpuErrorcheck(cudaMemAdvise(partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetReadMostly, arguments.deviceID));
-
-	// Recommend that most of the data are just used on device
-	gpuErrorcheck(cudaMemAdvise(nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetPreferredLocation, arguments.deviceID));
-	gpuErrorcheck(cudaMemAdvise(edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetPreferredLocation, arguments.deviceID));
-	gpuErrorcheck(cudaMemAdvise(partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetPreferredLocation, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(vGraph->nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(vGraph->edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(vGraph->partNodePointer, vGraph->numParts * sizeof(UMPartPointer), cudaMemAdviseSetReadMostly, arguments.deviceID));
 
 	if (arguments.energy) nvml.log_point();
 
@@ -200,21 +88,21 @@ int main_unified_memory(ArgumentParser arguments) {
 	Timer timer;
 	int itr = 0;
 	uint num_threads = 512;
-	uint num_blocks = vGraph.numParts / num_threads + 1;
+	uint num_blocks = vGraph->numParts / num_threads + 1;
 
 	timer.Start();
 
-	if (arguments.variant == SYNC_PUSH_DD) {
+	/*if (arguments.variant == SYNC_PUSH_DD) {
 		do
 		{
 			itr++;
 			*finished = true;
 			if(itr % 2 == 1)
 			{
-				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															nodePointer,
-															partNodePointer,
-															edgeList, 
+				sssp_um::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															vGraph.nodePointer,
+															vGraph.partNodePointer,
+															vGraph.edgeList, 
 															dist, 
 															finished,
 															label1,
@@ -223,10 +111,10 @@ int main_unified_memory(ArgumentParser arguments) {
 			}
 			else
 			{
-				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															nodePointer, 
-															partNodePointer,
-															edgeList, 
+				sssp_um::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															vGraph.nodePointer, 
+															vGraph.partNodePointer,
+															vGraph.edgeList, 
 															dist, 
 															finished,
 															label2,
@@ -306,7 +194,7 @@ int main_unified_memory(ArgumentParser arguments) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
 		} while (!(finished));
-	}
+	}*/
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
@@ -340,7 +228,7 @@ int main_unified_memory(ArgumentParser arguments) {
 	}
 
 	// Run sequential cpu version and print out useful information
-	if (arguments.debug) {
+	/*if (arguments.debug) {
 		unsigned int* cpu_dist;
 		cpu_dist = new unsigned int[num_nodes];
 
@@ -366,7 +254,7 @@ int main_unified_memory(ArgumentParser arguments) {
 		}
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
-	}
+	}*/
 
 	if(arguments.hasOutput)
 		utilities::SaveResults(arguments.output, dist, num_nodes);
@@ -374,9 +262,9 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaFree(dist));
 	gpuErrorcheck(cudaFree(label1));
 	gpuErrorcheck(cudaFree(label2));
-	gpuErrorcheck(cudaFree(nodePointer));
-	gpuErrorcheck(cudaFree(edgeList));
-	gpuErrorcheck(cudaFree(partNodePointer));
+	//gpuErrorcheck(cudaFree(nodePointer));
+	//gpuErrorcheck(cudaFree(edgeList));
+	//gpuErrorcheck(cudaFree(partNodePointer));
 
 	exit(0);
 }
@@ -387,9 +275,6 @@ int main(int argc, char** argv) {
 
 	if (arguments.unifiedMem) {
 		main_unified_memory(arguments);
-	} else if (arguments.subway) {
-		/*main_subway(arguments);*/
-		cout << "Subway not yet implemented" << endl;
 	}
 
 	// Energy structures initilization
@@ -419,8 +304,7 @@ int main(int argc, char** argv) {
 	vGraph.MakeGraph();
 
 	/*if (!sssp::checkSize(graph, vGraph, arguments.deviceID)) {
-		cout << "Graph too large! Switching to unified memory" << endl;
-		main_unified_memory(arguments);
+		cout << "Graph too large! Use unified memory version!" << endl;
 	}*/
 
 	uint num_nodes = graph.num_nodes;
@@ -664,8 +548,8 @@ int main(int argc, char** argv) {
 	if(arguments.hasOutput)
 		utilities::SaveResults(arguments.output, dist, num_nodes);
 
-	gpuErrorcheck(cudaFree(d_nodePointer));
-	gpuErrorcheck(cudaFree(d_edgeList));
+	//gpuErrorcheck(cudaFree(d_nodePointer));
+	//gpuErrorcheck(cudaFree(d_edgeList));
 	gpuErrorcheck(cudaFree(d_dist));
 	gpuErrorcheck(cudaFree(d_finished));
 	gpuErrorcheck(cudaFree(d_finished2));

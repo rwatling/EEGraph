@@ -8,9 +8,10 @@ set(CPU_LIB "_cpp")
 set(SSSP_PROJECT "sssp")
 set(PR_PROJECT "pr")
 set(SSWP_PROJECT "sswp")
+set(BFS_PROJECT "bfs")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -g")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
 
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES "52;60;72")
@@ -20,6 +21,7 @@ endif()
 file(GLOB sssp_main "${CMAKE_SOURCE_DIR}/src/sssp_main.cu")
 file(GLOB pr_main "${CMAKE_SOURCE_DIR}/src/pr_main.cu")
 file(GLOB sswp_main "${CMAKE_SOURCE_DIR}/src/sswp_main.cu")
+file(GLOB bfs_main "${CMAKE_SOURCE_DIR}/src/bfs_main.cu")
 
 file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/argument_parsing.cpp"
@@ -32,6 +34,8 @@ file(GLOB cpp_source_files
     "${CMAKE_SOURCE_DIR}/src/sssp.cu"
     "${CMAKE_SOURCE_DIR}/src/pr.cu"
     "${CMAKE_SOURCE_DIR}/src/sswp.cu"
+    "${CMAKE_SOURCE_DIR}/src/sssp_um.cu"
+    "${CMAKE_SOURCE_DIR}/src/bfs.cu"
     "${CMAKE_SOURCE_DIR}/src/gpu_utils.cu"
     "${CMAKE_SOURCE_DIR}/src/um_graph.cu"
     "${CMAKE_SOURCE_DIR}/src/um_virtual_graph.cu")
@@ -80,3 +84,12 @@ target_link_libraries(${SSWP_PROJECT} PRIVATE ${GPU_LIB})
 target_link_libraries(${SSWP_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${SSWP_PROJECT} PUBLIC -lnvidia-ml)
 set_property(TARGET ${SSWP_PROJECT} PROPERTY CXX_STANDARD 11)
+
+##### Executables - BFS
+add_executable(${BFS_PROJECT} ${bfs_main})
+
+##### Link libraries - BFS
+target_link_libraries(${BFS_PROJECT} PRIVATE ${GPU_LIB})
+target_link_libraries(${BFS_PROJECT} PRIVATE ${CPU_LIB})
+target_link_libraries(${BFS_PROJECT} PUBLIC -lnvidia-ml)
+set_property(TARGET ${BFS_PROJECT} PROPERTY CXX_STANDARD 11)
