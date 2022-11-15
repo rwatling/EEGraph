@@ -222,7 +222,7 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
 		if(label1[id] == false)
 			return;
 
-		label1[id] = false;
+		//label1[id] = false;
 
 		int sourceWeight = dist[id];
 

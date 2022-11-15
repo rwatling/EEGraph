@@ -13,7 +13,7 @@
 #include "../include/um_graph.cuh"
 #include <iostream>
 
-int main_unified_memory(ArgumentParser arguments) {
+/*int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
 		
 	// Energy structures initilization
@@ -266,15 +266,15 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaFree(graph.weights));
 
 	exit(0);
-}
+}*/
 
 int main(int argc, char** argv) {
 
 	ArgumentParser arguments(argc, argv, true, false);
 
-	if (arguments.unifiedMem) {
+	/*if (arguments.unifiedMem) {
 		main_unified_memory(arguments);
-	}
+	}*/
 
 	// Energy structures initilization
 	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass
@@ -291,20 +291,10 @@ int main(int argc, char** argv) {
 
 	// Initialize graph and virtual graph
 	Graph graph(arguments.input, true);
-	
-	if ((graph.getFileExtension(graph.graphFilePath) == "bcsr") || (graph.getFileExtension(graph.graphFilePath) == "bwcsr")) {
-		cout << "bcsr and bwcsr files are inteded to run on um or subway only" << endl;
-		exit(0);
-	}
-
 	graph.ReadGraph();
 
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
-
-	/*if (!sssp::checkSize(graph, vGraph, arguments.deviceID)) {
-		cout << "Graph too large! Use unified memory version!" << endl;
-	}*/
 
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;
@@ -349,8 +339,6 @@ int main(int argc, char** argv) {
 	bool *d_finished;
 	bool *d_finished2;
 
-	if (arguments.energy) nvml.log_point();
-
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_dist, num_nodes * sizeof(unsigned int)));
@@ -366,8 +354,6 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaMemcpy(d_label1, label1, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_label2, label2, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_partNodePointer, vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemcpyHostToDevice));
-
-	if (arguments.energy) nvml.log_point();
 
 	// Algorithm control variable declarations
 	Timer timer;
@@ -501,8 +487,6 @@ int main(int argc, char** argv) {
 
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
-	if (arguments.energy) nvml.log_point();
-
 	cout << "Number of iterations = " << itr << endl;
 
 	float runtime = timer.Finish();
@@ -538,8 +522,13 @@ int main(int argc, char** argv) {
 					    arguments.sourceNode, 
 					    cpu_dist);
 
-		utilities::PrintResults(cpu_dist, min(30, num_nodes));
-		utilities::PrintResults(dist, min(30, num_nodes));
+		if (num_nodes < 20) {
+			utilities::PrintResults(cpu_dist, num_nodes);
+			utilities::PrintResults(dist, num_nodes);
+		} else {
+			utilities::PrintResults(cpu_dist, 20);
+			utilities::PrintResults(dist, 20);
+		}
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}
