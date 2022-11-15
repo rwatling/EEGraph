@@ -2,11 +2,9 @@
 #define UM_VIRTUAL_GRAPH_CUH
 
 #include "um_graph.cuh"
-#include "um_globals.cuh"
 #include "globals.hpp"
-#include "managed.cuh"
 
-class UMVirtualGraph : public Managed
+class UMVirtualGraph
 {
 private:
 
@@ -17,7 +15,7 @@ public:
     uint *inDegree;
     uint *outDegree;
     long long numParts;
-    UMPartPointer *partNodePointer;
+    PartPointer *partNodePointer;
     
 	UMVirtualGraph(UMGraph &graph);
 	void MakeGraph();

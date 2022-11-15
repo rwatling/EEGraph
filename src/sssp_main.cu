@@ -7,10 +7,8 @@
 #include "../include/cuda_includes.cuh"
 #include "../include/nvmlClass.cuh"
 #include "../include/sssp.cuh"
-#include "../include/sssp_um.cuh"
 #include "../include/virtual_graph.hpp"
 #include "../include/gpu_utils.cuh"
-#include "../include/um_globals.cuh"
 #include "../include/um_virtual_graph.cuh"
 #include "../include/um_graph.cuh"
 #include <iostream>
@@ -32,14 +30,14 @@ int main_unified_memory(ArgumentParser arguments) {
 	}
 
 	// Initialize graph and virtual graph
-	UMGraph* graph = new UMGraph(arguments.input, true);
-	graph->ReadGraph();
+	UMGraph graph(arguments.input, true);
+	graph.ReadGraph();
 
-	UMVirtualGraph* vGraph = new UMVirtualGraph(*graph);
-	vGraph->MakeGraph();
+	UMVirtualGraph vGraph(graph);
+	vGraph.MakeGraph();
 
-	uint num_nodes = graph->num_nodes;
-	uint num_edges = graph->num_edges;
+	uint num_nodes = graph.num_nodes;
+	uint num_edges = graph.num_edges;
 
 	if (num_nodes  < 1) {
 		cout << "Graph file not read correctly" << endl;
@@ -78,9 +76,9 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaMallocManaged(&finished2, sizeof(bool)));
 
 	// Tell GPU this data is mostly read
-	gpuErrorcheck(cudaMemAdvise(vGraph->nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
-	gpuErrorcheck(cudaMemAdvise(vGraph->edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
-	gpuErrorcheck(cudaMemAdvise(vGraph->partNodePointer, vGraph->numParts * sizeof(UMPartPointer), cudaMemAdviseSetReadMostly, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(vGraph.nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(vGraph.edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetReadMostly, arguments.deviceID));
 
 	if (arguments.energy) nvml.log_point();
 
@@ -88,30 +86,31 @@ int main_unified_memory(ArgumentParser arguments) {
 	Timer timer;
 	int itr = 0;
 	uint num_threads = 512;
-	uint num_blocks = vGraph->numParts / num_threads + 1;
+	uint num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
 
-	/*if (arguments.variant == SYNC_PUSH_DD) {
+	if (arguments.variant == SYNC_PUSH_DD) {
+
 		do
 		{
 			itr++;
 			*finished = true;
 			if(itr % 2 == 1)
 			{
-				sssp_um::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															vGraph.nodePointer,
-															vGraph.partNodePointer,
-															vGraph.edgeList, 
-															dist, 
-															finished,
-															label1,
-															label2);
+				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+																	vGraph.nodePointer,
+																	vGraph.partNodePointer,
+																	vGraph.edgeList, 
+																	dist, 
+																	finished,
+																	label1,
+																	label2);
 				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
 			}
 			else
 			{
-				sssp_um::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															vGraph.nodePointer, 
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
@@ -131,17 +130,15 @@ int main_unified_memory(ArgumentParser arguments) {
 			itr++;
 			*finished = true;
 
-			sssp_um::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-														nodePointer,
-														partNodePointer,
-														edgeList, 
+			sssp::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+														vGraph.nodePointer,
+														vGraph.partNodePointer,
+														vGraph.edgeList, 
 														dist, 
 														finished);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
-			gpuErrorcheck(cudaMemcpy(&finished, finished, sizeof(bool), cudaMemcpyDeviceToHost));
 
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
@@ -153,10 +150,10 @@ int main_unified_memory(ArgumentParser arguments) {
 				*finished = true;
 				gpuErrorcheck(cudaMemcpy(finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
-				sssp_um::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															nodePointer,
-															partNodePointer,
-															edgeList, 
+				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															vGraph.nodePointer, 
+															vGraph.partNodePointer,
+															vGraph.edgeList,  
 															dist, 
 															finished,
 															false);
@@ -164,10 +161,10 @@ int main_unified_memory(ArgumentParser arguments) {
 			else
 			{
 				*finished2 = true;
-				sssp_um::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															nodePointer, 
-															partNodePointer,
-															edgeList, 
+				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															vGraph.nodePointer, 
+															vGraph.partNodePointer,
+															vGraph.edgeList, 
 															dist, 
 															finished2,
 															true);
@@ -182,10 +179,10 @@ int main_unified_memory(ArgumentParser arguments) {
 			itr++;
 			*finished = true;
 
-			sssp_um::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-														nodePointer,
-														partNodePointer,
-														edgeList, 
+			sssp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+														vGraph.nodePointer,
+														vGraph.partNodePointer,
+														vGraph.edgeList, 
 														dist, 
 														finished,
 														(itr%2==1) ? label1 : label2,
@@ -194,7 +191,7 @@ int main_unified_memory(ArgumentParser arguments) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
 		} while (!(finished));
-	}*/
+	}
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
@@ -239,8 +236,8 @@ int main_unified_memory(ArgumentParser arguments) {
 		
 		cpu_dist[arguments.sourceNode] = 0;
 
-		sssp_um::seq_cpu(	graph->edges, 
-							graph->weights, 
+		sssp::seq_cpu(	graph.edges, 
+							graph.weights, 
 							num_edges, 
 							arguments.sourceNode, 
 							cpu_dist);
@@ -262,11 +259,11 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaFree(dist));
 	gpuErrorcheck(cudaFree(label1));
 	gpuErrorcheck(cudaFree(label2));
-	gpuErrorcheck(cudaFree(vGraph->nodePointer));
-	gpuErrorcheck(cudaFree(vGraph->edgeList));
-	gpuErrorcheck(cudaFree(vGraph->partNodePointer));
-	gpuErrorcheck(cudaFree(graph->edges));
-	gpuErrorcheck(cudaFree(graph->weights));
+	gpuErrorcheck(cudaFree(vGraph.nodePointer));
+	gpuErrorcheck(cudaFree(vGraph.edgeList));
+	gpuErrorcheck(cudaFree(vGraph.partNodePointer));
+	gpuErrorcheck(cudaFree(graph.edges));
+	gpuErrorcheck(cudaFree(graph.weights));
 
 	exit(0);
 }
@@ -550,8 +547,8 @@ int main(int argc, char** argv) {
 	if(arguments.hasOutput)
 		utilities::SaveResults(arguments.output, dist, num_nodes);
 
-	//gpuErrorcheck(cudaFree(d_nodePointer));
-	//gpuErrorcheck(cudaFree(d_edgeList));
+	gpuErrorcheck(cudaFree(d_nodePointer));
+	gpuErrorcheck(cudaFree(d_edgeList));
 	gpuErrorcheck(cudaFree(d_dist));
 	gpuErrorcheck(cudaFree(d_finished));
 	gpuErrorcheck(cudaFree(d_finished2));

@@ -76,8 +76,7 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
                                      unsigned int *edgeList,
                                      unsigned int* dist,
 									 bool* finished,
-									 bool even) 
-{
+									 bool even) {
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if((partId < numParts) && (partId % 2 == 0) && even)
@@ -115,7 +114,7 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 			}
 		}
 	
-	} else if (partId < numParts && (partId % 2 == 1)) {
+	} else if (partId < numParts) {
 		int id = partNodePointer[partId].node;
 		int part = partNodePointer[partId].part;
 
@@ -151,7 +150,6 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 	
 	}
 }
-
 __global__ void sssp::sync_push_dd(  unsigned int numParts, 
                                      unsigned int *nodePointer,
 									 PartPointer *partNodePointer, 
@@ -159,8 +157,7 @@ __global__ void sssp::sync_push_dd(  unsigned int numParts,
                                      unsigned int* dist,
 									 bool* finished,
 									 bool* label1,
-									 bool* label2) 
-{
+									 bool* label2) {
    int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
@@ -213,8 +210,7 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
                                      unsigned int* dist,
 									 bool* finished,
 									 bool* label1,
-									 bool* label2)
-{
+									 bool* label2) {
     
 	int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -265,6 +261,34 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
 
 void sssp::seq_cpu(  vector<Edge> edges, 
                      vector<uint> weights, 
+                     uint num_edges, 
+                     int source, 
+                     unsigned int* dist  ) {
+
+	bool finished = false;
+
+	while (!finished) {
+		finished = true;
+
+		Edge e;
+		uint e_w8;
+		uint final_dist;
+
+		for (int i = 0; i < num_edges; i++) {
+			e = edges[i];
+			e_w8 = weights[i];
+			final_dist = dist[e.source] + e_w8;
+
+			if (final_dist < dist[e.end]) {
+				dist[e.end] = final_dist;
+				finished = false;
+			}
+		}
+	}
+}
+
+void sssp::seq_cpu(  Edge* edges, 
+                     uint* weights, 
                      uint num_edges, 
                      int source, 
                      unsigned int* dist  )

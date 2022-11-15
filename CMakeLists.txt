@@ -34,7 +34,6 @@ file(GLOB cpp_source_files
     "${CMAKE_SOURCE_DIR}/src/sssp.cu"
     "${CMAKE_SOURCE_DIR}/src/pr.cu"
     "${CMAKE_SOURCE_DIR}/src/sswp.cu"
-    "${CMAKE_SOURCE_DIR}/src/sssp_um.cu"
     "${CMAKE_SOURCE_DIR}/src/bfs.cu"
     "${CMAKE_SOURCE_DIR}/src/gpu_utils.cu"
     "${CMAKE_SOURCE_DIR}/src/um_graph.cu"

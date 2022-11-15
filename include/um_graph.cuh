@@ -19,14 +19,12 @@
 #include <math.h>
 #include <chrono>
 
-#include "um_globals.cuh"
 #include "globals.hpp"
-#include "managed.cuh"
 
 typedef unsigned int uint;
 using namespace std;
 
-class UMGraph : public Managed
+class UMGraph
 {
 private:
 
@@ -41,7 +39,7 @@ public:
 	uint num_nodes;
 	uint num_edges;
 
-    UMEdge* edges;
+    Edge* edges;
     uint* weights;
 
     UMGraph(string graphFilePath, bool isWeighted);

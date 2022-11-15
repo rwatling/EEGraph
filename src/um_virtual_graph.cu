@@ -13,9 +13,6 @@ UMVirtualGraph::UMVirtualGraph(UMGraph &graph)
 	
 	this->graph = &graph;
 	
-	//inDegree  = new uint[graph.num_nodes]; // Try cuda malloc
-	//outDegree  = new uint[graph.num_nodes]; //Try cuda malloc
-	
 	cudaMallocManaged(&inDegree, sizeof(uint) * graph.num_nodes);
 	cudaMallocManaged(&outDegree, sizeof(uint) * graph.num_nodes);
 
@@ -35,8 +32,6 @@ UMVirtualGraph::UMVirtualGraph(UMGraph &graph)
 	
 void UMVirtualGraph::MakeGraph()
 { 
-	//nodePointer = new uint[graph->num_nodes]; // Try cuda malloc
-	//edgeList = new uint[2*graph->num_edges + graph->num_nodes]; //Try cuda malloc
 	cudaMallocManaged(&nodePointer, sizeof(uint) * graph->num_nodes);
 	cudaMallocManaged(&edgeList, sizeof(uint) * (2* graph->num_edges + graph->num_nodes));
 
@@ -65,8 +60,6 @@ void UMVirtualGraph::MakeGraph()
 		counter = counter + outDegree[i]*2 + 1;
 	}
 
-	//outDegreeCounter  = new uint[graph->num_nodes];
-
 	cudaMallocManaged(&outDegreeCounter, sizeof(uint) * graph->num_nodes);
 
 	for(int i=0; i<graph->num_edges; i++)
@@ -80,12 +73,11 @@ void UMVirtualGraph::MakeGraph()
 		edgeList[location] = end;
 		edgeList[location+1] = w8;
 
-		outDegreeCounter[source]++;  
+		outDegreeCounter[source]++;
 	}
 	
 	cudaFree(outDegreeCounter);
-	//partNodePointer = new UMPartPointer[numParts]; // Try cuda malloc
-	cudaMallocManaged(&partNodePointer, sizeof(UMPartPointer) * numParts);
+	cudaMallocManaged(&partNodePointer, sizeof(PartPointer) * numParts);
 
 	int thisNumParts;
 	long long countParts = 0;
@@ -104,7 +96,7 @@ void UMVirtualGraph::MakeGraph()
 }
 
 
-
+// Needs update
 void UMVirtualGraph::MakeUGraph()
 { 
 	nodePointer = new uint[graph->num_nodes]; //Update this accordingly
@@ -150,7 +142,7 @@ void UMVirtualGraph::MakeUGraph()
 	}
 	
 	
-	partNodePointer = new UMPartPointer[numParts];
+	partNodePointer = new PartPointer[numParts];
 	int thisNumParts;
 	long long countParts = 0;
 	for(int i=0; i<graph->num_nodes; i++)
