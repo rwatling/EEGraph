@@ -20,6 +20,8 @@
 #include <chrono>
 
 #include "um_globals.cuh"
+#include "globals.hpp"
+#include "managed.cuh"
 
 typedef unsigned int uint;
 using namespace std;
@@ -39,7 +41,7 @@ public:
 	uint num_nodes;
 	uint num_edges;
 
-    Edge* edges;
+    UMEdge* edges;
     uint* weights;
 
     UMGraph(string graphFilePath, bool isWeighted);

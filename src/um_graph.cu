@@ -24,7 +24,7 @@ void UMGraph::ReadGraph()
 		stringstream ss;
 		
 		uint max = 0;
-		vector<Edge> temp_edges;
+		vector<UMEdge> temp_edges;
 		vector<uint> temp_weights;
 
 		if(graphLoaded == true)
@@ -37,7 +37,7 @@ void UMGraph::ReadGraph()
 
 		uint w8;
 		string line;
-		Edge newEdge;
+		UMEdge* newEdge = new UMEdge(); // Try cuda malloc if this doesnt work
 		
 		unsigned long edgeCounter = 0;
 		
@@ -50,19 +50,19 @@ void UMGraph::ReadGraph()
 			ss.clear();
 			ss << line;
 			
-			ss >> newEdge.source;
-			ss >> newEdge.end;
+			ss >> newEdge->source;
+			ss >> newEdge->end;
 			
-			temp_edges.push_back(newEdge);
+			temp_edges.push_back(*newEdge);
 			
-			if (newEdge.source == 0)
+			if (newEdge->source == 0)
 				hasZeroID = true;
-			if (newEdge.end == 0)
+			if (newEdge->end == 0)
 				hasZeroID = true;			
-			if(max < newEdge.source)
-				max = newEdge.source;
-			if(max < newEdge.end)
-				max = newEdge.end;
+			if(max < newEdge->source)
+				max = newEdge->source;
+			if(max < newEdge->end)
+				max = newEdge->end;
 			
 			if (isWeighted)
 			{
@@ -84,8 +84,8 @@ void UMGraph::ReadGraph()
 		if (hasZeroID)
 			num_nodes++;
 
-		edges = new Edge[num_edges];
-		weights = new uint[num_edges];
+		edges = new UMEdge[num_edges]; // Try cuda malloc
+		weights = new uint[num_edges]; //Try cuda malloc
 
 		copy(temp_edges.begin(), temp_edges.end(), edges);
 		copy(temp_weights.begin(), temp_weights.end(), weights);

@@ -3,6 +3,7 @@
 
 #include "um_graph.cuh"
 #include "um_globals.cuh"
+#include "globals.hpp"
 #include "managed.cuh"
 
 class UMVirtualGraph : public Managed
@@ -16,7 +17,7 @@ public:
     uint *inDegree;
     uint *outDegree;
     long long numParts;
-    PartPointer *partNodePointer;
+    UMPartPointer *partNodePointer;
     
 	UMVirtualGraph(UMGraph &graph);
 	void MakeGraph();
