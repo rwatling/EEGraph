@@ -13,9 +13,12 @@ UMVirtualGraph::UMVirtualGraph(UMGraph &graph)
 	
 	this->graph = &graph;
 	
-	inDegree  = new uint[graph.num_nodes]; // Try cuda malloc
-	outDegree  = new uint[graph.num_nodes]; //Try cuda malloc
+	//inDegree  = new uint[graph.num_nodes]; // Try cuda malloc
+	//outDegree  = new uint[graph.num_nodes]; //Try cuda malloc
 	
+	cudaMallocManaged(&inDegree, sizeof(uint) * graph.num_nodes);
+	cudaMallocManaged(&outDegree, sizeof(uint) * graph.num_nodes);
+
 	for(int i=0; i<graph.num_nodes; i++)
 	{
 		outDegree[i] = 0;
@@ -32,14 +35,15 @@ UMVirtualGraph::UMVirtualGraph(UMGraph &graph)
 	
 void UMVirtualGraph::MakeGraph()
 { 
-	nodePointer = new uint[graph->num_nodes]; // Try cuda malloc
-	edgeList = new uint[2*graph->num_edges + graph->num_nodes]; //Try cuda malloc
-	
+	//nodePointer = new uint[graph->num_nodes]; // Try cuda malloc
+	//edgeList = new uint[2*graph->num_edges + graph->num_nodes]; //Try cuda malloc
+	cudaMallocManaged(&nodePointer, sizeof(uint) * graph->num_nodes);
+	cudaMallocManaged(&edgeList, sizeof(uint) * (2* graph->num_edges + graph->num_nodes));
+
 	uint *outDegreeCounter;
 	uint source;
 	uint end;
 	uint w8;		
-	
 	
 	long long counter=0;
 	numParts = 0;
@@ -49,7 +53,7 @@ void UMVirtualGraph::MakeGraph()
 	{
 		nodePointer[i] = counter;
 		edgeList[counter] = outDegree[i];
-		
+
 		if(outDegree[i] == 0)
 			numZero++;
 		
@@ -61,8 +65,10 @@ void UMVirtualGraph::MakeGraph()
 		counter = counter + outDegree[i]*2 + 1;
 	}
 
-	outDegreeCounter  = new uint[graph->num_nodes]; // try Cuda malloc
-	
+	//outDegreeCounter  = new uint[graph->num_nodes];
+
+	cudaMallocManaged(&outDegreeCounter, sizeof(uint) * graph->num_nodes);
+
 	for(int i=0; i<graph->num_edges; i++)
 	{
 		source = graph->edges[i].source;
@@ -77,8 +83,10 @@ void UMVirtualGraph::MakeGraph()
 		outDegreeCounter[source]++;  
 	}
 	
-	
-	partNodePointer = new UMPartPointer[numParts]; // Try cuda malloc
+	cudaFree(outDegreeCounter);
+	//partNodePointer = new UMPartPointer[numParts]; // Try cuda malloc
+	cudaMallocManaged(&partNodePointer, sizeof(UMPartPointer) * numParts);
+
 	int thisNumParts;
 	long long countParts = 0;
 	for(int i=0; i<graph->num_nodes; i++)

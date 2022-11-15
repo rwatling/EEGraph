@@ -37,7 +37,7 @@ void UMGraph::ReadGraph()
 
 		uint w8;
 		string line;
-		UMEdge* newEdge = new UMEdge(); // Try cuda malloc if this doesnt work
+		UMEdge* newEdge = new UMEdge();
 		
 		unsigned long edgeCounter = 0;
 		
@@ -84,8 +84,10 @@ void UMGraph::ReadGraph()
 		if (hasZeroID)
 			num_nodes++;
 
-		edges = new UMEdge[num_edges]; // Try cuda malloc
-		weights = new uint[num_edges]; //Try cuda malloc
+		cudaMallocManaged(&edges, num_edges * sizeof(UMEdge));
+		cudaMallocManaged(&weights, num_edges * sizeof(unsigned int));
+		//edges = new UMEdge[num_edges]; // Try cuda malloc
+		//weights = new uint[num_edges]; //Try cuda malloc
 
 		copy(temp_edges.begin(), temp_edges.end(), edges);
 		copy(temp_weights.begin(), temp_weights.end(), weights);

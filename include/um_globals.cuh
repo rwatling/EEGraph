@@ -29,12 +29,14 @@ using namespace std;
 
 struct UMEdge : public Managed
 {
+public:
     unsigned int source;
     unsigned int end;
 };
 
 struct UMPartPointer : public Managed
 {
+public:
 	unsigned int node;
 	unsigned int part;
 };

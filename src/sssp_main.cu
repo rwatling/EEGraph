@@ -131,7 +131,7 @@ int main_unified_memory(ArgumentParser arguments) {
 			itr++;
 			*finished = true;
 
-			sssp::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+			sssp_um::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														nodePointer,
 														partNodePointer,
 														edgeList, 
@@ -153,7 +153,7 @@ int main_unified_memory(ArgumentParser arguments) {
 				*finished = true;
 				gpuErrorcheck(cudaMemcpy(finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
-				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+				sssp_um::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															nodePointer,
 															partNodePointer,
 															edgeList, 
@@ -164,7 +164,7 @@ int main_unified_memory(ArgumentParser arguments) {
 			else
 			{
 				*finished2 = true;
-				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+				sssp_um::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															nodePointer, 
 															partNodePointer,
 															edgeList, 
@@ -182,7 +182,7 @@ int main_unified_memory(ArgumentParser arguments) {
 			itr++;
 			*finished = true;
 
-			sssp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+			sssp_um::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														nodePointer,
 														partNodePointer,
 														edgeList, 
@@ -228,7 +228,7 @@ int main_unified_memory(ArgumentParser arguments) {
 	}
 
 	// Run sequential cpu version and print out useful information
-	/*if (arguments.debug) {
+	if (arguments.debug) {
 		unsigned int* cpu_dist;
 		cpu_dist = new unsigned int[num_nodes];
 
@@ -239,11 +239,11 @@ int main_unified_memory(ArgumentParser arguments) {
 		
 		cpu_dist[arguments.sourceNode] = 0;
 
-		sssp::seq_cpu(	graph.edges, 
-					    graph.weights, 
-					    num_edges, 
-					    arguments.sourceNode, 
-					    cpu_dist);
+		sssp_um::seq_cpu(	graph->edges, 
+							graph->weights, 
+							num_edges, 
+							arguments.sourceNode, 
+							cpu_dist);
 
 		if (num_nodes < 20) {
 			utilities::PrintResults(cpu_dist, num_nodes);
@@ -254,7 +254,7 @@ int main_unified_memory(ArgumentParser arguments) {
 		}
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
-	}*/
+	}
 
 	if(arguments.hasOutput)
 		utilities::SaveResults(arguments.output, dist, num_nodes);
@@ -262,9 +262,11 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaFree(dist));
 	gpuErrorcheck(cudaFree(label1));
 	gpuErrorcheck(cudaFree(label2));
-	//gpuErrorcheck(cudaFree(nodePointer));
-	//gpuErrorcheck(cudaFree(edgeList));
-	//gpuErrorcheck(cudaFree(partNodePointer));
+	gpuErrorcheck(cudaFree(vGraph->nodePointer));
+	gpuErrorcheck(cudaFree(vGraph->edgeList));
+	gpuErrorcheck(cudaFree(vGraph->partNodePointer));
+	gpuErrorcheck(cudaFree(graph->edges));
+	gpuErrorcheck(cudaFree(graph->weights));
 
 	exit(0);
 }
