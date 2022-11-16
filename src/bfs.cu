@@ -271,3 +271,31 @@ void bfs::seq_cpu(  vector<Edge> edges,
 		level++;
 	}
 }
+
+void bfs::seq_cpu(  Edge* edges, 
+                     uint* weights, 
+                     uint num_edges, 
+                     int source, 
+                     unsigned int* dist)
+{
+
+	bool finished = false;
+	unsigned int level = 0;
+
+	while (!finished) {
+		finished = true;
+
+		Edge e;
+
+		for (int i = 0; i < num_edges; i++) {
+			e = edges[i];
+
+			if (dist[e.end] == DIST_INFINITY) {
+				dist[e.end] = level + 1;
+				finished = false;
+			}
+		}
+
+		level++;
+	}
+}
