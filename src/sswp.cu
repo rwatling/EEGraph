@@ -297,5 +297,39 @@ void sswp::seq_cpu(  vector<Edge> edges,
 		}
 	}
 
+	dist[source] = 1;
+}
+
+void sswp::seq_cpu(  Edge* edges, 
+                     uint* weights, 
+                     uint num_edges, 
+                     int source, 
+                     unsigned int* dist  )
+{
+
+	bool finished = false;
+
 	dist[source] = 0;
+
+	while (!finished) {
+		finished = true;
+
+		Edge e;
+		uint e_w8;
+		uint final_dist;
+
+		for (int i = 0; i < num_edges; i++) {
+			e = edges[i];
+			e_w8 = weights[i];
+
+			final_dist = min(dist[e.source], e_w8);
+
+			if (final_dist > dist[e.end]) {
+				dist[e.end] = final_dist;
+				finished = false;
+			}
+		}
+	}
+
+	dist[source] = 1;
 }

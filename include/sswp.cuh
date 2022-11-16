@@ -49,6 +49,12 @@ namespace sswp {
                     uint num_edges, 
                     int source, 
                     unsigned int* dist  );
+    
+    void seq_cpu(  Edge* edges, 
+                     uint* weights, 
+                     uint num_edges, 
+                     int source, 
+                     unsigned int* dist  );
 }
 
 #endif // SSWP_CUH
