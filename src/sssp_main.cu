@@ -61,9 +61,9 @@ int main_unified_memory(ArgumentParser arguments) {
 	
 	for(int i=0; i<num_nodes; i++)
 	{
-			dist[i] = DIST_INFINITY;
-			label1[i] = false;
-			label2[i] = false;
+		dist[i] = DIST_INFINITY;
+		label1[i] = false;
+		label2[i] = false;
 	}
 	
 	dist[arguments.sourceNode] = 0;

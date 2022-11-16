@@ -13,7 +13,7 @@
 #include "../include/um_graph.cuh"
 #include <iostream>
 
-/*int main_unified_memory(ArgumentParser arguments) {
+int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
 		
 	// Energy structures initilization
@@ -61,13 +61,10 @@
 	
 	for(int i=0; i<num_nodes; i++)
 	{
-			dist[i] = DIST_INFINITY;
-			label1[i] = false;
+			dist[i] = i;
+			label1[i] = true;
 			label2[i] = false;
 	}
-	
-	dist[arguments.sourceNode] = 0;
-	label1[arguments.sourceNode] = true;
 
 	bool *finished;
 	bool *finished2;
@@ -122,8 +119,8 @@
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );
-
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+			
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -140,6 +137,7 @@
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
+
 		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -170,7 +168,8 @@
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+			
 		} while (!(*finished) && !(*finished2));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -188,7 +187,8 @@
 														(itr%2==1) ? label2 : label1);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+			
 		} while (!(*finished));
 	}
 
@@ -224,22 +224,21 @@
 	}
 
 	// Run sequential cpu version and print out useful information
+	// Run sequential cpu version and print out useful information
 	if (arguments.debug) {
 		unsigned int* cpu_dist;
 		cpu_dist = new unsigned int[num_nodes];
 
 		for(int i=0; i<num_nodes; i++)
 		{
-			cpu_dist[i] = DIST_INFINITY;
+			cpu_dist[i] = i;
 		}
-		
-		cpu_dist[arguments.sourceNode] = 0;
 
 		cc::seq_cpu(	graph.edges, 
-							graph.weights, 
-							num_edges, 
-							arguments.sourceNode, 
-							cpu_dist);
+					    graph.weights, 
+					    num_edges, 
+					    arguments.sourceNode, 
+					    cpu_dist);
 
 		if (num_nodes < 20) {
 			utilities::PrintResults(cpu_dist, num_nodes);
@@ -265,15 +264,15 @@
 	gpuErrorcheck(cudaFree(graph.weights));
 
 	exit(0);
-}*/
+}
 
 int main(int argc, char** argv) {
 
 	ArgumentParser arguments(argc, argv, true, false);
 
-	/*if (arguments.unifiedMem) {
+	if (arguments.unifiedMem) {
 		main_unified_memory(arguments);
-	}*/
+	}
 
 	// Energy structures initilization
 	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass

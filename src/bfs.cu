@@ -226,8 +226,6 @@ __global__ void bfs::async_push_dd(  unsigned int numParts,
 		int end;
 		int ofs = thisPointer + 2*part +1;
 
-		int sourceWeight = dist[id];
-
 		for(int i=0; i<Part_Size; i++)
 		{
 			if(part + i*numParts >= degree)

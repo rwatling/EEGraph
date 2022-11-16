@@ -9,17 +9,266 @@
 #include "../include/pr.cuh"
 #include "../include/virtual_graph.hpp"
 #include "../include/gpu_utils.cuh"
+#include "../include/um_graph.cuh"
+#include "../include/um_virtual_graph.cuh"
 #include <iostream>
+
+int main_unified_memory(ArgumentParser arguments) {
+	cout << "Unified memory version" << endl;
+		
+	// Energy structures initilization
+	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass
+	vector<thread> cpu_threads;
+	nvmlClass nvml(arguments.deviceID, arguments.energyFile, arguments.energyStats, to_string(arguments.variant));
+
+	if (arguments.energy) {
+		cout << "Starting energy measurements. Timing information will be affected..." << endl;
+
+		cpu_threads.emplace_back(std::thread(&nvmlClass::getStats, &nvml));
+
+  		nvml.log_start();
+	}
+
+	// Initialize graph and virtual graph
+	UMGraph graph(arguments.input, true);
+	graph.ReadGraph();
+
+	UMVirtualGraph vGraph(graph);
+	vGraph.MakeGraph();
+
+	uint num_nodes = graph.num_nodes;
+	uint num_edges = graph.num_edges;
+
+	if (num_nodes  < 1) {
+		cout << "Graph file not read correctly" << endl;
+		return -1;
+	}
+
+	if(arguments.hasDeviceID)
+		gpuErrorcheck(cudaSetDevice(arguments.deviceID));
+
+	cudaFree(0);
+	bool *label1;
+	bool *label2;
+	float *delta, *value;
+
+	if (arguments.energy) nvml.log_point();
+
+	gpuErrorcheck(cudaMallocManaged(&delta, sizeof(float) * num_nodes));
+	gpuErrorcheck(cudaMallocManaged(&value, sizeof(float) * num_nodes));
+	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
+	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
+
+
+	float initPR = 0.15;
+	float acc = arguments.acc;
+	
+	cout << "Initialized value: " << initPR << endl;
+	cout << "Accuracy: " << acc << endl;
+
+	for(int i=0; i<num_nodes; i++)
+	{
+		delta[i] = 0;
+		value[i] = initPR;
+		if ( i < (num_nodes / 4)) {
+			label1[i] = true;
+		} else { label1[i] = false; }
+		label2[i] = false;
+	}
+
+	bool *finished;
+	bool *finished2;
+
+	gpuErrorcheck(cudaMallocManaged(&finished, sizeof(bool)));
+	gpuErrorcheck(cudaMallocManaged(&finished2, sizeof(bool)));
+
+	// Tell GPU this data is mostly read
+	gpuErrorcheck(cudaMemAdvise(vGraph.nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(vGraph.edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
+	gpuErrorcheck(cudaMemAdvise(vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetReadMostly, arguments.deviceID));
+
+	if (arguments.energy) nvml.log_point();
+
+	// Algorithm control variable declarations
+	Timer timer;
+	int itr = 0;
+	uint num_threads = 512;
+	uint num_blocks = vGraph.numParts / num_threads + 1;
+
+	timer.Start();
+
+	if (arguments.variant == SYNC_PUSH_DD) {
+		do
+		{
+			itr++;
+			*finished = true;
+
+			if(itr % 2 == 1)
+			{
+				pr::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															vGraph.nodePointer,
+															vGraph.partNodePointer,
+															vGraph.edgeList, 
+															delta,
+															value,
+															finished,
+															acc,
+															label1,
+															label2);
+				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
+			}
+			else
+			{
+				pr::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															vGraph.nodePointer,
+															vGraph.partNodePointer,
+															vGraph.edgeList, 
+															delta,
+															value,
+															finished,
+															acc,
+															label2,
+															label1);
+				clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
+			}
+
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );
+
+		} while (!(*finished));
+	} else if (arguments.variant == ASYNC_PUSH_TD) {
+		do
+		{
+			itr++;
+			*finished = true;
+
+			pr::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															vGraph.nodePointer,
+															vGraph.partNodePointer,
+															vGraph.edgeList, 
+															delta,
+															value,
+															finished,
+															acc);
+
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+		} while (!(*finished));
+	} else if (arguments.variant == SYNC_PUSH_TD) {
+		do
+		{
+			itr++;
+			if(itr % 2 == 1)
+			{
+				*finished = true;
+
+				pr::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															vGraph.nodePointer,
+															vGraph.partNodePointer,
+															vGraph.edgeList, 
+															delta,
+															value,
+															finished,
+															acc,
+															false);
+			}
+			else
+			{
+				*finished2 = true;
+				pr::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+															vGraph.nodePointer,
+															vGraph.partNodePointer,
+															vGraph.edgeList, 
+															delta,
+															value,
+															finished,
+															acc,
+															true);
+			}
+
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );
+		} while (!(*finished) && !(*finished2));
+	} else if (arguments.variant == ASYNC_PUSH_DD) {
+		do
+		{
+			itr++;
+			*finished = true;
+
+			pr::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
+														vGraph.nodePointer,
+														vGraph.partNodePointer,
+														vGraph.edgeList, 
+														delta,
+														value, 
+														finished,
+														acc,
+														(itr%2==1) ? label1 : label2,
+														(itr%2==1) ? label2 : label1);
+
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck( cudaDeviceSynchronize() );
+		} while (!(*finished));
+	}
+
+	// Stop measuring energy consumption, clean up structures
+	if (arguments.energy) {
+		cpu_threads.emplace_back(thread( &nvmlClass::killThread, &nvml));
+
+		for (auto& th : cpu_threads) {
+			th.join();
+			th.~thread();
+		}
+
+		cpu_threads.clear();
+	}
+
+	if (arguments.energy) nvml.log_point();
+
+	cout << "Number of iterations = " << itr << endl;
+
+	float runtime = timer.Finish();
+	cout << "Processing finished in " << runtime << " (ms).\n";
+
+	// Stop measuring energy consumption, clean up structures
+	if (arguments.energy) {
+		cpu_threads.emplace_back(thread( &nvmlClass::killThread, &nvml));
+
+		for (auto& th : cpu_threads) {
+			th.join();
+			th.~thread();
+		}
+
+		cpu_threads.clear();
+	}
+
+	// Run sequential cpu version and print out useful information
+	if (arguments.debug) {		
+		utilities::PrintResults(value, min(30, num_nodes));
+	}
+
+	if(arguments.hasOutput)
+		utilities::SaveResults(arguments.output, delta, num_nodes);
+
+	gpuErrorcheck(cudaFree(delta));
+	gpuErrorcheck(cudaFree(value));
+	gpuErrorcheck(cudaFree(label1));
+	gpuErrorcheck(cudaFree(label2));
+	gpuErrorcheck(cudaFree(vGraph.nodePointer));
+	gpuErrorcheck(cudaFree(vGraph.edgeList));
+	gpuErrorcheck(cudaFree(vGraph.partNodePointer));
+	gpuErrorcheck(cudaFree(graph.edges));
+	gpuErrorcheck(cudaFree(graph.weights));
+
+	exit(0);
+}
 
 int main(int argc, char** argv) {
 
 	ArgumentParser arguments(argc, argv, true, true);
 
 	if (arguments.unifiedMem) {
-		//main_unified_memory(arguments);
-	} else if (arguments.subway) {
-		//main_subway(arguments);
-		cout << "Subway not yet implemented" << endl;
+		main_unified_memory(arguments);
 	}
 
 	// Energy structures initilization
