@@ -271,9 +271,9 @@ int main(int argc, char** argv) {
 
 	ArgumentParser arguments(argc, argv, true, false);
 
-	/*if (arguments.unifiedMem) {
+	if (arguments.unifiedMem) {
 		main_unified_memory(arguments);
-	}*/
+	}
 
 	// Energy structures initilization
 	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass

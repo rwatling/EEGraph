@@ -19,7 +19,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	hasNumberOfItrs = false;
 	hasEnergyFile = false;
 	debug = false;
-	variant = SYNC_PUSH_DD;
+	variant = SYNC_PUSH_TD;
 	energy = false;
 	unifiedMem = false;
 	subway = false;
