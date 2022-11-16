@@ -13,7 +13,7 @@
 #include "../include/um_graph.cuh"
 #include <iostream>
 
-/*int main_unified_memory(ArgumentParser arguments) {
+int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
 		
 	// Energy structures initilization
@@ -91,21 +91,21 @@
 	timer.Start();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
-
 		do
 		{
 			itr++;
 			*finished = true;
+
 			if(itr % 2 == 1)
 			{
 				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
-																	vGraph.nodePointer,
-																	vGraph.partNodePointer,
-																	vGraph.edgeList, 
-																	dist, 
-																	finished,
-																	label1,
-																	label2);
+															vGraph.nodePointer,
+															vGraph.partNodePointer,
+															vGraph.edgeList, 
+															dist, 
+															finished,
+															label1,
+															label2);
 				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
 			}
 			else
@@ -123,7 +123,8 @@
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-		} while (!(finished));
+
+		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
 		{
@@ -139,8 +140,7 @@
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
-
-		} while (!(finished));
+		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
 		{
@@ -148,12 +148,11 @@
 			if(itr % 2 == 1)
 			{
 				*finished = true;
-				gpuErrorcheck(cudaMemcpy(finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
 				sssp::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															vGraph.nodePointer, 
+															vGraph.nodePointer,
 															vGraph.partNodePointer,
-															vGraph.edgeList,  
+															vGraph.edgeList, 
 															dist, 
 															finished,
 															false);
@@ -172,7 +171,7 @@
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-		} while (!(finished) && !(finished2));
+		} while (!(*finished) && !(*finished2));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
 		{
@@ -190,7 +189,7 @@
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-		} while (!(finished));
+		} while (!(*finished));
 	}
 
 	// Stop measuring energy consumption, clean up structures
@@ -266,7 +265,7 @@
 	gpuErrorcheck(cudaFree(graph.weights));
 
 	exit(0);
-}*/
+}
 
 int main(int argc, char** argv) {
 
@@ -396,10 +395,8 @@ int main(int argc, char** argv) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			
-
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -417,9 +414,7 @@ int main(int argc, char** argv) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			
 
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
@@ -454,11 +449,9 @@ int main(int argc, char** argv) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			gpuErrorcheck(cudaMemcpy(&finished2, d_finished2, sizeof(bool), cudaMemcpyDeviceToHost));
 			
-
 		} while (!(finished) && !(finished2));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -481,7 +474,6 @@ int main(int argc, char** argv) {
 			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			
-
 		} while (!(finished));
 	}
 
