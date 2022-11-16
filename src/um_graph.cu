@@ -11,12 +11,27 @@ UMGraph::UMGraph(string graphFilePath, bool isWeighted)
 
 void UMGraph::ReadGraph()
 {
-
 	cout << "Reading the input graph from the following file:\n>> " << graphFilePath << endl;
 
 	this->graphFormat = getFileExtension(graphFilePath);
+	if(graphFormat == "bcsr") {
+		ifstream infile (graphFilePath, ios::in | ios::binary);
+	
+		infile.read ((char*)&num_nodes, sizeof(uint));
+		infile.read ((char*)&num_edges, sizeof(uint));
+		
+		cudaMallocManaged(&edges, num_edges * sizeof(Edge));
+		cudaMallocManaged(&weights, num_edges * sizeof(unsigned int));
+		uint* nodePointer = new uint[num_nodes+1];	//This is extra but should hopefully maintain correctness from Subway
+		
+		infile.read ((char*)nodePointer, sizeof(uint)*num_nodes);
+		infile.read ((char*) edges, sizeof(Edge)*num_edges);
 
-	if (graphFormat == "edges" || graphFormat == "el" || graphFormat == "wel") {	
+		for (int i = 0; i < num_edges; i++) {
+			weights[i] = 1;
+		}
+
+	} else if (graphFormat == "edges" || graphFormat == "el" || graphFormat == "wel") {	
 
 		ifstream infile;
 		infile.open(graphFilePath);

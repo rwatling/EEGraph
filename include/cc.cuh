@@ -1,12 +1,12 @@
-#ifndef SSSP_CUH
-#define SSSP_CUH 1
+#ifndef CC_CUH
+#define CC_CUH 1
 
 #include "globals.hpp"
 #include "gpu_error_check.cuh"
 #include "cuda_includes.cuh"
 #include "virtual_graph.hpp"
 
-namespace sssp {
+namespace cc {
     __global__ void async_push_td( unsigned int numParts, 
                                    unsigned int *nodePointer,
                                    PartPointer *partNodePointer,
@@ -55,4 +55,4 @@ namespace sssp {
                      unsigned int* dist  );
 }
 
-#endif // SSSP_CUH
+#endif // CC_CUH
