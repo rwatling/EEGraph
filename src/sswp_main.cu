@@ -13,7 +13,7 @@
 #include "../include/um_virtual_graph.cuh"
 #include <iostream>
 
-int main_unified_memory(ArgumentParser arguments) {
+/*int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
 		
 	// Energy structures initilization
@@ -265,7 +265,7 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaFree(graph.weights));
 
 	exit(0);
-}
+}*/
 
 int main(int argc, char** argv) {
 

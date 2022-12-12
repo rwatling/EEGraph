@@ -16,6 +16,8 @@ void Graph::ReadGraph()
 
 	this->graphFormat = getFileExtension(graphFilePath);
 
+	srand(RAND_SEED);
+
 	if(graphFormat == "bcsr" || graphFormat == "bwcsr") {
 		ifstream infile (graphFilePath, ios::in | ios::binary);
 	
@@ -88,7 +90,7 @@ void Graph::ReadGraph()
 				if (ss >> w8)
 					weights.push_back(w8);
 				else
-					weights.push_back(1);
+					weights.push_back((rand() % RAND_RANGE) + 1);
 			}
 			
 			edgeCounter++;

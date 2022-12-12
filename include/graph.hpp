@@ -1,6 +1,9 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
+#define RAND_SEED 123456
+#define RAND_RANGE 1024
+
 #include <iostream>
 #include <stdlib.h>
 #include <ctime>

@@ -5,6 +5,7 @@
 #include "gpu_error_check.cuh"
 #include "cuda_includes.cuh"
 #include "virtual_graph.hpp"
+#include "um_virtual_graph.cuh"
 
 namespace sssp {
     __global__ void async_push_td( unsigned int numParts, 
@@ -42,17 +43,21 @@ namespace sssp {
 
     bool checkSize(Graph graph, VirtualGraph vGraph, int deviceId);
 
-    void seq_cpu(  vector<Edge> edges, 
+    /*void seq_cpu(  vector<Edge> edges, 
                     vector<uint> weights, 
                     uint num_edges, 
                     int source, 
                     unsigned int* dist  );
     
     void seq_cpu(  Edge* edges, 
-                     uint* weights, 
-                     uint num_edges, 
-                     int source, 
-                     unsigned int* dist  );
+                    uint* weights, 
+                    uint num_edges, 
+                    int source, 
+                    unsigned int* dist  );*/
+    
+    void seq_cpu(VirtualGraph vGraph, unsigned int* dist);
+
+    void seq_cpu(UMVirtualGraph vGraph, unsigned int* dist);
 }
 
 #endif // SSSP_CUH

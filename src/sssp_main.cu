@@ -235,11 +235,8 @@ int main_unified_memory(ArgumentParser arguments) {
 		
 		cpu_dist[arguments.sourceNode] = 0;
 
-		sssp::seq_cpu(	graph.edges, 
-							graph.weights, 
-							num_edges, 
-							arguments.sourceNode, 
-							cpu_dist);
+		//TODO:Fix this
+		sssp::seq_cpu(vGraph, cpu_dist);
 
 		if (num_nodes < 20) {
 			utilities::PrintResults(cpu_dist, num_nodes);
@@ -508,11 +505,7 @@ int main(int argc, char** argv) {
 		
 		cpu_dist[arguments.sourceNode] = 0;
 
-		sssp::seq_cpu(	graph.edges, 
-					    graph.weights, 
-					    num_edges, 
-					    arguments.sourceNode, 
-					    cpu_dist);
+		sssp::seq_cpu(vGraph, cpu_dist);
 
 		if (num_nodes < 20) {
 			utilities::PrintResults(cpu_dist, num_nodes);
