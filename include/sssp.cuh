@@ -30,7 +30,7 @@ namespace sssp {
                                    unsigned int *edgeList,
                                    unsigned int* dist,
                                    bool* finished,
-                                   bool even);
+                                   bool odd);
 
     __global__ void async_push_dd(  unsigned int numParts, 
                                     unsigned int *nodePointer,

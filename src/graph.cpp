@@ -16,8 +16,6 @@ void Graph::ReadGraph()
 
 	this->graphFormat = getFileExtension(graphFilePath);
 
-	srand(RAND_SEED);
-
 	if(graphFormat == "bcsr" || graphFormat == "bwcsr") {
 		ifstream infile (graphFilePath, ios::in | ios::binary);
 	
@@ -34,7 +32,8 @@ void Graph::ReadGraph()
 
 		free(nodePointer);
 		free(tempEdgelist);
-	} else if (graphFormat == "edges" || graphFormat == "el" || graphFormat == "wel" || graphFormat == "txt") {	
+	} else if (graphFormat == "edges" || graphFormat == "el" || 
+				graphFormat == "wel" || graphFormat == "txt" || graphFormat == "edgelist") {	
 
 		ifstream infile;
 		infile.open(graphFilePath);

@@ -70,38 +70,37 @@ __global__ void sssp::async_push_td(  unsigned int numParts,
 	}
 }
 
-// Needs to be fixed
 __global__ void sssp::sync_push_td(  unsigned int numParts, 
                                      unsigned int *nodePointer,
 									 PartPointer *partNodePointer, 
                                      unsigned int *edgeList,
                                      unsigned int* dist,
 									 bool* finished,
-									 bool even) {
-   int partId = blockDim.x * blockIdx.x + threadIdx.x;
+									 bool odd) {
+   unsigned int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-	if((partId < numParts) && even)
+	if((partId < numParts) && odd)
 	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
 
-		int sourceWeight = dist[id];
+		unsigned int sourceWeight = dist[id];
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
 
-		int numParts;
+		unsigned int numParts;
 		if(degree % Part_Size == 0)
 			numParts = degree / Part_Size ;
 		else
 			numParts = degree / Part_Size + 1;
 		
-		int end;
-		int w8;
-		int finalDist;
-		int ofs = thisPointer + 2*part +1;
+		unsigned int end;
+		unsigned int w8;
+		unsigned int finalDist;
+		unsigned int ofs = thisPointer + 2*part +1;
 
-		for(int i=0; i<Part_Size; i++)
+		for(unsigned int i=0; i<Part_Size; i++)
 		{
 			if(part + i*numParts >= degree)
 				break;
@@ -115,27 +114,35 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 			}
 		}
 	
-	} else if (partId < numParts) {
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
+	} else if (partId < (numParts + 1)) {
+		if (partId % 2 == 0) {
+			partId = partId + 1;
+		} else if (partId % 2 == 1) {
+			partId = partId - 1;
+		}
 
-		int sourceWeight = dist[id];
+		if (partId >= numParts) return;
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
 
-		int numParts;
+		unsigned int sourceWeight = dist[id];
+
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
+
+		unsigned int numParts;
 		if(degree % Part_Size == 0)
 			numParts = degree / Part_Size ;
 		else
 			numParts = degree / Part_Size + 1;
 		
-		int end;
-		int w8;
-		int finalDist;
-		int ofs = thisPointer + 2*part +1;
+		unsigned int end;
+		unsigned int w8;
+		unsigned int finalDist;
+		unsigned int ofs = thisPointer + 2*part +1;
 
-		for(int i=0; i<Part_Size; i++)
+		for(unsigned int i=0; i<Part_Size; i++)
 		{
 			if(part + i*numParts >= degree)
 				break;
@@ -159,33 +166,33 @@ __global__ void sssp::sync_push_dd(  unsigned int numParts,
 									 bool* finished,
 									 bool* label1,
 									 bool* label2) {
-   int partId = blockDim.x * blockIdx.x + threadIdx.x;
+   unsigned int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
 	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
 
 		if(label1[id] == false)
 			return;
 
-		int sourceWeight = dist[id];
+		unsigned int sourceWeight = dist[id];
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
 
-		int numParts;
+		unsigned int numParts;
 		if(degree % Part_Size == 0)
 			numParts = degree / Part_Size ;
 		else
 			numParts = degree / Part_Size + 1;
 		
-		int end;
-		int w8;
-		int finalDist;
-		int ofs = thisPointer + 2*part +1;
+		unsigned int end;
+		unsigned int w8;
+		unsigned int finalDist;
+		unsigned int ofs = thisPointer + 2*part +1;
 
-		for(int i=0; i<Part_Size; i++)
+		for(unsigned int i=0; i<Part_Size; i++)
 		{
 			if(part + i*numParts >= degree)
 				break;
@@ -213,35 +220,33 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
 									 bool* label1,
 									 bool* label2) {
     
-	int partId = blockDim.x * blockIdx.x + threadIdx.x;
+	unsigned int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(partId < numParts)
 	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
 
 		if(label1[id] == false)
 			return;
 
-		label1[id] == false;
+		unsigned int sourceWeight = dist[id];
 
-		int sourceWeight = dist[id];
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
-
-		int numParts;
+		unsigned int numParts;
 		if(degree % Part_Size == 0)
 			numParts = degree / Part_Size ;
 		else
 			numParts = degree / Part_Size + 1;
 		
-		int end;
-		int w8;
-		int finalDist;
-		int ofs = thisPointer + 2*part +1;
+		unsigned int end;
+		unsigned int w8;
+		unsigned int finalDist;
+		unsigned int ofs = thisPointer + 2*part +1;
 
-		for(int i=0; i<Part_Size; i++)
+		for(unsigned int i=0; i<Part_Size; i++)
 		{
 			if(part + i*numParts >= degree)
 				break;
@@ -256,6 +261,8 @@ __global__ void sssp::async_push_dd(  unsigned int numParts,
 				label2[edgeList[end]] = true;
 			}
 		}
+
+		label1[id] = false;
 	
 	}
 }
@@ -274,7 +281,7 @@ void sssp::seq_cpu(  vector<Edge> edges,
 		uint e_w8;
 		uint final_dist;
 
-		for (int i = 0; i < num_edges; i++) {
+		for (unsigned int i = 0; i < num_edges; i++) {
 			e = edges[i];
 			e_w8 = weights[i];
 			final_dist = dist[e.source] + e_w8;
@@ -303,7 +310,7 @@ void sssp::seq_cpu(  vector<Edge> edges,
 		uint e_w8;
 		uint final_dist;
 
-		for (int i = 0; i < num_edges; i++) {
+		for (unsigned int i = 0; i < num_edges; i++) {
 			e = edges[i];
 			e_w8 = weights[i];
 			final_dist = dist[e.source] + e_w8;
@@ -329,26 +336,26 @@ void sssp::seq_cpu(VirtualGraph vGraph, unsigned int* dist) {
 		finished = true;
 
 		for (unsigned int partId = 0; partId < numParts; partId++) {
-			int id = partNodePointer[partId].node;
-			int part = partNodePointer[partId].part;
+			unsigned int id = partNodePointer[partId].node;
+			unsigned int part = partNodePointer[partId].part;
 
-			int sourceWeight = dist[id];
+			unsigned int sourceWeight = dist[id];
 
-			int thisPointer = nodePointer[id];
-			int degree = edgeList[thisPointer];
+			unsigned int thisPointer = nodePointer[id];
+			unsigned int degree = edgeList[thisPointer];
 
-			int numParts;
+			unsigned int numParts;
 			if(degree % Part_Size == 0)
 				numParts = degree / Part_Size ;
 			else
 				numParts = degree / Part_Size + 1;
 			
-			int end;
-			int w8;
-			int finalDist;
-			int ofs = thisPointer + 2*part +1;
+			unsigned int end;
+			unsigned int w8;
+			unsigned int finalDist;
+			unsigned int ofs = thisPointer + 2*part +1;
 
-			for(int i=0; i<Part_Size; i++)
+			for(unsigned int i=0; i<Part_Size; i++)
 			{
 				if(part + i*numParts >= degree)
 					break;
@@ -377,27 +384,27 @@ void sssp::seq_cpu(UMVirtualGraph vGraph, unsigned int* dist) {
 	do {
 		finished = true;
 
-		for (int partId = 0; partId < numParts; partId++) {
-			int id = partNodePointer[partId].node;
-			int part = partNodePointer[partId].part;
+		for (unsigned int partId = 0; partId < numParts; partId++) {
+			unsigned int id = partNodePointer[partId].node;
+			unsigned int part = partNodePointer[partId].part;
 
-			int sourceWeight = dist[id];
+			unsigned int sourceWeight = dist[id];
 
-			int thisPointer = nodePointer[id];
-			int degree = edgeList[thisPointer];
+			unsigned int thisPointer = nodePointer[id];
+			unsigned int degree = edgeList[thisPointer];
 
-			int numParts;
+			unsigned int numParts;
 			if(degree % Part_Size == 0)
 				numParts = degree / Part_Size ;
 			else
 				numParts = degree / Part_Size + 1;
 			
-			int end;
-			int w8;
-			int finalDist;
-			int ofs = thisPointer + 2*part +1;
+			unsigned int end;
+			unsigned int w8;
+			unsigned int finalDist;
+			unsigned int ofs = thisPointer + 2*part +1;
 
-			for(int i=0; i<Part_Size; i++)
+			for(unsigned int i=0; i<Part_Size; i++)
 			{
 				if(part + i*numParts >= degree)
 					break;
