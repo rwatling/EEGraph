@@ -31,7 +31,8 @@ void UMGraph::ReadGraph()
 			weights[i] = 1;
 		}
 
-	} else if (graphFormat == "edges" || graphFormat == "el" || graphFormat == "wel") {	
+	} else if (graphFormat == "edges" || graphFormat == "el" || 
+				graphFormat == "wel" || graphFormat == "txt" || graphFormat == "edgelist") {
 
 		ifstream infile;
 		infile.open(graphFilePath);

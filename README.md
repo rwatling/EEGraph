@@ -4,9 +4,19 @@
 
 `$ mkdir build`
 
+`$ cd build`
+
 `$ cmake ..`
 
 `$ make`
+
+### Versions
+
+`nvcc 11.1`
+
+`gcc 7.3.1`
+
+`cmake 3.20.0-rc4`
 
 ### Run executable examples
 
