@@ -13,7 +13,7 @@
 #include "../include/um_graph.cuh"
 #include <iostream>
 
-int main_unified_memory(ArgumentParser arguments) {
+/*int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
 		
 	// Energy structures initilization
@@ -262,14 +262,14 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaFree(graph.weights));
 
 	exit(0);
-}
+}*/
 
 int main(int argc, char** argv) {
 
 	ArgumentParser arguments(argc, argv, true, false);
 
 	if (arguments.unifiedMem) {
-		main_unified_memory(arguments);
+		//main_unified_memory(arguments);
 	}
 
 	// Energy structures initilization
@@ -291,6 +291,8 @@ int main(int argc, char** argv) {
 
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
+
+	unsigned int* weights2 = new unsigned int[graph.num_edges];
 
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;
@@ -316,7 +318,9 @@ int main(int argc, char** argv) {
 	for(int i=0; i<num_nodes; i++)
 	{
 			dist[i] = DIST_INFINITY;
-			label1[i] = false;
+			if (arguments.variant != ASYNC_PUSH_DD)	label1[i] = false;
+			else label1[i]=true;
+
 			label2[i] = false;
 	}
 	
@@ -358,6 +362,7 @@ int main(int argc, char** argv) {
 	uint num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
 		do
@@ -403,11 +408,11 @@ int main(int argc, char** argv) {
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
 			sssp::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-														d_nodePointer,
-														d_partNodePointer,
-														d_edgeList, 
-														d_dist, 
-														d_finished);
+																d_nodePointer,
+																d_partNodePointer,
+																d_edgeList, 
+																d_dist, 
+																d_finished);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
@@ -415,7 +420,7 @@ int main(int argc, char** argv) {
 
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
-		do
+		/*do
 		{
 			itr++;
 			if(itr % 2 == 1)
@@ -449,7 +454,7 @@ int main(int argc, char** argv) {
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			gpuErrorcheck(cudaMemcpy(&finished2, d_finished2, sizeof(bool), cudaMemcpyDeviceToHost));
 			
-		} while (!(finished) && !(finished2));
+		} while (!(finished) && !(finished2));*/
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
 		{
@@ -505,14 +510,17 @@ int main(int argc, char** argv) {
 		
 		cpu_dist[arguments.sourceNode] = 0;
 
+		//sssp::seq_cpu(graph.edges, graph.weights, num_edges, cpu_dist);
 		sssp::seq_cpu(vGraph, cpu_dist);
 
-		if (num_nodes < 20) {
+		cout << "First array is cpu_dist\n";
+
+		if (num_nodes < 30) {
 			utilities::PrintResults(cpu_dist, num_nodes);
 			utilities::PrintResults(dist, num_nodes);
 		} else {
-			utilities::PrintResults(cpu_dist, 20);
-			utilities::PrintResults(dist, 20);
+			utilities::PrintResults(cpu_dist, 30);
+			utilities::PrintResults(dist, 30);
 		}
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);

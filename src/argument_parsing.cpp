@@ -19,7 +19,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	hasNumberOfItrs = false;
 	hasEnergyFile = false;
 	debug = false;
-	variant = SYNC_PUSH_TD;
+	variant = ASYNC_PUSH_TD;
 	energy = false;
 	unifiedMem = false;
 	subway = false;
@@ -91,18 +91,10 @@ bool ArgumentParser::Parse()
 					variant = ASYNC_PUSH_TD;
 				} else if (strcmp(argv[i+1], "async_push_dd") == 0) {
 					variant = ASYNC_PUSH_DD;
-				}else if (strcmp(argv[i+1], "async_pull_td") == 0) {
-					variant = ASYNC_PULL_TD;
-				}else if (strcmp(argv[i+1], "async_pull_dd") == 0) {
-					variant = ASYNC_PULL_DD;
 				} else if (strcmp(argv[i+1], "sync_push_td") == 0) {
 					variant = SYNC_PUSH_TD;
 				} else if (strcmp(argv[i+1], "sync_push_dd") == 0) {
 					variant = SYNC_PUSH_DD;
-				}else if (strcmp(argv[i+1], "sync_pull_td") == 0) {
-					variant = SYNC_PULL_TD;
-				}else if (strcmp(argv[i+1], "sync_pull_dd") == 0) {
-					variant = SYNC_PULL_DD;
 				} else {
 					cout << "Variant not recognized\n";
 					exit(0);

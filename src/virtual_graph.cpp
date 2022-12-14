@@ -1,5 +1,5 @@
 #include "../include/virtual_graph.hpp"
-
+    
 VirtualGraph::VirtualGraph(Graph &graph)
 {
 	if(graph.hasZeroID == false)
@@ -35,18 +35,16 @@ void VirtualGraph::MakeGraph()
 	nodePointer = new uint[graph->num_nodes];
 	edgeList = new uint[2*graph->num_edges + graph->num_nodes];
 	
-
 	uint *outDegreeCounter;
 	uint source;
 	uint end;
-	uint w8;		
-	
+	uint w8;
 	
 	long long counter=0;
 	numParts = 0;
 	int numZero = 0;
 	
-	for(int i=0; i<graph->num_nodes; i++)
+	for(uint i=0; i<graph->num_nodes; i++)
 	{
 		nodePointer[i] = counter;
 		edgeList[counter] = outDegree[i];
@@ -64,12 +62,14 @@ void VirtualGraph::MakeGraph()
 
 	outDegreeCounter  = new uint[graph->num_nodes];
 	
-	for(int i=0; i<graph->num_edges; i++)
+	for(uint i=0; i<graph->num_edges; i++)
 	{
 		source = graph->edges[i].source;
 		end = graph->edges[i].end;
 		w8 = graph->weights[i];
 		
+		weights.push_back(w8);
+
 		uint location = nodePointer[source]+1+2*outDegreeCounter[source];
 
 		edgeList[location] = end;

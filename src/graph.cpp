@@ -34,7 +34,7 @@ void Graph::ReadGraph()
 
 		free(nodePointer);
 		free(tempEdgelist);
-	} else if (graphFormat == "edges" || graphFormat == "el" || graphFormat == "wel") {	
+	} else if (graphFormat == "edges" || graphFormat == "el" || graphFormat == "wel" || graphFormat == "txt") {	
 
 		ifstream infile;
 		infile.open(graphFilePath);
@@ -90,7 +90,7 @@ void Graph::ReadGraph()
 				if (ss >> w8)
 					weights.push_back(w8);
 				else
-					weights.push_back((rand() % RAND_RANGE) + 1);
+					weights.push_back(1);
 			}
 			
 			edgeCounter++;

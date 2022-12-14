@@ -43,13 +43,12 @@ namespace sssp {
 
     bool checkSize(Graph graph, VirtualGraph vGraph, int deviceId);
 
-    /*void seq_cpu(  vector<Edge> edges, 
+    void seq_cpu(  vector<Edge> edges, 
                     vector<uint> weights, 
-                    uint num_edges, 
-                    int source, 
+                    uint num_edges,  
                     unsigned int* dist  );
     
-    void seq_cpu(  Edge* edges, 
+    /*void seq_cpu(  Edge* edges, 
                     uint* weights, 
                     uint num_edges, 
                     int source, 

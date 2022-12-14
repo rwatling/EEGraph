@@ -15,8 +15,10 @@ public:
     uint *nodePointer;
     uint *inDegree;
     uint *outDegree;
-    long long numParts;
+    unsigned int numParts;
     PartPointer *partNodePointer;
+
+    vector<uint> weights;
     
 	VirtualGraph(Graph &graph);
 	void MakeGraph();

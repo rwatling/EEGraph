@@ -2,7 +2,7 @@
 #define GRAPH_HPP
 
 #define RAND_SEED 123456
-#define RAND_RANGE 1024
+#define RAND_RANGE 256
 
 #include <iostream>
 #include <stdlib.h>
