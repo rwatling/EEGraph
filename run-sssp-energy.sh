@@ -13,7 +13,7 @@ mkdir -p ./data/um-energy/async_push_dd
 mkdir -p ./data/um-energy/sync_push_td
 mkdir -p ./data/um-energy/sync_push_dd
 
-for j in {1..3}
+for j in {1..5}
 do
 
     echo $j

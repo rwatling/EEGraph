@@ -22,30 +22,6 @@ Input graphs should be in form of plain text files, containing the list of the e
 V1  V2  W
 ```
 
-### Dataset sources
-
-#### [Network Repository](https://networkrepository.com/)
-* [kron-g500-log21](https://networkrepository.com/kron-g500-logn21.php)
-* [road_usa](https://networkrepository.com/road-usa.php)
-* [soc-LiveJournal1](https://networkrepository.com/soc-LiveJournal1.php)
-* [soc-orkut](https://networkrepository.com/soc-orkut.php)
-* [soc-twitter-2010](https://networkrepository.com/soc-twitter-2010.php)
-* Alternatively you can download these datasets from [SEP-Graph](https://github.com/SEP-Graph/ppopp19-artifact)
-* bio-yeast
-* cit-patent
-
-#### [Stanford SNAP Datasets](https://snap.stanford.edu/data/index.html)
-* Web-Google
-#### [Galois Project](https://github.com/IntelligentSoftwareSystems/Galois)
-* Build the graph convert tool to convert and use to convert from a graph type to edgelist
-* [SOSP '13] Donald Nguyen, Andrew Lenharth, and Keshav Pingali. A Light-
-weight Infrastructure for Graph Analytics. In Proceedings of the Twenty-
-Fourth ACM Symposium on Operating Systems Principles, 2013.
-ACM, New York, NY, USA, 456–471
-
-#### Large Datasets
-* Datasets from Subway paper
-
 ### Acknowledgements
 
 The basic functionality of the code was adapted from the Tigr paper cited below

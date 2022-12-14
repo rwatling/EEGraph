@@ -4,3 +4,10 @@ data/*
 CMakeFiles/*
 CMakeCache.txt
 Makefile
+datasets/Google/*.txt
+datasets/Higgs/*.edgelist
+datasets/LiveJournal/*txt
+datasets/Pokec/*.txt
+datasets/Road/*.txt
+datasets/Skitter/*.txt
+datasets/Youtube/*.txt
