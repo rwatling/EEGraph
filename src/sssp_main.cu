@@ -34,7 +34,8 @@ int main_unified_memory(ArgumentParser arguments) {
 	graph.ReadGraph();
 
 	UMVirtualGraph vGraph(graph);
-	vGraph.MakeGraph(); //Add option for undirected
+
+	vGraph.MakeGraph();
 
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;
@@ -80,8 +81,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaMemAdvise(vGraph.nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
 	gpuErrorcheck(cudaMemAdvise(vGraph.edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
 	gpuErrorcheck(cudaMemAdvise(vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetReadMostly, arguments.deviceID));
-
-	if (arguments.energy) nvml.log_point();
 
 	// Algorithm control variable declarations
 	Timer timer;
@@ -181,6 +180,12 @@ int main_unified_memory(ArgumentParser arguments) {
 		} while (!(*finished));
 	}
 
+	if (arguments.energy) nvml.log_point();
+
+	float runtime = timer.Finish();
+	cout << "Number of iterations = " << itr << endl;
+	cout << "Processing finished in " << runtime << " (ms).\n";
+
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
 		cpu_threads.emplace_back(thread( &nvmlClass::killThread, &nvml));
@@ -192,13 +197,6 @@ int main_unified_memory(ArgumentParser arguments) {
 
 		cpu_threads.clear();
 	}
-
-	if (arguments.energy) nvml.log_point();
-
-	cout << "Number of iterations = " << itr << endl;
-
-	float runtime = timer.Finish();
-	cout << "Processing finished in " << runtime << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
@@ -279,9 +277,7 @@ int main(int argc, char** argv) {
 	graph.ReadGraph();
 
 	VirtualGraph vGraph(graph);
-	vGraph.MakeGraph(); //Add option for undirected
-
-	unsigned int* weights2 = new unsigned int[graph.num_edges];
+	vGraph.MakeGraph();
 
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;
@@ -306,12 +302,12 @@ int main(int argc, char** argv) {
 	
 	for(int i=0; i<num_nodes; i++)
 	{
-			dist[i] = DIST_INFINITY;
+		dist[i] = DIST_INFINITY;
 
-			if (arguments.variant == ASYNC_PUSH_DD)	label1[i] = true;
-			else label1[i]=false;
+		if (arguments.variant == ASYNC_PUSH_DD)	label1[i] = true;
+		else label1[i]=false;
 
-			label2[i] = false;
+		label2[i] = false;
 	}
 	
 	dist[arguments.sourceNode] = 0;
@@ -382,7 +378,6 @@ int main(int argc, char** argv) {
 				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
-
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
@@ -445,17 +440,17 @@ int main(int argc, char** argv) {
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			
 		} while (!(finished));
 	}
 
+	if (arguments.energy) nvml.log_point();
+
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
-	cout << "Number of iterations = " << itr << endl;
-
 	float runtime = timer.Finish();
+	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures
@@ -485,13 +480,8 @@ int main(int argc, char** argv) {
 		//sssp::seq_cpu(graph.edges, graph.weights, num_edges, cpu_dist);
 		sssp::seq_cpu(vGraph, cpu_dist);
 
-		if (num_nodes < 30) {
-			utilities::PrintResults(cpu_dist, num_nodes);
-			utilities::PrintResults(dist, num_nodes);
-		} else {
-			utilities::PrintResults(cpu_dist, 30);
-			utilities::PrintResults(dist, 30);
-		}
+		utilities::PrintResults(cpu_dist, min(30, num_nodes));
+		utilities::PrintResults(dist, min(30, num_nodes));
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}

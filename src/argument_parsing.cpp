@@ -157,9 +157,9 @@ string ArgumentParser::GenerateHelpString(){
 	if(canHaveSource)
 		str += "\n    [--source]:  Begins from the source (Default: 0). E.g., --source 10";
 	str += "\n    [--output]: Output file for results. E.g., --output results.txt";
-	str += "\n    [--device]: Select GPU device (default: 0). E.g., --device 1";
+	str += "\n    [--device]: Select GPU device (Default: 0). E.g., --device 1";
 	if(canHaveItrs)
-		str += "\n    [--iteration]: Number of iterations (default: 1). E.g., --iterations 10";
+		str += "\n    [--iteration]: Number of iterations (Default: 1). E.g., --iterations 10";
 	str += "\n    [--debug]: Check or observe information (Default: false). E.g. --debug true";
 	str += "\n    [--variant]: Check or observe information (Default: async_push_td). E.g. --variant async_push_td";
 	str += "\n    [--energy]: Measure and output GPU energy information (Default: false). E.g. --energy true";

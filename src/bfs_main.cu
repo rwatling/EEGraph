@@ -13,7 +13,7 @@
 #include "../include/um_virtual_graph.cuh"
 #include <iostream>
 
-int main_unified_memory(ArgumentParser arguments) {
+/*int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
 		
 	// Energy structures initilization
@@ -286,14 +286,14 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaFree(graph.weights));
 
 	exit(0);
-}
+}*/
 
 int main(int argc, char** argv) {
 
 	ArgumentParser arguments(argc, argv, true, false);
 
 	if (arguments.unifiedMem) {
-		main_unified_memory(arguments);
+		//main_unified_memory(arguments);
 	}
 
 	// Energy structures initilization
@@ -311,21 +311,13 @@ int main(int argc, char** argv) {
 
 	// Initialize graph and virtual graph
 	Graph graph(arguments.input, true);
-	
-	if ((graph.getFileExtension(graph.graphFilePath) == "bcsr") || (graph.getFileExtension(graph.graphFilePath) == "bwcsr")) {
-		cout << "bcsr and bwcsr files are inteded to run on um or subway only" << endl;
-		exit(0);
-	}
 
 	graph.ReadGraph();
 
 	VirtualGraph vGraph(graph);
-	vGraph.MakeGraph();
 
-	/*if (!bfs::checkSize(graph, vGraph, arguments.deviceID)) {
-		cout << "Graph too large! Switching to unified memory" << endl;
-		main_unified_memory(arguments);
-	}*/
+	// Make unweighted graph
+	vGraph.MakeUGraph();
 
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;
@@ -350,11 +342,12 @@ int main(int argc, char** argv) {
 	
 	for(int i=0; i<num_nodes; i++)
 	{
-			dist[i] = DIST_INFINITY;
-			label1[i] = true;
-			label2[i] = false;
+		dist[i] = DIST_INFINITY;
+		if (arguments.variant == ASYNC_PUSH_DD)	label1[i] = true;
+		else label1[i]=false;
+		label2[i] = false;
 	}
-	
+	label1[arguments.sourceNode] = true;
 	dist[arguments.sourceNode] = 0;
 
 	uint *d_nodePointer;
@@ -365,9 +358,7 @@ int main(int argc, char** argv) {
 	bool *d_label2;
 	
 	bool finished;
-	bool finished2;
 	bool *d_finished;
-	bool *d_finished2;
 
 	if (arguments.energy) nvml.log_point();
 
@@ -375,7 +366,6 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_dist, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
-	gpuErrorcheck(cudaMalloc(&d_finished2, sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_label1, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_label2, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_partNodePointer, vGraph.numParts * sizeof(PartPointer)));
@@ -387,16 +377,14 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaMemcpy(d_label2, label2, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_partNodePointer, vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemcpyHostToDevice));
 
-	if (arguments.energy) nvml.log_point();
-
 	// Algorithm control variable declarations
 	Timer timer;
 	int itr = 0;
-	unsigned int level = 0;
 	uint num_threads = 512;
 	uint num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
 		do
@@ -404,10 +392,8 @@ int main(int argc, char** argv) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-			
 			if(itr % 2 == 1)
 			{
-
 				bfs::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 															d_nodePointer,
 															d_partNodePointer,
@@ -415,10 +401,8 @@ int main(int argc, char** argv) {
 															d_dist, 
 															d_finished,
 															d_label1,
-															d_label2,
-															level);
-
-				moveUpLabels<<< num_blocks , num_threads >>>(d_label2, d_label1, num_nodes);
+															d_label2);
+				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
 			{
@@ -429,19 +413,14 @@ int main(int argc, char** argv) {
 															d_dist, 
 															d_finished,
 															d_label2,
-															d_label1,
-															level);
-				
-				moveUpLabels<<< num_blocks , num_threads >>>(d_label1, d_label2, num_nodes);
+															d_label1);
+				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
+			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-
-			level++;
-
+			
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -455,62 +434,33 @@ int main(int argc, char** argv) {
 														d_partNodePointer,
 														d_edgeList, 
 														d_dist, 
-														d_finished,
-														level);
+														d_finished);
 
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
+			gpuErrorcheck( cudaDeviceSynchronize() );
+			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			
-			level++;
 
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
-		
-		unsigned int level2 = 0;
-		
 		do
 		{
 			itr++;
-			if(itr % 2 == 1)
-			{
-				finished = true;
-				gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			finished = true;
+			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
-				bfs::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															d_nodePointer,
-															d_partNodePointer,
-															d_edgeList, 
-															d_dist, 
-															d_finished,
-															false,
-															level);
-
-				level++;
-			}
-			else
-			{
-				finished2 = true;
-				gpuErrorcheck(cudaMemcpy(d_finished2, &finished2, sizeof(bool), cudaMemcpyHostToDevice));
-				bfs::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															d_nodePointer, 
-															d_partNodePointer,
-															d_edgeList, 
-															d_dist, 
-															d_finished2,
-															true,
-															level2);
-				level2++;
-			}
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
+			bfs::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+														d_nodePointer,
+														d_partNodePointer,
+														d_edgeList, 
+														d_dist, 
+														d_finished,
+														(itr % 2 == 1) ? true : false);
 			
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			gpuErrorcheck(cudaMemcpy(&finished2, d_finished2, sizeof(bool), cudaMemcpyDeviceToHost));
-
-		} while (!(finished) && !(finished2));
+			
+		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
 		{
@@ -525,27 +475,22 @@ int main(int argc, char** argv) {
 														d_dist, 
 														d_finished,
 														(itr%2==1) ? d_label1 : d_label2,
-														(itr%2==1) ? d_label2 : d_label1,
-														level);
-			mixLabels<<<num_blocks, num_threads>>>((itr%2==1)? d_label1 : d_label2, (itr%2==1)? d_label2 : d_label1, num_nodes);
+														(itr%2==1) ? d_label2 : d_label1);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			
-			level++;
 
 		} while (!(finished));
 	}
 
-	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
-
 	if (arguments.energy) nvml.log_point();
 
-	cout << "Number of iterations = " << itr << endl;
+	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
 	float runtime = timer.Finish();
+	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures
@@ -560,28 +505,9 @@ int main(int argc, char** argv) {
 		cpu_threads.clear();
 	}
 
-	// Run sequential cpu version and print out useful information
+	// Print out
 	if (arguments.debug) {
-		unsigned int* cpu_dist;
-		cpu_dist = new unsigned int[num_nodes];
-
-		for(int i=0; i<num_nodes; i++)
-		{
-			cpu_dist[i] = DIST_INFINITY;
-		}
-		
-		cpu_dist[arguments.sourceNode] = 0;
-
-		bfs::seq_cpu(	graph.edges, 
-					    graph.weights, 
-					    num_edges, 
-					    arguments.sourceNode, 
-					    cpu_dist);
-
-		utilities::PrintResults(cpu_dist, min(30, num_nodes));
 		utilities::PrintResults(dist, min(30, num_nodes));
-
-		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}
 
 	if(arguments.hasOutput)
@@ -591,7 +517,6 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaFree(d_edgeList));
 	gpuErrorcheck(cudaFree(d_dist));
 	gpuErrorcheck(cudaFree(d_finished));
-	gpuErrorcheck(cudaFree(d_finished2));
 	gpuErrorcheck(cudaFree(d_label1));
 	gpuErrorcheck(cudaFree(d_label2));
 	gpuErrorcheck(cudaFree(d_partNodePointer));

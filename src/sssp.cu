@@ -115,6 +115,8 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 		}
 	
 	} else if (partId < (numParts + 1)) {
+		
+		// Each thread swaps with a partner
 		if (partId % 2 == 0) {
 			partId = partId + 1;
 		} else if (partId % 2 == 1) {
@@ -158,6 +160,7 @@ __global__ void sssp::sync_push_td(  unsigned int numParts,
 	
 	}
 }
+
 __global__ void sssp::sync_push_dd(  unsigned int numParts, 
                                      unsigned int *nodePointer,
 									 PartPointer *partNodePointer, 

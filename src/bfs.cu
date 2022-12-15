@@ -23,174 +23,7 @@ bool bfs::checkSize(Graph graph, VirtualGraph vGraph, int deviceId)
 	return (total_size < dev.totalGlobalMem);
 }
 
-__global__ void bfs::async_push_td(  unsigned int numParts, 
-                                     unsigned int *nodePointer,
-									 PartPointer *partNodePointer, 
-                                     unsigned int *edgeList,
-                                     unsigned int* dist,
-									 bool* finished,
-									 unsigned int level)
-{
-   	int partId = blockDim.x * blockIdx.x + threadIdx.x;
-
-	if(partId < numParts)
-	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
-
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
-
-		int numParts;
-		if(degree % Part_Size == 0)
-			numParts = degree / Part_Size ;
-		else
-			numParts = degree / Part_Size + 1;
-		
-		int end;
-		int ofs = thisPointer + 2*part +1;
-
-		for(int i=0; i<Part_Size; i++)
-		{
-			if(part + i*numParts >= degree)
-				break;
-			end = ofs + i*numParts*2;
-
-			if((level + 1) < dist[edgeList[end]])
-			{
-				atomicMin(&dist[edgeList[end]], level + 1);
-				*finished = false;
-			}
-		}
-	
-	}
-}
-
-__global__ void bfs::sync_push_td(  unsigned int numParts, 
-                                     unsigned int *nodePointer,
-									 PartPointer *partNodePointer, 
-                                     unsigned int *edgeList,
-                                     unsigned int* dist,
-									 bool* finished,
-									 bool even,
-									 unsigned int level) 
-{
-   int partId = blockDim.x * blockIdx.x + threadIdx.x;
-
-	if((partId < numParts) && (partId % 2 == 0) && even)
-	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
-
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
-
-		int numParts;
-		if(degree % Part_Size == 0)
-			numParts = degree / Part_Size ;
-		else
-			numParts = degree / Part_Size + 1;
-		
-		int end;
-		int ofs = thisPointer + 2*part +1;
-
-		for(int i=0; i<Part_Size; i++)
-		{
-			if(part + i*numParts >= degree)
-				break;
-			end = ofs + i*numParts*2;
-
-			if((level + 1) < dist[edgeList[end]])
-			{
-				atomicMin(&dist[edgeList[end]], level + 1);
-				*finished = false;
-			}
-		}
-	
-	} else if (partId < numParts && (partId % 2 == 1)) {
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
-
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
-
-		int numParts;
-		if(degree % Part_Size == 0)
-			numParts = degree / Part_Size ;
-		else
-			numParts = degree / Part_Size + 1;
-		
-		int end;
-		int ofs = thisPointer + 2*part +1;
-
-		for(int i=0; i<Part_Size; i++)
-		{
-			if(part + i*numParts >= degree)
-				break;
-			end = ofs + i*numParts*2;
-
-			if((level+1) < dist[edgeList[end]])
-			{
-				atomicMin(&dist[edgeList[end]], level + 1);
-				*finished = false;
-			}
-		}
-	
-	}
-}
-
-__global__ void bfs::sync_push_dd(  unsigned int numParts, 
-                                     unsigned int *nodePointer,
-									 PartPointer *partNodePointer, 
-                                     unsigned int *edgeList,
-                                     unsigned int* dist,
-									 bool* finished,
-									 bool* label1,
-									 bool* label2,
-									 unsigned int level) 
-{
-   int partId = blockDim.x * blockIdx.x + threadIdx.x;
-
-	if(partId < numParts)
-	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
-
-		if(label1[id] == false)
-			return;
-			
-		//label1[id] = false;
-
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
-
-		int numParts;
-		if(degree % Part_Size == 0)
-			numParts = degree / Part_Size ;
-		else
-			numParts = degree / Part_Size + 1;
-		
-		int end;
-		int ofs = thisPointer + 2*part +1;
-
-		for(int i=0; i<Part_Size; i++)
-		{
-			if(part + i*numParts >= degree)
-				break;
-			end = ofs + i*numParts*2;
-
-			if((level+1) < dist[edgeList[end]])
-			{
-				atomicMin(&dist[edgeList[end]], level + 1);
-				*finished = false;
-
-				label2[edgeList[end]] = true;
-			}
-		}
-	
-	}
-}
-
+// Similar to Subway bfs-async
 __global__ void bfs::async_push_dd(  unsigned int numParts, 
                                      unsigned int *nodePointer,
 									 PartPointer *partNodePointer, 
@@ -198,8 +31,7 @@ __global__ void bfs::async_push_dd(  unsigned int numParts,
                                      unsigned int* dist,
 									 bool* finished,
 									 bool* label1,
-									 bool* label2,
-									 unsigned int level)
+									 bool* label2)
 {
     
 	int partId = blockDim.x * blockIdx.x + threadIdx.x;
@@ -212,90 +44,230 @@ __global__ void bfs::async_push_dd(  unsigned int numParts,
 		if(label1[id] == false)
 			return;
 
-		//label1[id] = false;
+		unsigned int sourceWeight = dist[id];
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
 
-		int numParts;
+		unsigned int numParts;
 		if(degree % Part_Size == 0)
 			numParts = degree / Part_Size ;
 		else
 			numParts = degree / Part_Size + 1;
 		
-		int end;
-		int ofs = thisPointer + 2*part +1;
+		unsigned int end;
+		unsigned int ofs = thisPointer + part +1;
+
+		unsigned int finalDist;
 
 		for(int i=0; i<Part_Size; i++)
 		{
 			if(part + i*numParts >= degree)
 				break;
-			end = ofs + i*numParts*2;
+			end = ofs + i*numParts;
+			finalDist = sourceWeight + 1;
 
-			if((level+1) < dist[edgeList[end]])
+			if(finalDist < dist[edgeList[end]])
 			{
-				atomicMin(&dist[edgeList[end]], level + 1);
+				atomicMin(&dist[edgeList[end]], finalDist);
 				*finished = false;
 
 				label2[edgeList[end]] = true;
 			}
 		}
 	
+		label1[id] = false;
 	}
 }
 
-void bfs::seq_cpu(  vector<Edge> edges, 
-                     vector<uint> weights, 
-                     uint num_edges, 
-                     int source, 
-                     unsigned int* dist)
+// Similar to Subway bfs-async
+__global__ void bfs::async_push_td(  unsigned int numParts, 
+                                     unsigned int *nodePointer,
+									 PartPointer *partNodePointer, 
+                                     unsigned int *edgeList,
+                                     unsigned int* dist,
+									 bool* finished)
 {
+    
+	int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-	bool finished = false;
-	unsigned int level = 0;
+	if(partId < numParts)
+	{
+		int id = partNodePointer[partId].node;
+		int part = partNodePointer[partId].part;
 
-	while (!finished) {
-		finished = true;
+		unsigned int sourceWeight = dist[id];
 
-		Edge e;
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
 
-		for (int i = 0; i < num_edges; i++) {
-			e = edges[i];
+		unsigned int numParts;
+		if(degree % Part_Size == 0)
+			numParts = degree / Part_Size ;
+		else
+			numParts = degree / Part_Size + 1;
+		
+		unsigned int end;
+		unsigned int ofs = thisPointer + part +1;
 
-			if (dist[e.end] == DIST_INFINITY) {
-				dist[e.end] = level + 1;
-				finished = false;
+		unsigned int finalDist;
+
+		for(int i=0; i<Part_Size; i++)
+		{
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts;
+			finalDist = sourceWeight + 1;
+
+			if(finalDist < dist[edgeList[end]])
+			{
+				atomicMin(&dist[edgeList[end]], finalDist);
+				*finished = false;
 			}
 		}
-
-		level++;
 	}
 }
 
-void bfs::seq_cpu(  Edge* edges, 
-                     uint* weights, 
-                     uint num_edges, 
-                     int source, 
-                     unsigned int* dist)
+__global__ void bfs::sync_push_dd(  unsigned int numParts, 
+                                     unsigned int *nodePointer,
+									 PartPointer *partNodePointer, 
+                                     unsigned int *edgeList,
+                                     unsigned int* dist,
+									 bool* finished,
+									 bool* label1,
+									 bool* label2)
 {
+    
+	int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-	bool finished = false;
-	unsigned int level = 0;
+	if(partId < numParts)
+	{
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
 
-	while (!finished) {
-		finished = true;
+		if(label1[id] == false)
+			return;
 
-		Edge e;
+		unsigned int sourceWeight = dist[id];
 
-		for (int i = 0; i < num_edges; i++) {
-			e = edges[i];
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
 
-			if (dist[e.end] == DIST_INFINITY) {
-				dist[e.end] = level + 1;
-				finished = false;
+		unsigned int numParts;
+		if(degree % Part_Size == 0)
+			numParts = degree / Part_Size ;
+		else
+			numParts = degree / Part_Size + 1;
+		
+		unsigned int end;
+		unsigned int ofs = thisPointer + part +1;
+
+		unsigned int finalDist;
+
+		for(int i=0; i<Part_Size; i++)
+		{
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts;
+			finalDist = sourceWeight + 1;
+
+			if(finalDist < dist[edgeList[end]])
+			{
+				atomicMin(&dist[edgeList[end]], finalDist);
+				*finished = false;
+
+				label2[edgeList[end]] = true;
 			}
 		}
+	}
+}
 
-		level++;
+__global__ void bfs::sync_push_td(  unsigned int numParts, 
+                                     unsigned int *nodePointer,
+									 PartPointer *partNodePointer, 
+                                     unsigned int *edgeList,
+                                     unsigned int* dist,
+									 bool* finished,
+									 bool odd)
+{
+    
+	int partId = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if((partId < numParts) && odd) {
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
+
+		unsigned int sourceWeight = dist[id];
+
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
+
+		unsigned int numParts;
+		if(degree % Part_Size == 0)
+			numParts = degree / Part_Size ;
+		else
+			numParts = degree / Part_Size + 1;
+		
+		unsigned int end;
+		unsigned int ofs = thisPointer + part +1;
+
+		unsigned int finalDist;
+
+		for(int i=0; i<Part_Size; i++)
+		{
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts;
+			finalDist = sourceWeight + 1;
+
+			if(finalDist < dist[edgeList[end]])
+			{
+				atomicMin(&dist[edgeList[end]], finalDist);
+				*finished = false;
+			}
+		}
+	} else if (partId < (numParts + 1)) {
+
+		// Each thread swaps with a partner
+		if (partId % 2 == 0) {
+			partId = partId + 1;
+		} else if (partId % 2 == 1) {
+			partId = partId - 1;
+		}
+
+		if (partId >= numParts) return;
+
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
+
+		unsigned int sourceWeight = dist[id];
+
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
+
+		unsigned int numParts;
+		if(degree % Part_Size == 0)
+			numParts = degree / Part_Size ;
+		else
+			numParts = degree / Part_Size + 1;
+		
+		unsigned int end;
+		unsigned int ofs = thisPointer + part +1;
+
+		unsigned int finalDist;
+
+		for(int i=0; i<Part_Size; i++)
+		{
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts;
+			finalDist = sourceWeight + 1;
+
+			if(finalDist < dist[edgeList[end]])
+			{
+				atomicMin(&dist[edgeList[end]], finalDist);
+				*finished = false;
+			}
+		}
 	}
 }
