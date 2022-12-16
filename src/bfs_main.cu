@@ -507,7 +507,23 @@ int main(int argc, char** argv) {
 
 	// Print out
 	if (arguments.debug) {
+
+		unsigned int* cpu_dist;
+		cpu_dist = new unsigned int[num_nodes];
+
+		for(int i=0; i<num_nodes; i++)
+		{
+			cpu_dist[i] = DIST_INFINITY;
+		}
+		
+		cpu_dist[arguments.sourceNode] = 0;
+
+		bfs::seq_cpu(vGraph, cpu_dist);
+
+		utilities::PrintResults(cpu_dist, min(30, num_nodes));
 		utilities::PrintResults(dist, min(30, num_nodes));
+
+		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}
 
 	if(arguments.hasOutput)

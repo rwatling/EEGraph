@@ -271,3 +271,97 @@ __global__ void bfs::sync_push_td(  unsigned int numParts,
 		}
 	}
 }
+
+void bfs::seq_cpu(VirtualGraph vGraph, unsigned int* dist) {
+
+	unsigned int numParts = vGraph.numParts;
+	PartPointer* partNodePointer = vGraph.partNodePointer;
+	unsigned int* edgeList = vGraph.edgeList;
+	unsigned int* nodePointer = vGraph.nodePointer;
+
+	bool finished;
+
+	do {
+		finished = true;
+
+		for (unsigned int partId = 0; partId < numParts; partId++) {
+			unsigned int id = partNodePointer[partId].node;
+			unsigned int part = partNodePointer[partId].part;
+
+			unsigned int sourceWeight = dist[id];
+
+			unsigned int thisPointer = nodePointer[id];
+			unsigned int degree = edgeList[thisPointer];
+
+			unsigned int numParts;
+			if(degree % Part_Size == 0)
+				numParts = degree / Part_Size ;
+			else
+				numParts = degree / Part_Size + 1;
+			
+			unsigned int end;
+			unsigned int finalDist;
+			unsigned int ofs = thisPointer + part +1;
+
+			for(unsigned int i=0; i<Part_Size; i++)
+			{
+				if(part + i*numParts >= degree)
+					break;
+				end = ofs + i*numParts;
+				finalDist = sourceWeight + 1;
+				if(finalDist < dist[edgeList[end]])
+				{
+					dist[edgeList[end]] = finalDist;
+					finished = false;
+				}
+			}
+		}
+	} while (!(finished));
+}
+
+void bfs::seq_cpu(UMVirtualGraph vGraph, unsigned int* dist) {
+
+	unsigned int numParts = vGraph.numParts;
+	PartPointer* partNodePointer = vGraph.partNodePointer;
+	unsigned int* edgeList = vGraph.edgeList;
+	unsigned int* nodePointer = vGraph.nodePointer;
+
+	bool finished = false;
+
+	do {
+		finished = true;
+
+		for (unsigned int partId = 0; partId < numParts; partId++) {
+			unsigned int id = partNodePointer[partId].node;
+			unsigned int part = partNodePointer[partId].part;
+
+			unsigned int sourceWeight = dist[id];
+
+			unsigned int thisPointer = nodePointer[id];
+			unsigned int degree = edgeList[thisPointer];
+
+			unsigned int numParts;
+			if(degree % Part_Size == 0)
+				numParts = degree / Part_Size ;
+			else
+				numParts = degree / Part_Size + 1;
+			
+			unsigned int end;
+			unsigned int finalDist;
+			unsigned int ofs = thisPointer + part +1;
+
+			for(unsigned int i=0; i<Part_Size; i++)
+			{
+				if(part + i*numParts >= degree)
+					break;
+				end = ofs + i*numParts;
+				finalDist = sourceWeight + 1;
+				if(finalDist < dist[edgeList[end]])
+				{
+					dist[edgeList[end]] = finalDist;
+					finished = false;
+				}
+			}
+		}
+	} while (!finished);
+}

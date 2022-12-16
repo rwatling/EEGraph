@@ -367,7 +367,7 @@ void sssp::seq_cpu(VirtualGraph vGraph, unsigned int* dist) {
 				finalDist = sourceWeight + edgeList[w8];
 				if(finalDist < dist[edgeList[end]])
 				{
-					dist[edgeList[end]] = min(dist[edgeList[end]], finalDist);
+					dist[edgeList[end]] = finalDist;
 					finished = false;
 				}
 			}

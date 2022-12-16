@@ -42,6 +42,10 @@ namespace bfs {
 									 bool odd);
 
     bool checkSize(Graph graph, VirtualGraph vGraph, int deviceId);
+
+    void seq_cpu(VirtualGraph vGraph, unsigned int* dist);
+
+    void seq_cpu(UMVirtualGraph vGraph, unsigned int* dist);
 }
 
 #endif //BFS_CUH
