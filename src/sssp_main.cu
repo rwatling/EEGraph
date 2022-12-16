@@ -322,6 +322,8 @@ int main(int argc, char** argv) {
 	
 	bool finished;
 	bool *d_finished;
+	
+	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
