@@ -56,7 +56,7 @@ __global__ void bfs::async_push_dd(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		unsigned int end;
-		unsigned int ofs = thisPointer + part +1;
+		unsigned int ofs = thisPointer + 2*part +1;
 
 		unsigned int finalDist;
 
@@ -64,7 +64,7 @@ __global__ void bfs::async_push_dd(  unsigned int numParts,
 		{
 			if(part + i*numParts >= degree)
 				break;
-			end = ofs + i*numParts;
+			end = ofs + i*numParts*2;
 			finalDist = sourceWeight + 1;
 
 			if(finalDist < dist[edgeList[end]])
@@ -108,7 +108,7 @@ __global__ void bfs::async_push_td(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		unsigned int end;
-		unsigned int ofs = thisPointer + part +1;
+		unsigned int ofs = thisPointer +2*part +1;
 
 		unsigned int finalDist;
 
@@ -116,7 +116,7 @@ __global__ void bfs::async_push_td(  unsigned int numParts,
 		{
 			if(part + i*numParts >= degree)
 				break;
-			end = ofs + i*numParts;
+			end = ofs + i*numParts*2;
 			finalDist = sourceWeight + 1;
 
 			if(finalDist < dist[edgeList[end]])
@@ -160,7 +160,7 @@ __global__ void bfs::sync_push_dd(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		unsigned int end;
-		unsigned int ofs = thisPointer + part +1;
+		unsigned int ofs = thisPointer + 2*part +1;
 
 		unsigned int finalDist;
 
@@ -168,7 +168,7 @@ __global__ void bfs::sync_push_dd(  unsigned int numParts,
 		{
 			if(part + i*numParts >= degree)
 				break;
-			end = ofs + i*numParts;
+			end = ofs + i*numParts*2;
 			finalDist = sourceWeight + 1;
 
 			if(finalDist < dist[edgeList[end]])
@@ -209,7 +209,7 @@ __global__ void bfs::sync_push_td(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		unsigned int end;
-		unsigned int ofs = thisPointer + part +1;
+		unsigned int ofs = thisPointer + part*2 +1;
 
 		unsigned int finalDist;
 
@@ -217,7 +217,7 @@ __global__ void bfs::sync_push_td(  unsigned int numParts,
 		{
 			if(part + i*numParts >= degree)
 				break;
-			end = ofs + i*numParts;
+			end = ofs + i*numParts*2;
 			finalDist = sourceWeight + 1;
 
 			if(finalDist < dist[edgeList[end]])
@@ -252,7 +252,7 @@ __global__ void bfs::sync_push_td(  unsigned int numParts,
 			numParts = degree / Part_Size + 1;
 		
 		unsigned int end;
-		unsigned int ofs = thisPointer + part +1;
+		unsigned int ofs = thisPointer + part*2 +1;
 
 		unsigned int finalDist;
 
@@ -260,7 +260,7 @@ __global__ void bfs::sync_push_td(  unsigned int numParts,
 		{
 			if(part + i*numParts >= degree)
 				break;
-			end = ofs + i*numParts;
+			end = ofs + i*numParts*2;
 			finalDist = sourceWeight + 1;
 
 			if(finalDist < dist[edgeList[end]])
@@ -301,13 +301,13 @@ void bfs::seq_cpu(VirtualGraph vGraph, unsigned int* dist) {
 			
 			unsigned int end;
 			unsigned int finalDist;
-			unsigned int ofs = thisPointer + part +1;
+			unsigned int ofs = thisPointer + part*2 +1;
 
 			for(unsigned int i=0; i<Part_Size; i++)
 			{
 				if(part + i*numParts >= degree)
 					break;
-				end = ofs + i*numParts;
+				end = ofs + i*numParts*2;
 				finalDist = sourceWeight + 1;
 				if(finalDist < dist[edgeList[end]])
 				{
@@ -348,13 +348,13 @@ void bfs::seq_cpu(UMVirtualGraph vGraph, unsigned int* dist) {
 			
 			unsigned int end;
 			unsigned int finalDist;
-			unsigned int ofs = thisPointer + part +1;
+			unsigned int ofs = thisPointer + part*2 +1;
 
 			for(unsigned int i=0; i<Part_Size; i++)
 			{
 				if(part + i*numParts >= degree)
 					break;
-				end = ofs + i*numParts;
+				end = ofs + i*numParts*2;
 				finalDist = sourceWeight + 1;
 				if(finalDist < dist[edgeList[end]])
 				{

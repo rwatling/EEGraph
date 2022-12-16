@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
 	VirtualGraph vGraph(graph);
 
 	// Make unweighted graph
-	vGraph.MakeUGraph();
+	vGraph.MakeGraph();
 
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;
