@@ -33,9 +33,9 @@ do
 
     for i in "${inputs[@]}"
     do
-        file="{names[count]}"
+        file="${names[count]}"
         echo $file
-		randNum=$((RANDOM % 1024))
+		randNum=$((RANDOM % 32))
 
         $1 --input "${i}" --variant async_push_td --source "${randNum}" --energy true --efile "./data/regular-energy/async_push_td/${j}-${file}-readings" --estats "./data/regular-energy/async_push_td/${j}-${file}-stats" > "./data/regular-energy/async_push_td/${j}-${file}"
         sleep 5
@@ -55,5 +55,6 @@ do
         $1 --input "${i}" --variant sync_push_dd --um true --source "${randNum}" --energy true --efile "./data/um-energy/sync_push_dd/${j}-${file}-readings" --estats "./data/um-energy/sync_push_dd/${j}-${file}-stats"> "./data/um-energy/sync_push_dd/${j}-${file}"
         sleep 5
 
+        count=$((count+1))
     done
 done

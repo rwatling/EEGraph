@@ -35,7 +35,7 @@ do
     do
         file="${names[count]}"
         echo $file
-		randNum=$((RANDOM % 1024))
+		randNum=$((RANDOM % 32))
 
         $1 --input "${i}" --variant async_push_td --source "${randNum}" > "./data/regular/async_push_td/${j}-${file}"
         sleep 5
