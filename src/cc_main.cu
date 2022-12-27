@@ -34,6 +34,7 @@ int main_unified_memory(ArgumentParser arguments) {
 	graph.ReadGraph();
 
 	UMVirtualGraph vGraph(graph);
+
 	vGraph.MakeGraph();
 
 	uint num_nodes = graph.num_nodes;
@@ -61,23 +62,21 @@ int main_unified_memory(ArgumentParser arguments) {
 	
 	for(int i=0; i<num_nodes; i++)
 	{
-			dist[i] = i;
-			label1[i] = true;
-			label2[i] = false;
+		dist[i] = i;
+		label1[i] = true;
+		label2[i] = false;
 	}
+	
+	label1[arguments.sourceNode] = true;
 
 	bool *finished;
-	bool *finished2;
 
 	gpuErrorcheck(cudaMallocManaged(&finished, sizeof(bool)));
-	gpuErrorcheck(cudaMallocManaged(&finished2, sizeof(bool)));
 
 	// Tell GPU this data is mostly read
 	gpuErrorcheck(cudaMemAdvise(vGraph.nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
 	gpuErrorcheck(cudaMemAdvise(vGraph.edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
 	gpuErrorcheck(cudaMemAdvise(vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetReadMostly, arguments.deviceID));
-
-	if (arguments.energy) nvml.log_point();
 
 	// Algorithm control variable declarations
 	Timer timer;
@@ -86,6 +85,7 @@ int main_unified_memory(ArgumentParser arguments) {
 	uint num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
 		do
@@ -118,9 +118,9 @@ int main_unified_memory(ArgumentParser arguments) {
 				clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
 			}
 
+			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
+
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -135,42 +135,28 @@ int main_unified_memory(ArgumentParser arguments) {
 														dist, 
 														finished);
 
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-
+			
+			gpuErrorcheck( cudaDeviceSynchronize() );
+			gpuErrorcheck( cudaPeekAtLastError() );	
 		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
 		{
 			itr++;
-			if(itr % 2 == 1)
-			{
-				*finished = true;
 
-				cc::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															vGraph.nodePointer,
-															vGraph.partNodePointer,
-															vGraph.edgeList, 
-															dist, 
-															finished,
-															false);
-			}
-			else
-			{
-				*finished2 = true;
-				cc::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															vGraph.nodePointer, 
-															vGraph.partNodePointer,
-															vGraph.edgeList, 
-															dist, 
-															finished2,
-															true);
-			}
+			*finished = true;
 
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
+			cc::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+														vGraph.nodePointer,
+														vGraph.partNodePointer,
+														vGraph.edgeList, 
+														dist, 
+														finished,
+														(itr % 2 == 1) ? true : false);
 			
-		} while (!(*finished) && !(*finished2));
+			gpuErrorcheck( cudaDeviceSynchronize() );
+			gpuErrorcheck( cudaPeekAtLastError() );
+		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
 		{
@@ -185,30 +171,15 @@ int main_unified_memory(ArgumentParser arguments) {
 														finished,
 														(itr%2==1) ? label1 : label2,
 														(itr%2==1) ? label2 : label1);
-
+			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
 		} while (!(*finished));
-	}
-
-	// Stop measuring energy consumption, clean up structures
-	if (arguments.energy) {
-		cpu_threads.emplace_back(thread( &nvmlClass::killThread, &nvml));
-
-		for (auto& th : cpu_threads) {
-			th.join();
-			th.~thread();
-		}
-
-		cpu_threads.clear();
 	}
 
 	if (arguments.energy) nvml.log_point();
 
-	cout << "Number of iterations = " << itr << endl;
-
 	float runtime = timer.Finish();
+	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures
@@ -223,7 +194,18 @@ int main_unified_memory(ArgumentParser arguments) {
 		cpu_threads.clear();
 	}
 
-	// Run sequential cpu version and print out useful information
+	// Stop measuring energy consumption, clean up structures
+	if (arguments.energy) {
+		cpu_threads.emplace_back(thread( &nvmlClass::killThread, &nvml));
+
+		for (auto& th : cpu_threads) {
+			th.join();
+			th.~thread();
+		}
+
+		cpu_threads.clear();
+	}
+
 	// Run sequential cpu version and print out useful information
 	if (arguments.debug) {
 		unsigned int* cpu_dist;
@@ -233,19 +215,16 @@ int main_unified_memory(ArgumentParser arguments) {
 		{
 			cpu_dist[i] = i;
 		}
+	
 
-		cc::seq_cpu(	graph.edges, 
-					    graph.weights, 
-					    num_edges, 
-					    arguments.sourceNode, 
-					    cpu_dist);
+		cc::seq_cpu(vGraph, cpu_dist);
 
-		if (num_nodes < 20) {
+		if (num_nodes < 30) {
 			utilities::PrintResults(cpu_dist, num_nodes);
 			utilities::PrintResults(dist, num_nodes);
 		} else {
-			utilities::PrintResults(cpu_dist, 20);
-			utilities::PrintResults(dist, 20);
+			utilities::PrintResults(cpu_dist, 30);
+			utilities::PrintResults(dist, 30);
 		}
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
@@ -257,6 +236,7 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaFree(dist));
 	gpuErrorcheck(cudaFree(label1));
 	gpuErrorcheck(cudaFree(label2));
+	gpuErrorcheck(cudaFree(finished));
 	gpuErrorcheck(cudaFree(vGraph.nodePointer));
 	gpuErrorcheck(cudaFree(vGraph.edgeList));
 	gpuErrorcheck(cudaFree(vGraph.partNodePointer));
@@ -317,10 +297,13 @@ int main(int argc, char** argv) {
 	
 	for(int i=0; i<num_nodes; i++)
 	{
-			dist[i] = i;
-			label1[i] = true;
-			label2[i] = false;
+		dist[i] = i;
+
+		label1[i] = true;
+		label2[i] = false;
 	}
+
+	label1[arguments.sourceNode] = true;
 
 	uint *d_nodePointer;
 	uint *d_edgeList;
@@ -330,15 +313,14 @@ int main(int argc, char** argv) {
 	bool *d_label2;
 	
 	bool finished;
-	bool finished2;
 	bool *d_finished;
-	bool *d_finished2;
+	
+	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_dist, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
-	gpuErrorcheck(cudaMalloc(&d_finished2, sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_label1, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_label2, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_partNodePointer, vGraph.numParts * sizeof(PartPointer)));
@@ -357,6 +339,7 @@ int main(int argc, char** argv) {
 	uint num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
 		do
@@ -389,8 +372,8 @@ int main(int argc, char** argv) {
 				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
+			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			
 		} while (!(finished));
@@ -402,14 +385,14 @@ int main(int argc, char** argv) {
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
 			cc::async_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-														d_nodePointer,
-														d_partNodePointer,
-														d_edgeList, 
-														d_dist, 
-														d_finished);
+																d_nodePointer,
+																d_partNodePointer,
+																d_edgeList, 
+																d_dist, 
+																d_finished);
 
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
+			gpuErrorcheck( cudaDeviceSynchronize() );
+			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 
 		} while (!(finished));
@@ -417,38 +400,22 @@ int main(int argc, char** argv) {
 		do
 		{
 			itr++;
-			if(itr % 2 == 1)
-			{
-				finished = true;
-				gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			finished = true;
+			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
-				cc::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															d_nodePointer,
-															d_partNodePointer,
-															d_edgeList, 
-															d_dist, 
-															d_finished,
-															false);
-			}
-			else
-			{
-				finished2 = true;
-				gpuErrorcheck(cudaMemcpy(d_finished2, &finished2, sizeof(bool), cudaMemcpyHostToDevice));
-				cc::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															d_nodePointer, 
-															d_partNodePointer,
-															d_edgeList, 
-															d_dist, 
-															d_finished2,
-															true);
-			}
-
-			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			gpuErrorcheck(cudaMemcpy(&finished2, d_finished2, sizeof(bool), cudaMemcpyDeviceToHost));
+			cc::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+														d_nodePointer,
+														d_partNodePointer,
+														d_edgeList, 
+														d_dist, 
+														d_finished,
+														(itr % 2 == 1) ? true : false);
 			
-		} while (!(finished) && !(finished2));
+			gpuErrorcheck( cudaDeviceSynchronize() );	
+			gpuErrorcheck( cudaPeekAtLastError() );
+			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			
+		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
 		{
@@ -465,19 +432,19 @@ int main(int argc, char** argv) {
 														(itr%2==1) ? d_label1 : d_label2,
 														(itr%2==1) ? d_label2 : d_label1);
 
+			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			
 		} while (!(finished));
 	}
 
+	if (arguments.energy) nvml.log_point();
+
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
-	cout << "Number of iterations = " << itr << endl;
-
 	float runtime = timer.Finish();
+	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures
@@ -502,19 +469,10 @@ int main(int argc, char** argv) {
 			cpu_dist[i] = i;
 		}
 
-		cc::seq_cpu(	graph.edges, 
-					    graph.weights, 
-					    num_edges, 
-					    arguments.sourceNode, 
-					    cpu_dist);
+		cc::seq_cpu(vGraph, cpu_dist);
 
-		if (num_nodes < 20) {
-			utilities::PrintResults(cpu_dist, num_nodes);
-			utilities::PrintResults(dist, num_nodes);
-		} else {
-			utilities::PrintResults(cpu_dist, 20);
-			utilities::PrintResults(dist, 20);
-		}
+		utilities::PrintResults(cpu_dist, min(30, num_nodes));
+		utilities::PrintResults(dist, min(30, num_nodes));
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}
@@ -526,7 +484,6 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaFree(d_edgeList));
 	gpuErrorcheck(cudaFree(d_dist));
 	gpuErrorcheck(cudaFree(d_finished));
-	gpuErrorcheck(cudaFree(d_finished2));
 	gpuErrorcheck(cudaFree(d_label1));
 	gpuErrorcheck(cudaFree(d_label2));
 	gpuErrorcheck(cudaFree(d_partNodePointer));

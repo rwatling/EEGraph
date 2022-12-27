@@ -5,6 +5,7 @@
 #include "gpu_error_check.cuh"
 #include "cuda_includes.cuh"
 #include "virtual_graph.hpp"
+#include "um_virtual_graph.cuh"
 
 namespace sswp {
     __global__ void async_push_td( unsigned int numParts, 
@@ -29,7 +30,7 @@ namespace sswp {
                                    unsigned int *edgeList,
                                    unsigned int* dist,
                                    bool* finished,
-                                   bool even);
+                                   bool odd);
 
     __global__ void async_push_dd(  unsigned int numParts, 
                                     unsigned int *nodePointer,
@@ -40,21 +41,16 @@ namespace sswp {
                                     bool* label1,
                                     bool* label2);
 
-    __global__ void clearLabel(bool *label, unsigned int size);
-
     bool checkSize(Graph graph, VirtualGraph vGraph, int deviceId);
 
     void seq_cpu(  vector<Edge> edges, 
                     vector<uint> weights, 
-                    uint num_edges, 
-                    int source, 
+                    uint num_edges,  
                     unsigned int* dist  );
     
-    void seq_cpu(  Edge* edges, 
-                     uint* weights, 
-                     uint num_edges, 
-                     int source, 
-                     unsigned int* dist  );
+    void seq_cpu(VirtualGraph vGraph, unsigned int* dist);
+
+    void seq_cpu(UMVirtualGraph vGraph, unsigned int* dist);
 }
 
-#endif // SSWP_CUH
+#endif // SSSP_CUH
