@@ -433,6 +433,8 @@ int main(int argc, char** argv) {
 
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
+	if (arguments.energy) nvml.log_point();
+
 	float runtime = timer.Finish();
 	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
