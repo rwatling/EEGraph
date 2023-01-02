@@ -20,10 +20,9 @@ inputs=( "./datasets/Google/web-Google.txt"
         "./datasets/LiveJournal/soc-LiveJournal1.txt" 
         "./datasets/Pokec/soc-pokec-relationships.txt"
         "./datasets/Road/roadNet-CA.txt"
-        "./datasets/Skitter/as-skitter.txt"
-        "./datasets/Youtube/com-youtube.ungraph.txt")
+        "./datasets/Skitter/as-skitter.txt")
 
-names=("google" "higgs" "livejournal" "pokec" "road" "skitter" "youtube")
+names=("google" "higgs" "livejournal" "pokec" "road" "skitter")
 
 for j in {1..5}
 do
