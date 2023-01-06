@@ -1,28 +1,5 @@
 #include "../include/pr.cuh"
 
-bool pr::checkSize(Graph graph, VirtualGraph vGraph, int deviceId) 
-{
-	cudaProfilerStart();
-	cudaError_t error;
-	cudaDeviceProp dev;
-	int deviceID;
-	cudaGetDevice(&deviceID);
-	error = cudaGetDeviceProperties(&dev, deviceID);
-	if(error != cudaSuccess)
-	{
-		printf("Error: %s\n", cudaGetErrorString(error));
-		exit(-1);
-	}
-	cudaProfilerStop();
-
-	size_t total_size = 0;
-	total_size = ((3 * graph.num_nodes) + (2 * graph.num_edges)) * sizeof(unsigned int); //edges and nodes
-	total_size = total_size + (sizeof(bool) * (2  + graph.num_nodes * 2)); //finished and labels
-	total_size = total_size + (sizeof(PartPointer) * vGraph.numParts); //Part pointers
-
-	return (total_size < dev.totalGlobalMem);
-}
-
 __global__ void pr::sync_push_td(unsigned int numParts, 
 								unsigned int *nodePointer, 
 								PartPointer *partNodePointer,
@@ -31,86 +8,96 @@ __global__ void pr::sync_push_td(unsigned int numParts,
 								float *delta,
 								bool* finished,
 								float acc,
-								bool even) 
+								bool odd) 
 {
 
-	int partId = blockDim.x * blockIdx.x + threadIdx.x;
+	unsigned int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-	if(partId < numParts && (partId % 2 == 0) && even)
+	if((partId < numParts) && odd)
 	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
 
-		float thisDelta = delta[id];		
+		float thisDelta = delta[id];
+
+		unsigned int numParts;
 
 		if (thisDelta > acc) {
 
 			dist[id] += thisDelta;
 
 			if (degree != 0) {
-
 				*finished = false;
 
-				int numParts;
 				if(degree % Part_Size == 0)
 					numParts = degree / Part_Size ;
 				else
 					numParts = degree / Part_Size + 1;
-
-				int end;
-				int ofs = thisPointer + part + 1;
+				
+				unsigned int end;
+				unsigned int ofs = thisPointer + 2*part +1;
 
 				float sourcePR = ((float) thisDelta / degree) * 0.85;
 
-				for(int i=0; i<Part_Size; i++)
+				for(unsigned int i=0; i<Part_Size; i++)
 				{
 					if(part + i*numParts >= degree)
 						break;
-					end = ofs + i*numParts;
-
+					end = ofs + i*numParts*2;
+					
 					atomicAdd(&delta[edgeList[end]], sourcePR);
 				}
 			}
 
 			atomicAdd(&delta[id], -thisDelta);
 		}
-	} else if (partId < numParts && (partId % 2 == 1)) {
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
+	
+	} else if (partId < (numParts + 1)) {
+		
+		// Each thread swaps with a partner
+		if (partId % 2 == 0) {
+			partId = partId + 1;
+		} else if (partId % 2 == 1) {
+			partId = partId - 1;
+		}
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
+		if (partId >= numParts) return;
 
-		float thisDelta = delta[id];		
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
+
+		float thisDelta = delta[id];
+
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
+
+		unsigned int numParts;
 
 		if (thisDelta > acc) {
-
 			dist[id] += thisDelta;
 
 			if (degree != 0) {
-
 				*finished = false;
 
-				int numParts;
 				if(degree % Part_Size == 0)
 					numParts = degree / Part_Size ;
 				else
 					numParts = degree / Part_Size + 1;
-
-				int end;
-				int ofs = thisPointer + part + 1;
+				
+				unsigned int end;
+				unsigned int ofs = thisPointer + 2*part +1;
 
 				float sourcePR = ((float) thisDelta / degree) * 0.85;
 
-				for(int i=0; i<Part_Size; i++)
+				for(unsigned int i=0; i<Part_Size; i++)
 				{
 					if(part + i*numParts >= degree)
 						break;
-					end = ofs + i*numParts;
-
+					end = ofs + i*numParts*2;
+					
 					atomicAdd(&delta[edgeList[end]], sourcePR);
 				}
 			}
@@ -131,46 +118,46 @@ __global__ void pr::sync_push_dd(unsigned int numParts,
 								bool* label1,
 								bool* label2) 
 {
-	int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-	if(partId < numParts)
-	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
+	unsigned int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
+	if (partId < numParts) {
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
 
 		if(label1[id] == false)
 			return;
 
-		float thisDelta = delta[id];		
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
+
+		float thisDelta = delta[id];
+
+		unsigned int numParts;
 
 		if (thisDelta > acc) {
 
 			dist[id] += thisDelta;
 
 			if (degree != 0) {
-
 				*finished = false;
 
-				int numParts;
 				if(degree % Part_Size == 0)
 					numParts = degree / Part_Size ;
 				else
 					numParts = degree / Part_Size + 1;
-
-				int end;
-				int ofs = thisPointer + part + 1;
+				
+				unsigned int end;
+				unsigned int ofs = thisPointer + 2*part +1;
 
 				float sourcePR = ((float) thisDelta / degree) * 0.85;
 
-				for(int i=0; i<Part_Size; i++)
+				for(unsigned int i=0; i<Part_Size; i++)
 				{
 					if(part + i*numParts >= degree)
 						break;
-					end = ofs + i*numParts;
-
+					end = ofs + i*numParts*2;
+					
 					atomicAdd(&delta[edgeList[end]], sourcePR);
 					label2[edgeList[end]] = true;
 				}
@@ -188,52 +175,53 @@ __global__ void pr::async_push_td(unsigned int numParts,
 								float *dist,
 								float *delta,
 								bool* finished,
-								float acc) 
-{
-	int partId = blockDim.x * blockIdx.x + threadIdx.x;
+								float acc) {
+	
+	unsigned int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-	if(partId < numParts)
-	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
+	if(partId < numParts) {
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
 
-		float thisDelta = delta[id];		
+		float thisDelta = delta[id];
+
+		unsigned int numParts;
 
 		if (thisDelta > acc) {
 
 			dist[id] += thisDelta;
 
 			if (degree != 0) {
-
 				*finished = false;
 
-				int numParts;
 				if(degree % Part_Size == 0)
 					numParts = degree / Part_Size ;
 				else
 					numParts = degree / Part_Size + 1;
-
-				int end;
-				int ofs = thisPointer + part + 1;
+				
+				unsigned int end;
+				unsigned int ofs = thisPointer + 2*part +1;
 
 				float sourcePR = ((float) thisDelta / degree) * 0.85;
 
-				for(int i=0; i<Part_Size; i++)
+				for(unsigned int i=0; i<Part_Size; i++)
 				{
 					if(part + i*numParts >= degree)
 						break;
-					end = ofs + i*numParts;
-
+					end = ofs + i*numParts*2;
+					
 					atomicAdd(&delta[edgeList[end]], sourcePR);
 				}
 			}
 
 			atomicAdd(&delta[id], -thisDelta);
 		}
+	
 	}
+
 }
 
 __global__ void pr::async_push_dd(unsigned int numParts, 
@@ -247,48 +235,47 @@ __global__ void pr::async_push_dd(unsigned int numParts,
 								bool* label1,
 								bool* label2) 
 {
-	int partId = blockDim.x * blockIdx.x + threadIdx.x;
+	unsigned int partId = blockDim.x * blockIdx.x + threadIdx.x;
 
-	if(partId < numParts)
-	{
-		int id = partNodePointer[partId].node;
-		int part = partNodePointer[partId].part;
+	if(partId < numParts) {
+		unsigned int id = partNodePointer[partId].node;
+		unsigned int part = partNodePointer[partId].part;
 
-		int thisPointer = nodePointer[id];
-		int degree = edgeList[thisPointer];
+		unsigned int thisPointer = nodePointer[id];
+		unsigned int degree = edgeList[thisPointer];
+
+		float thisDelta = delta[id];
+
+		unsigned int numParts;
 
 		if(label1[id] == false)
 			return;
 
 		label1[id] = false;
 
-		float thisDelta = delta[id];		
-
 		if (thisDelta > acc) {
 
 			dist[id] += thisDelta;
 
 			if (degree != 0) {
-
 				*finished = false;
 
-				int numParts;
 				if(degree % Part_Size == 0)
 					numParts = degree / Part_Size ;
 				else
 					numParts = degree / Part_Size + 1;
-
-				int end;
-				int ofs = thisPointer + part + 1;
+				
+				unsigned int end;
+				unsigned int ofs = thisPointer + 2*part +1;
 
 				float sourcePR = ((float) thisDelta / degree) * 0.85;
 
-				for(int i=0; i<Part_Size; i++)
+				for(unsigned int i=0; i<Part_Size; i++)
 				{
 					if(part + i*numParts >= degree)
 						break;
-					end = ofs + i*numParts;
-
+					end = ofs + i*numParts*2;
+					
 					atomicAdd(&delta[edgeList[end]], sourcePR);
 					label2[edgeList[end]] = true;
 				}
@@ -296,5 +283,6 @@ __global__ void pr::async_push_dd(unsigned int numParts,
 
 			atomicAdd(&delta[id], -thisDelta);
 		}
+	
 	}
 }

@@ -298,11 +298,6 @@ int main(int argc, char** argv) {
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
-	/*if (!pr::checkSize(graph, vGraph, arguments.deviceID)) {
-		cout << "Graph too large! Switching to unified memory" << endl;
-		main_unified_memory(arguments);
-	}*/
-
 	uint num_nodes = graph.num_nodes;
 	uint num_edges = graph.num_edges;
 
@@ -336,9 +331,7 @@ int main(int argc, char** argv) {
 	{
 		delta[i] = 0;
 		value[i] = initPR;
-		if ( i < (num_nodes / 4)) {
-			label1[i] = true;
-		} else { label1[i] = false; }
+		label1[i] = true;
 		label2[i] = false;
 	}
 
@@ -358,9 +351,7 @@ int main(int argc, char** argv) {
 	bool *d_label1;
 	bool *d_label2;
 	bool *d_finished;
-	bool *d_finished2;
 	bool finished;
-	bool finished2;
 	float *d_delta;
 	float *d_value;
 
@@ -374,7 +365,6 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaMalloc(&d_label2, num_nodes * sizeof(bool)));
 	gpuErrorcheck(cudaMalloc(&d_partNodePointer, vGraph.numParts * sizeof(PartPointer)));
 	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
-	gpuErrorcheck(cudaMalloc(&d_finished2, sizeof(bool)));
 
 	gpuErrorcheck(cudaMemcpy(d_nodePointer, vGraph.nodePointer, num_nodes * sizeof(unsigned int), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_edgeList, vGraph.edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemcpyHostToDevice));
@@ -431,7 +421,6 @@ int main(int argc, char** argv) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
-			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 			
 
@@ -450,7 +439,7 @@ int main(int argc, char** argv) {
 															d_value,
 															d_finished,
 															acc);
-			cudaDeviceSynchronize();
+			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
@@ -459,10 +448,8 @@ int main(int argc, char** argv) {
 		do
 		{
 			itr++;
-			if(itr % 2 == 1)
-			{
-				finished = true;
-				gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			finished = true;
+			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
 				pr::sync_push_td<<< num_blocks, num_threads >>>(vGraph.numParts, 
 															d_nodePointer,
@@ -472,26 +459,13 @@ int main(int argc, char** argv) {
 															d_value,
 															d_finished,
 															acc,
-															false);
-			}
-			else
-			{
-				finished2 = true;
-				gpuErrorcheck(cudaMemcpy(d_finished2, &finished2, sizeof(bool), cudaMemcpyHostToDevice));
-				pr::sync_push_td<<< num_blocks, num_threads >>>(vGraph.numParts, 
-															d_nodePointer,
-															d_partNodePointer,
-															d_edgeList, 
-															d_delta,
-															d_value,
-															d_finished,
-															acc,
-															true);
-			}
+															(itr % 2 == 1) ? true : false);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-		} while (!(finished) && !(finished2));
+			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+
+		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do {
 			itr++;
@@ -508,7 +482,7 @@ int main(int argc, char** argv) {
 															acc,
 															(itr%2==1) ? d_label1 : d_label2,
 															(itr%2==1) ? d_label2 : d_label1);
-			cudaDeviceSynchronize();
+			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
@@ -552,5 +526,4 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaFree(d_label2));
 	gpuErrorcheck(cudaFree(d_partNodePointer));
 	gpuErrorcheck(cudaFree(d_finished));
-	gpuErrorcheck(cudaFree(d_finished2));
 }

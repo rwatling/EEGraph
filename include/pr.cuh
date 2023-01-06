@@ -48,8 +48,6 @@ namespace pr {
 								bool* label1,
 								bool* label2);
 
-    __global__ void clearLabel(bool *label, unsigned int size);
-
     bool checkSize(Graph graph, VirtualGraph vGraph, int deviceId);
 }
 
