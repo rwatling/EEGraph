@@ -13,7 +13,7 @@
 #include "../include/um_virtual_graph.cuh"
 #include <iostream>
 
-/*int main_unified_memory(ArgumentParser arguments) {
+int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
 		
 	// Energy structures initilization
@@ -70,17 +70,13 @@
 	{
 		delta[i] = 0;
 		value[i] = initPR;
-		if ( i < (num_nodes / 4)) {
-			label1[i] = true;
-		} else { label1[i] = false; }
+		label1[i] = true;
 		label2[i] = false;
 	}
 
 	bool *finished;
-	bool *finished2;
 
 	gpuErrorcheck(cudaMallocManaged(&finished, sizeof(bool)));
-	gpuErrorcheck(cudaMallocManaged(&finished2, sizeof(bool)));
 
 	// Tell GPU this data is mostly read
 	gpuErrorcheck(cudaMemAdvise(vGraph.nodePointer, num_nodes * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
@@ -158,11 +154,9 @@
 		do
 		{
 			itr++;
-			if(itr % 2 == 1)
-			{
-				*finished = true;
+			*finished = true;
 
-				pr::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
+				pr::sync_push_td<<< num_blocks, num_threads >>>(vGraph.numParts, 
 															vGraph.nodePointer,
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
@@ -170,25 +164,12 @@
 															value,
 															finished,
 															acc,
-															false);
-			}
-			else
-			{
-				*finished2 = true;
-				pr::sync_push_td<<< num_blocks , num_threads >>>(vGraph.numParts, 
-															vGraph.nodePointer,
-															vGraph.partNodePointer,
-															vGraph.edgeList, 
-															delta,
-															value,
-															finished,
-															acc,
-															true);
-			}
+															(itr % 2 == 1) ? true : false);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-		} while (!(*finished) && !(*finished2));
+
+		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
 		{
@@ -259,17 +240,17 @@
 	gpuErrorcheck(cudaFree(vGraph.partNodePointer));
 	gpuErrorcheck(cudaFree(graph.edges));
 	gpuErrorcheck(cudaFree(graph.weights));
+	gpuErrorcheck(cudaFree(finished));
 
 	exit(0);
-}*/
+}
 
 int main(int argc, char** argv) {
 
 	ArgumentParser arguments(argc, argv, true, true);
 
 	if (arguments.unifiedMem) {
-		//main_unified_memory(arguments);
-		cout << "Not yet implemented\n";
+		main_unified_memory(arguments);
 	}
 
 	// Energy structures initilization
@@ -334,16 +315,6 @@ int main(int argc, char** argv) {
 		label1[i] = true;
 		label2[i] = false;
 	}
-
-	/*
-	Note: Since PageRank is an iterative algorithm,
-	more than one node should be considered active.
-	Otherwise the algorithm will converge early by setting the finished flags
-	to be done for the one active node which is does not satisfy the goal in for the
-	graph as a whole in this implementation. Therefore, we naively consider
-	a fraction of the graph to be active initially.
-	*/
-	label1[arguments.sourceNode] = true;
 
 	uint *d_nodePointer;
 	uint *d_edgeList;
