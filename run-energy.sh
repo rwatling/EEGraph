@@ -22,7 +22,7 @@ inputs=( "./datasets/Google/web-Google.txt"
         "./datasets/Road/roadNet-CA.txt"
         "./datasets/Skitter/as-skitter.txt")
 
-names=("google" "higgs" "livejournal" "pokec" "road" "skitter)
+names=("google" "higgs" "livejournal" "pokec" "road" "skitter")
 
 for j in {1..5}
 do

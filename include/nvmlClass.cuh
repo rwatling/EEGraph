@@ -47,14 +47,13 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <cassert>
 
 #include <cuda_runtime.h>
 #include <nvml.h>
 
 int constexpr size_of_vector { 100000 };
 int constexpr nvml_device_name_buffer_size { 100 };
-double constexpr convert_mJ { 1000000000 };
-double constexpr convert_ns_S { 1000000000};
 
 // *************** FOR ERROR CHECKING *******************
 #ifndef NVML_RT_CALL
@@ -121,7 +120,7 @@ class nvmlClass {
 
         // Collect power information
         while ( loop_ ) {
-            device_stats.timestamp = std::chrono::high_resolution_clock::now( ).time_since_epoch( ).count( );
+            device_stats.timestamp = std::chrono::duration<double, std::micro>(std::chrono::high_resolution_clock::now( ).time_since_epoch( )).count( );
             NVML_RT_CALL( nvmlDeviceGetTemperature( device_, NVML_TEMPERATURE_GPU, &device_stats.temperature ) );
             NVML_RT_CALL( nvmlDeviceGetPowerUsage( device_, &device_stats.powerUsage ) );
             NVML_RT_CALL( nvmlDeviceGetEnforcedPowerLimit( device_, &device_stats.powerLimit ) );
@@ -131,14 +130,14 @@ class nvmlClass {
 
             time_steps_.push_back( device_stats );
 
-            std::this_thread::sleep_for( std::chrono::milliseconds(10));
+            std::this_thread::sleep_for( std::chrono::microseconds(500));
         }
 
         // Collect information for a short period of time (cooldown) after loop_ is flagged to be false
-        //500 * 10 ms = 5s
-        for (int i = 0; i < 500; i++) {
+        //300 * 10 ms = 3s
+        for (int i = 0; i < 300; i++) {
 
-          device_stats.timestamp = std::chrono::high_resolution_clock::now( ).time_since_epoch( ).count( );
+          device_stats.timestamp = std::chrono::duration<double, std::micro>(std::chrono::high_resolution_clock::now( ).time_since_epoch( )).count( );
           NVML_RT_CALL( nvmlDeviceGetTemperature( device_, NVML_TEMPERATURE_GPU, &device_stats.temperature ) );
           NVML_RT_CALL( nvmlDeviceGetPowerUsage( device_, &device_stats.powerUsage ) );
           NVML_RT_CALL( nvmlDeviceGetEnforcedPowerLimit( device_, &device_stats.powerLimit ) );
@@ -190,7 +189,7 @@ class nvmlClass {
       stat_pts device_stats {};
 
       NVML_RT_CALL( nvmlDeviceGetPowerUsage( device_, &device_stats.powerUsage ) );
-      device_stats.timestamp = std::chrono::high_resolution_clock::now( ).time_since_epoch( ).count( );
+      device_stats.timestamp = std::chrono::duration<double, std::micro>(std::chrono::high_resolution_clock::now( ).time_since_epoch( )).count( );
 
       stat_pts_time_steps_.push_back(device_stats);
     }
@@ -276,7 +275,7 @@ class nvmlClass {
             uint   next_power = time_steps_[i+1].powerUsage;
 
             outfile_ << i << ","
-                     << current_timestamp << ","
+                     << current_timestamp << "," //Microseconds
                      << time_steps_[i].temperature << ","
                      << type_ << ","
                      << current_power << ","  // mW
@@ -286,8 +285,11 @@ class nvmlClass {
                      << time_steps_[i].smClock << "\n"; //MHz            
 
             // Calculate energy
-            double h_time = (double) next_timestamp - current_timestamp;
-            double temp_energy = 0.5 * (current_power + next_power) * h_time;
+            double h_time = ((double) next_timestamp - current_timestamp) / (double) 1000000; //microseconds to seconds
+
+            assert(h_time > 0);
+
+            double temp_energy = 0.5 * (current_power + next_power) * h_time; //mW = mJ per second, so mW * seconds = mJ
 
             // Update energy totals
             step_energy += temp_energy;
@@ -300,20 +302,20 @@ class nvmlClass {
 
               if (current_stat_pt > 0) {
                 stats_file_ << "Step from " << current_stat_pt - 1 << " to " << current_stat_pt
-                          << " energy (mJ): " << step_energy / convert_mJ << "\n";
+                          << " energy (mJ): " << step_energy << "\n";
 
                 stats_file_ << "Step from " << current_stat_pt - 1 << " to " << current_stat_pt
                             << " time elapsed: " 
-                            << (stat_pts_time_steps_[current_stat_pt].timestamp - stat_pts_time_steps_[current_stat_pt - 1].timestamp) / convert_ns_S
-                            << " seconds\n";
+                            << (stat_pts_time_steps_[current_stat_pt].timestamp - stat_pts_time_steps_[current_stat_pt - 1].timestamp)
+                            << " micros\n";
               } else {
                 stats_file_ << "Step from beginning to " << current_stat_pt
-                            << " energy (mJ): " << step_energy / convert_mJ << "\n";
+                            << " energy (mJ): " << step_energy << "\n";
               
                 stats_file_ << "Step from beginning to " << current_stat_pt
                             << " time elapsed: " 
-                            << (stat_pts_time_steps_[current_stat_pt].timestamp - time_steps_[0].timestamp) / convert_ns_S
-                            << " seconds\n";
+                            << (stat_pts_time_steps_[current_stat_pt].timestamp - time_steps_[0].timestamp)
+                            << " micros\n";
               }
 
               step_energy = 0;
@@ -338,23 +340,23 @@ class nvmlClass {
         stats_file_ << "-------------------------------------------------------------------------------------\n";
 
         stats_file_ << "Step from " << current_stat_pt - 1 << " to end"
-                    << " energy (mJ): " << step_energy / convert_mJ << "\n";
+                    << " energy (mJ): " << step_energy   << "\n";
 
         stats_file_ << "Step from " << current_stat_pt - 1 << " to end"
                             << " time elapsed: " 
-                            << (time_steps_[total_time_steps - 1].timestamp - stat_pts_time_steps_[current_stat_pt - 1].timestamp) / convert_ns_S
-                            << " seconds\n";
+                            << (time_steps_[total_time_steps - 1].timestamp - stat_pts_time_steps_[current_stat_pt - 1].timestamp)
+                            << " micros\n";
 
         // Print energy information
         stats_file_ << "-------------------------------------------------------------------------------------\n";
 
-        stats_file_ << "Total energy (mJ): " << (total_energy / convert_mJ) << "\n";
+        stats_file_ << "Total energy (mJ): " << total_energy << "\n";
 
         // Print total time        
         total_time = (time_steps_[total_time_steps - 1].timestamp - time_steps_[0].timestamp);
         stats_file_ << "Total time: " 
-                    << total_time / convert_ns_S
-                    << " seconds\n";
+                    << total_time
+                    << " micros\n";
 
         // Print maxiumum information
         stats_file_ << "-------------------------------------------------------------------------------------\n";
