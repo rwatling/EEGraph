@@ -183,8 +183,6 @@ int main_unified_memory(ArgumentParser arguments) {
 		} while (!(*finished));
 	}
 
-	if (arguments.energy) nvml.log_point();
-
 	float runtime = timer.Finish();
 	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
@@ -449,8 +447,6 @@ int main(int argc, char** argv) {
 			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	}
-
-	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
