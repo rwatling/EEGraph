@@ -24,7 +24,7 @@ inputs=( "./datasets/Google/web-Google.txt"
 
 names=("google" "higgs" "livejournal" "pokec" "road" "skitter")
 
-for j in {1..5}
+for j in {1..3}
 do
 
     echo $j

@@ -54,6 +54,8 @@ int main_unified_memory(ArgumentParser arguments) {
 	bool *label1;
 	bool *label2;
 
+	Timer totalTimer;
+	totalTimer.Start();
 	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMallocManaged(&dist, sizeof(unsigned int) * num_nodes));
@@ -184,20 +186,10 @@ int main_unified_memory(ArgumentParser arguments) {
 	}
 
 	float runtime = timer.Finish();
+	float total = totalTimer.Finish();
 	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
-
-	// Stop measuring energy consumption, clean up structures
-	if (arguments.energy) {
-		cpu_threads.emplace_back(thread( &nvmlClass::killThread, &nvml));
-
-		for (auto& th : cpu_threads) {
-			th.join();
-			th.~thread();
-		}
-
-		cpu_threads.clear();
-	}
+	cout << "Total GPU activity finished in " << total << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
@@ -324,6 +316,8 @@ int main(int argc, char** argv) {
 	bool finished;
 	bool *d_finished;
 	
+	Timer totalTimer;
+	totalTimer.Start();
 	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
@@ -453,8 +447,10 @@ int main(int argc, char** argv) {
 	if (arguments.energy) nvml.log_point();
 
 	float runtime = timer.Finish();
+	float total = totalTimer.Finish();
 	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
+	cout << "Total GPU activity finished in " << total << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {

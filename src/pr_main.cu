@@ -52,6 +52,8 @@ int main_unified_memory(ArgumentParser arguments) {
 	bool *label2;
 	float *delta, *value;
 
+	Timer totalTimer;
+	totalTimer.Start();
 	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMallocManaged(&delta, sizeof(float) * num_nodes));
@@ -83,8 +85,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaMemAdvise(vGraph.edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int), cudaMemAdviseSetReadMostly, arguments.deviceID));
 	gpuErrorcheck(cudaMemAdvise(vGraph.partNodePointer, vGraph.numParts * sizeof(PartPointer), cudaMemAdviseSetReadMostly, arguments.deviceID));
 
-	if (arguments.energy) nvml.log_point();
-
 	// Algorithm control variable declarations
 	Timer timer;
 	int itr = 0;
@@ -92,6 +92,7 @@ int main_unified_memory(ArgumentParser arguments) {
 	uint num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
 		do
@@ -130,7 +131,7 @@ int main_unified_memory(ArgumentParser arguments) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-
+			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -148,7 +149,8 @@ int main_unified_memory(ArgumentParser arguments) {
 															acc);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
-			gpuErrorcheck( cudaDeviceSynchronize() );	
+			gpuErrorcheck( cudaDeviceSynchronize() );
+			if (arguments.energy) nvml.log_point();	
 		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -168,7 +170,7 @@ int main_unified_memory(ArgumentParser arguments) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-
+			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -189,6 +191,7 @@ int main_unified_memory(ArgumentParser arguments) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
+			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	}
 
@@ -206,10 +209,12 @@ int main_unified_memory(ArgumentParser arguments) {
 
 	if (arguments.energy) nvml.log_point();
 
-	cout << "Number of iterations = " << itr << endl;
 
 	float runtime = timer.Finish();
+	float total = totalTimer.Finish();
+	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
+	cout << "Total GPU activity finished in " << total << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
@@ -268,12 +273,6 @@ int main(int argc, char** argv) {
 
 	// Initialize graph and virtual graph
 	Graph graph(arguments.input, true);
-	
-	if ((graph.getFileExtension(graph.graphFilePath) == "bcsr") || (graph.getFileExtension(graph.graphFilePath) == "bwcsr")) {
-		cout << "bcsr and bwcsr files are inteded to run on um or subway only" << endl;
-		exit(0);
-	}
-
 	graph.ReadGraph();
 
 	VirtualGraph vGraph(graph);
@@ -326,6 +325,8 @@ int main(int argc, char** argv) {
 	float *d_delta;
 	float *d_value;
 
+	Timer totalTimer;
+	totalTimer.Start();
 	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
@@ -393,8 +394,7 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			
-
+			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do {
@@ -412,8 +412,8 @@ int main(int argc, char** argv) {
 															acc);
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
-			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			if (arguments.energy) nvml.log_point();
 		} while (!finished);
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -435,7 +435,7 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-
+			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do {
@@ -455,17 +455,18 @@ int main(int argc, char** argv) {
 															(itr%2==1) ? d_label2 : d_label1);
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
-			
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			if (arguments.energy) nvml.log_point();
 		} while (!finished);
 	}
 
 	if (arguments.energy) nvml.log_point();
 
-	cout << "Number of iterations = " << itr << endl;
-
 	float runtime = timer.Finish();
+	float total = totalTimer.Finish();
+	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
+	cout << "Total GPU activity finished in " << total << " (ms).\n";
 
 	gpuErrorcheck(cudaMemcpy(value, d_value, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
 
