@@ -24,7 +24,7 @@ inputs=( "./datasets/Google/web-Google.txt"
 
 names=("google" "higgs" "livejournal" "pokec" "road" "skitter")
 
-for j in {1..5}
+for j in {1..3}
 do
 
     echo $j
@@ -34,7 +34,8 @@ do
     do
         file="${names[count]}"
         echo $file
-		randNum=$((RANDOM % 32))
+		#randNum=$((RANDOM % 32))
+        randNum=0
 
         $1 --input "${i}" --variant async_push_td --source "${randNum}" > "./data/regular/async_push_td/${j}-${file}"
         sleep 5

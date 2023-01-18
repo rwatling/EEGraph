@@ -22,7 +22,7 @@ void Graph::ReadGraph()
 		infile.read ((char*)&num_nodes, sizeof(uint));
 		infile.read ((char*)&num_edges, sizeof(uint));
 		
-		uint* nodePointer = new uint[num_nodes+1];	//This is extra but should hopefully maintain correctness from Subway
+		uint* nodePointer = new uint[num_nodes+1];
 		Edge* tempEdgelist = (Edge*) malloc((num_edges) * sizeof(Edge));
 		
 		infile.read ((char*)nodePointer, sizeof(uint)*num_nodes);

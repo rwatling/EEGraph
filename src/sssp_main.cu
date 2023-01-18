@@ -15,7 +15,7 @@
 
 int main_unified_memory(ArgumentParser arguments) {
 	cout << "Unified memory version" << endl;
-		
+
 	// Energy structures initilization
 	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass
 	vector<thread> cpu_threads;
@@ -28,13 +28,16 @@ int main_unified_memory(ArgumentParser arguments) {
 
   		nvml.log_start();
 	}
-
+	
 	// Initialize graph and virtual graph
 	UMGraph graph(arguments.input, true);
 	graph.ReadGraph();
 
-	UMVirtualGraph vGraph(graph);
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
 
+	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
 	uint num_nodes = graph.num_nodes;
@@ -53,10 +56,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	unsigned int *dist;
 	bool *label1;
 	bool *label2;
-
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMallocManaged(&dist, sizeof(unsigned int) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
@@ -126,7 +125,7 @@ int main_unified_memory(ArgumentParser arguments) {
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
+
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -141,10 +140,9 @@ int main_unified_memory(ArgumentParser arguments) {
 														dist, 
 														finished);
 
-			
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
+
 		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -163,7 +161,7 @@ int main_unified_memory(ArgumentParser arguments) {
 			
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
+
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -181,9 +179,11 @@ int main_unified_memory(ArgumentParser arguments) {
 														(itr%2==1) ? label2 : label1);
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
+
 		} while (!(*finished));
 	}
+
+	if (arguments.energy) nvml.log_point();
 
 	float runtime = timer.Finish();
 	float total = totalTimer.Finish();
@@ -269,6 +269,10 @@ int main(int argc, char** argv) {
 	Graph graph(arguments.input, true);
 	graph.ReadGraph();
 
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -315,10 +319,6 @@ int main(int argc, char** argv) {
 	
 	bool finished;
 	bool *d_finished;
-	
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
@@ -378,7 +378,7 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
+
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -397,7 +397,7 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
+
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -417,7 +417,7 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
+
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -438,7 +438,7 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
+
 		} while (!(finished));
 	}
 
