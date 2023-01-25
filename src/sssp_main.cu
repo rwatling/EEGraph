@@ -442,6 +442,8 @@ int main(int argc, char** argv) {
 		} while (!(finished));
 	}
 
+	if (arguments.energy) nvml.log_point();
+
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
 	if (arguments.energy) nvml.log_point();
