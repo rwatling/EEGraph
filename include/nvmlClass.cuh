@@ -133,12 +133,12 @@ class nvmlClass {
 
             time_steps_.push_back( device_stats );
 
-            std::this_thread::sleep_for( std::chrono::microseconds(10));
+            std::this_thread::sleep_for( std::chrono::microseconds(250)); //.25 ms
         }
 
         // Collect information for a short period of time (cooldown) after loop_ is flagged to be false
-        //3000 * 1 ms = 3s
-        for (int i = 0; i < 3000; i++) {
+        //500 * 10 ms = 5s
+        for (int i = 0; i < 500; i++) {
 
           device_stats.timestamp = std::chrono::duration<double, std::micro>(std::chrono::high_resolution_clock::now( ).time_since_epoch( )).count( );
           NVML_RT_CALL( nvmlDeviceGetTemperature( device_, NVML_TEMPERATURE_GPU, &device_stats.temperature ) );
@@ -152,7 +152,7 @@ class nvmlClass {
           time_steps_.push_back( device_stats );
 
           // Sleep for a short period of time
-          std::this_thread::sleep_for( std::chrono::milliseconds(1));
+          std::this_thread::sleep_for( std::chrono::milliseconds(10));
         }
 
         writeData();
@@ -225,6 +225,8 @@ class nvmlClass {
 
     std::vector<std::string> stats_names_ = { "pt_from",
                                               "pt_to",
+                                              "pt_to_timestamp",
+                                              "pt_to_power_mW",
                                               "energy_mJ",
                                               "t_elapsed_ms"};
 
@@ -305,11 +307,14 @@ class nvmlClass {
               energy += temp_energy;
             }
 
-            // Update timestep and report information from timestep
+            // Update state pt and report information from timestep associated with stat pt
             // Energy is calculated from the measured power between current_stat_pt-1 timestamp and current_stat_pt timestamp
             if ((next_timestamp > stat_pts_time_steps_[current_stat_pt].timestamp) && (current_stat_pt < total_stat_pts)) {
               if (current_stat_pt > 0) {
-                stats_file_ << current_stat_pt - 1 << "," << current_stat_pt << "," << step_energy << "," 
+                stats_file_ << current_stat_pt - 1 << "," << current_stat_pt << "," 
+                            << stat_pts_time_steps_[current_stat_pt].timestamp << "," 
+                            << stat_pts_time_steps_[current_stat_pt].powerUsage << ","
+                            << step_energy << "," 
                             << (double) (stat_pts_time_steps_[current_stat_pt].timestamp - stat_pts_time_steps_[current_stat_pt - 1].timestamp) / (double) 1000 //ms
                             << " \n";
               }
@@ -319,12 +324,14 @@ class nvmlClass {
             }
         }
 
-        stats_file_ << current_stat_pt - 1 << "," << current_stat_pt << "," << step_energy << "," 
-                            << (double) (time_steps_[total_time_steps - 1].timestamp - stat_pts_time_steps_[current_stat_pt - 1].timestamp) / (double) 1000 //ms
-                            << " \n";
-
+        // From last stat pt to cooldown
+        stats_file_ << current_stat_pt - 1 << "," << current_stat_pt << "," 
+                    << 0 << "," //Last one is not recorded
+                    << 0 << "," //Last one is not recorded
+                    << step_energy << "," 
+                    << (double) (time_steps_[total_time_steps - 1].timestamp - stat_pts_time_steps_[current_stat_pt - 1].timestamp) / (double) 1000 //ms
+                    << " \n";
         stats_file_ << "Energy - WU/CD (mJ): " << energy << "\n";
-
         stats_file_ << "Total energy (mJ): " << total_energy << "\n";
 
         // Print total time        
