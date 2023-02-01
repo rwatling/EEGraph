@@ -1,3 +1,5 @@
+# Code adapted from Subway[https://github.com/AutomataLab/Subway]
+
 ## Subway
 Subway is an out-of-GPU-memory graph processing framework.
 

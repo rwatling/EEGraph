@@ -8,3 +8,4 @@ CMakeCache.txt
 *.el
 *.bz2
 !CMakeLists.txt
+*.o
