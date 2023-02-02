@@ -18,6 +18,9 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	hasOutput = false;
 	hasDeviceID = false;
 	hasNumberOfItrs = false;
+	energy = false;
+	hasEnergyFile = false;
+	hasEnergyStats = false;
 	
 	Parse();
 }
@@ -74,15 +77,33 @@ bool ArgumentParser::Parse()
 			else if (strcmp(argv[i], "--iteration") == 0 && canHaveItrs) {
 				numberOfItrs = atoi(argv[i+1]);
 				hasNumberOfItrs = true;
-			}
-			else
-			{
+			} 
+			else if (strcmp(argv[i], "--energy") == 0) {
+				if (strcmp(argv[i+1], "true") == 0 || 
+					strcmp(argv[i+1], "True") == 0 || 
+					strcmp(argv[i+1], "TRUE") == 0)
+					energy = true;
+			} 
+			else if (strcmp(argv[i], "--efile") == 0) {
+				energyFile = string(argv[i+1]);
+				hasEnergyFile = true;
+			} 
+			else if (strcmp(argv[i], "--estats") == 0) {
+				energyStats = string(argv[i+1]);
+				hasEnergyStats = true;
+			} 
+			else {
 				cout << "\nThere was an error parsing command line argument <" << argv[i] << ">\n";
 				cout << GenerateHelpString();
 				exit(0);
 			}
 		}
 		
+		if(energy && (!hasEnergyFile || !hasEnergyStats)) {
+			cout << "The option --energy was true but energy file and/or energy stats files were not included\n";
+			exit(0);
+		}
+
 		if(hasInput)
 			return true;
 		else
@@ -114,6 +135,9 @@ string ArgumentParser::GenerateHelpString(){
 	str += "\n    [--device]: Select GPU device (default: 0). E.g., --device 1";
 	if(canHaveItrs)
 		str += "\n    [--iteration]: Number of iterations (default: 1). E.g., --iterations 10";
+	str += "\n    [--energy]: Measure and output GPU energy information (Default: false). E.g. --energy true";
+	str += "\n    [--efile]: Output file for energy (Required if energy == true). E.g. --efile my_experiment_energy";
+	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";
 	str += "\n\n";
 	return str;
 }

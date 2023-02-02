@@ -50,7 +50,7 @@ void Graph<E>::ReadGraph()
 		infile.read ((char*)edgeList, sizeof(E)*num_edges);
 		nodePointer[num_nodes] = num_edges;
 	}
-	else if(graphFormat == "el" || graphFormat == "wel")
+	else if(graphFormat == "el" || graphFormat == "wel" || graphFormat == "txt" || graphFormat == "edgelist")
 	{
 		ifstream infile;
 		infile.open(graphFilePath);

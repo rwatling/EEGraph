@@ -25,6 +25,12 @@ public:
 	string output;
 	int deviceID;
 	int numberOfItrs;
+
+	bool energy;
+	string energyFile;
+	string energyStats;
+	bool hasEnergyFile;
+	bool hasEnergyStats;
 	
 	
 	ArgumentParser(int argc, char **argv, bool canHaveSource, bool canHaveItrs);

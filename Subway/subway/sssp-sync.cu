@@ -8,6 +8,7 @@
 #include "../shared/gpu_error_check.cuh"
 #include "../shared/gpu_kernels.cuh"
 #include "../shared/subway_utilities.hpp"
+#include "../shared/nvmlClass.cuh"
 
 
 int main(int argc, char** argv)
@@ -15,16 +16,34 @@ int main(int argc, char** argv)
 	cudaFree(0);
 
 	ArgumentParser arguments(argc, argv, true, false);
+
+	
+	// Energy structures initilization
+	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass
+	vector<thread> cpu_threads;
+	nvmlClass nvml(arguments.deviceID, arguments.energyFile, arguments.energyStats, (string) "subway-async");
+
+	if (arguments.energy) {
+		cout << "Starting energy measurements. Timing information will be affected..." << endl;
+
+		cpu_threads.emplace_back(std::thread(&nvmlClass::getStats, &nvml));
+
+  		nvml.log_start();
+	}
 	
 	Timer timer;
 	timer.Start();
-	
-	Graph<OutEdgeWeighted> graph(arguments.input, true);
+
+	Graph<OutEdgeWeighted> graph(arguments.input, true); //seg faults if for Higgs
 	graph.ReadGraph();
 	
 	float readtime = timer.Finish();
 	cout << "Graph Reading finished in " << readtime/1000 << " (s).\n";
 	
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(unsigned int i=0; i<graph.num_nodes; i++)
 	{
 		graph.value[i] = DIST_INFINITY;
@@ -50,10 +69,11 @@ int main(int argc, char** argv)
 
 	Partitioner<OutEdgeWeighted> partitioner;
 	
-	timer.Start();
-	
 	uint itr = 0;
 		
+	timer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	while (subgraph.numActiveNodes>0)
 	{
 		itr++;
@@ -86,16 +106,33 @@ int main(int argc, char** argv)
 		
 		subgen.generate(graph, subgraph);
 			
-	}	
+	}
 	
-	float runtime = timer.Finish();
-	cout << "Processing finished in " << runtime << " (ms).\n";
-	
-	cout << "Number of iterations = " << itr << endl;
+	if (arguments.energy) nvml.log_point();
 	
 	gpuErrorcheck(cudaMemcpy(graph.value, graph.d_value, graph.num_nodes*sizeof(uint), cudaMemcpyDeviceToHost));
 	
-	utilities::PrintResults(graph.value, min(30, graph.num_nodes));
+	if (arguments.energy) nvml.log_point();
+
+	float runtime = timer.Finish();
+	float total = totalTimer.Finish();
+	cout << "Processing finished in " << runtime/1000 << " (s).\n";
+	cout << "Total GPU activity finished in " << total << " (ms).\n";
+	cout << "Number of iterations = " << itr << endl;
+
+	// Stop measuring energy consumption, clean up structures
+	if (arguments.energy) {
+		cpu_threads.emplace_back(thread( &nvmlClass::killThread, &nvml));
+
+		for (auto& th : cpu_threads) {
+			th.join();
+			th.~thread();
+		}
+
+		cpu_threads.clear();
+	}
+
+	//utilities::PrintResults(graph.value, min(30, graph.num_nodes));
 			
 	if(arguments.hasOutput)
 		utilities::SaveResults(arguments.output, graph.value, graph.num_nodes);

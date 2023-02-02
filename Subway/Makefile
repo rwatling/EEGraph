@@ -2,8 +2,8 @@
 
 CC=g++
 NC=nvcc
-CFLAGS=-std=c++14 -O3
-NFLAGS=-arch=sm_60
+CFLAGS=-std=c++14 -O3 -g
+NFLAGS=-arch=sm_60 -lnvidia-ml
 
 SHARED=shared
 SUBWAY=subway
