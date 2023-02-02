@@ -481,7 +481,6 @@ int main(int argc, char** argv) {
 		//sssp::seq_cpu(graph.edges, graph.weights, num_edges, cpu_dist);
 		sssp::seq_cpu(vGraph, cpu_dist);
 
-		utilities::PrintResults(cpu_dist, min(30, num_nodes));
 		utilities::PrintResults(dist, min(30, num_nodes));
 
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);

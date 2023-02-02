@@ -2,7 +2,7 @@
 CC=g++
 NC=nvcc
 CFLAGS=-std=c++14 -O3
-NFLAGS=-arch=sm_60
+NFLAGS=-arch=sm_60 -lnvidia-ml
 
 SHARED=../shared
 
