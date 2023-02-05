@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
 	
 	timer.Start();
-
+	if (arguments.energy) nvml.log_point();
 
 	while (subgraph.numActiveNodes>0)
 	{
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
 		
 	float runtime = timer.Finish();
 	float total = totalTimer.Finish();
-	cout << "Processing finished in " << runtime/1000 << " (s).\n";
+	cout << "Processing finished in " << runtime << " (ms).\n";
 	cout << "Total GPU activity finished in " << total << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures

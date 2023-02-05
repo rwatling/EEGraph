@@ -109,11 +109,6 @@ bool ArgumentParser::Parse()
 					strcmp(argv[i+1], "True") == 0 || 
 					strcmp(argv[i+1], "TRUE") == 0)
 					unifiedMem = true; 
-			} else if (strcmp(argv[i], "--subway") == 0) {
-				if (strcmp(argv[i+1], "true") == 0 || 
-					strcmp(argv[i+1], "True") == 0 || 
-					strcmp(argv[i+1], "TRUE") == 0)
-					unifiedMem = true; 
 			} else if (strcmp(argv[i], "--accuracy") == 0) {
 				acc = (float) atof(argv[i+1]);
 				hasAcc = true;
@@ -166,7 +161,6 @@ string ArgumentParser::GenerateHelpString(){
 	str += "\n    [--efile]: Output file for energy (Required if energy == true). E.g. --efile my_experiment_energy";
 	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";
 	str += "\n    [--um]: Use unified memory for graph algorithms. E.g. --um true";
-	str += "\n    [--subway]: Use for subway graph partitioning on large graphs E.g. --subway true";
 	str += "\n    [--acc]: supply accuracy for algorithm E.g. --accuracy 0.01";
 	str += "\n\n";
 	return str;

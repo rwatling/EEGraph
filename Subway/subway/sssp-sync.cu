@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 
 	float runtime = timer.Finish();
 	float total = totalTimer.Finish();
-	cout << "Processing finished in " << runtime/1000 << " (s).\n";
+	cout << "Processing finished in " << runtime << " (ms).\n";
 	cout << "Total GPU activity finished in " << total << " (ms).\n";
 	cout << "Number of iterations = " << itr << endl;
 
