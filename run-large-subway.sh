@@ -18,7 +18,7 @@ inputs=( "/home/share/graph_data/raw/twitter_mpi/twitter.el"
 
 names=("tw" "fs")
 
-for j in {1..3}
+for j in {1..1}
 do
 
     echo $j
