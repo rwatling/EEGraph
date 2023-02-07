@@ -145,6 +145,7 @@ int main(int argc, char** argv)
 	float runtime = timer.Finish();
 	float total = totalTimer.Finish();
 	cout << "Processing finished in " << runtime/1000 << " (s).\n";
+	cout << "Total GPU activity finished in " << total/1000 << " (s).\n";
 	
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
