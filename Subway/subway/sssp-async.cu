@@ -38,16 +38,17 @@ int main(int argc, char** argv)
 	}
 
 	Timer timer;
-	Timer totalTimer;
 	timer.Start();
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
 	
 	Graph<OutEdgeWeighted> graph(arguments.input, true);
 	graph.ReadGraph();
-	
+
 	float readtime = timer.Finish();
 	cout << "Graph Reading finished in " << readtime/1000 << " (s).\n";
+		
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	//for(unsigned int i=0; i<100; i++)
 	//	cout << graph.edgeList[i].end << " " << graph.edgeList[i].w8;

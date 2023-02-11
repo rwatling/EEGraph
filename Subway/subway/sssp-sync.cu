@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 	// Energy structures initilization
 	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass
 	vector<thread> cpu_threads;
-	nvmlClass nvml(arguments.deviceID, arguments.energyFile, arguments.energyStats, (string) "subway-async");
+	nvmlClass nvml(arguments.deviceID, arguments.energyFile, arguments.energyStats, (string) "subway-sync");
 
 	if (arguments.energy) {
 		cout << "Starting energy measurements. Timing information will be affected..." << endl;
@@ -30,17 +30,19 @@ int main(int argc, char** argv)
 	}
 
 	Timer timer;
-	Timer totalTimer;
 	timer.Start();
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
 	
 	Graph<OutEdgeWeighted> graph(arguments.input, true);
 	graph.ReadGraph();
-	
+
 	float readtime = timer.Finish();
 	cout << "Graph Reading finished in " << readtime/1000 << " (s).\n";
 	
+	//Note : graph reads in data and mallocs but does not transfer, therefore it is more equivalent to log point here
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(unsigned int i=0; i<graph.num_nodes; i++)
 	{
 		graph.value[i] = DIST_INFINITY;
