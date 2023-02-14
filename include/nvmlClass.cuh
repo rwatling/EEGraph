@@ -84,7 +84,7 @@ class nvmlClass {
         char name[nvml_device_name_buffer_size];
 
         // Initialize NVML library
-        NVML_RT_CALL( nvmlInit( ) );
+        NVML_RT_CALL( nvmlInit_v2( ) );
 
         // Query device handle
         NVML_RT_CALL( nvmlDeviceGetHandleByIndex( deviceID, &device_ ) );

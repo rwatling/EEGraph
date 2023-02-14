@@ -12,7 +12,6 @@
 #include "../shared/test.cu"
 #include "../shared/nvmlClass.cuh"
 
-
 int main(int argc, char** argv)
 {
 	/*
