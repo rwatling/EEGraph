@@ -6,7 +6,7 @@ NFLAGS=-arch=sm_60 -lnvidia-ml
 
 SHARED=../shared
 
-all: bfs-sync.o cc-sync.o sssp-sync.o sswp-sync.o pr-sync.o bfs-async.o cc-async.o sssp-async.o sswp-async.o pr-async.o
+all: bfs-sync.o cc-sync.o sssp-sync.o sswp-sync.o pr-sync.o bfs-async.o cc-async.o sssp-async.o sswp-async.o pr-async.o subway-main.o
 
 
 bfs-sync.o: bfs-sync.cu
@@ -37,7 +37,10 @@ sswp-async.o: sswp-async.cu
 	$(NC) -c sswp-async.cu $(CFLAGS) $(NFLAGS)	
 	
 pr-async.o: pr-async.cu
-	$(NC) -c pr-async.cu $(CFLAGS) $(NFLAGS)		
+	$(NC) -c pr-async.cu $(CFLAGS) $(NFLAGS)
+
+subway-main.o: subway-main.cu
+	$(NC) -c subway-main.cu $(CFLAGS) $(NFLAGS)	
 			
 clean:
 	rm  *.o 

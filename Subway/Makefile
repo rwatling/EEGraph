@@ -11,7 +11,7 @@ TOOLS=tools
 
 DEP=$(SHARED)/timer.o $(SHARED)/argument_parsing.o $(SHARED)/graph.o $(SHARED)/subgraph.o $(SHARED)/partitioner.o $(SHARED)/subgraph_generator.o $(SHARED)/gpu_kernels.o $(SHARED)/subway_utilities.o $(SHARED)/test.o  
 
-all: make1 make2 make3 bfs-sync cc-sync sssp-sync sswp-sync pr-sync bfs-async cc-async sssp-async sswp-async pr-async
+all: make1 make2 make3 bfs-sync cc-sync sssp-sync sswp-sync pr-sync bfs-async cc-async sssp-async sswp-async pr-async subway-main
 
 make1:
 	make -C $(SHARED)
@@ -52,9 +52,12 @@ sswp-async: $(SUBWAY)/sswp-async.o $(DEP)
 	
 pr-async: $(SUBWAY)/pr-async.o $(DEP)
 	$(NC) $(SUBWAY)/pr-async.o $(DEP) -o pr-async $(CFLAGS) $(NFLAGS)
+
+subway-main: $(SUBWAY)/subway-main.o $(DEP)
+	$(NC) $(SUBWAY)/subway-main.o $(DEP) -o subway-main $(CFLAGS) $(NFLAGS) 
 	
 clean:
 	make -C $(SHARED) clean
 	make -C $(SUBWAY) clean
 	make -C $(TOOLS) clean
-	rm -f bfs-sync cc-sync sssp-sync sswp-sync pr-sync bfs-async cc-async sssp-async sswp-async pr-async
+	rm -f bfs-sync cc-sync sssp-sync sswp-sync pr-sync bfs-async cc-async sssp-async sswp-async pr-async subway-main
