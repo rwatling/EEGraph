@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <sys/stat.h>
+#include <cstdlib>
 
 int main (int argc, char** argv) {
     
@@ -24,7 +25,6 @@ int main (int argc, char** argv) {
     const int num_frameworks = 3;
     const int num_algorithms = 5;
     const int num_trials = 3;
-    const int num_variants = 4;
 
     string benchmarks[num_benchmarks] = {"../datasets/Google/web-Google.txt", 
                                         "../datasets/LiveJournal/soc-LiveJournal1.txt", 
@@ -65,24 +65,29 @@ int main (int argc, char** argv) {
         for (int j = 0; j < num_frameworks; j++) {
             currentFramework = frameworks[j];
 
+            //Read in graphs
+
             for (int k = 0; k < num_algorithms; k++) {
                 currentAlg = algorithms[k];
 
                 string trialDir = "./" + currentAlg + "/" + currentFramework + "/" + currentBench + "/";
+                
                 cout << trialDir << endl;
 
-                //make directory
+                system(("mkdir -p " + trialDir).c_str());
 
                 for (int l = 0; l < num_trials; l++) {
 
                     //filename = trialnumber-variant
 
+                    //efile = trialnumber-variant-readings
+
+                    //estats = trialnumber-variant-stats
+
                     //redirect cout
 
-                    //if arguments.energy
-
-                    if (j == 0 || j == 1) {
-                        for (int m = 0; m < num_variants; m++) {
+                    if ((j == 0) || (j == 1)) {
+                        for (int m = 0; m < 4; m++) {
                             if (m == 0) {
                                 arguments.variant = ASYNC_PUSH_TD;
                                 currentVariant = "async-push-td";
@@ -108,6 +113,8 @@ int main (int argc, char** argv) {
                     }
                 }
             }
+
+            //destroy graphs
         }
     }
 }
