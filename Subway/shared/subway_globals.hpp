@@ -24,7 +24,9 @@
 
 using namespace std;
 
+#ifndef GLOBALS_HPP
 const unsigned int DIST_INFINITY = std::numeric_limits<unsigned int>::max() - 1;
+#endif
 
 typedef unsigned int uint;
 typedef unsigned long long ull;
@@ -39,10 +41,12 @@ struct OutEdgeWeighted{
     uint w8;
 };
 
+#ifndef GLOBALS_HPP //To avoid conflicts with EEGraph Globals
 struct Edge{
 	uint source;
     uint end;
 };
+#endif
 
 struct EdgeWeighted{
 	uint source;

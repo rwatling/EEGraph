@@ -39,7 +39,6 @@ enum Variant : unsigned char {
 };
 
 enum Algorithm : unsigned char {
-    ALL,
     BFS,
     CC,
     PR,
@@ -48,8 +47,10 @@ enum Algorithm : unsigned char {
 };
 
 enum Framework : unsigned char {
-    BOTH,
-    ONE
+    ALL,
+    CLASSIC,
+    UM,
+    SUBWAY
 };
 
 struct Edge{

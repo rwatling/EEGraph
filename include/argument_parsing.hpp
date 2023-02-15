@@ -26,7 +26,7 @@ public:
 	bool debug;
 	bool energy;
 	bool unifiedMem;
-	bool subway;
+	bool large;
 
 	string input;
 	string output;

@@ -42,12 +42,18 @@ file(GLOB cpp_source_files
     "${CMAKE_SOURCE_DIR}/src/gpu_utils.cu"
     "${CMAKE_SOURCE_DIR}/src/um_graph.cu"
     "${CMAKE_SOURCE_DIR}/src/um_virtual_graph.cu"
-    "${CMAKE_SOURCE_DIR}/src/cc.cu")
+    "${CMAKE_SOURCE_DIR}/src/cc.cu"
+    "${CMAKE_SOURCE_DIR}/Subway/shared/subway_graph.cu"
+    "${CMAKE_SOURCE_DIR}/Subway/shared/subway_runnable.cu"
+    "${CMAKE_SOURCE_DIR}/Subway/shared/subway_argument_parsing.cu"
+    "${CMAKE_SOURCE_DIR}/Subway/shared/subgraph.cu"
+    "${CMAKE_SOURCE_DIR}/Subway/shared/partitioner.cu"
+    "${CMAKE_SOURCE_DIR}/Subway/shared/gpu_kernels.cu")
 
 ##### Include directories
-include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${GPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${CPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/shared)
+include_directories(${GPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/shared)
+include_directories(${CPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/shared)
 
 ##### GPU Library
 add_library(${GPU_LIB} STATIC ${gpu_source_files})

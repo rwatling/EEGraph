@@ -20,13 +20,13 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	hasEnergyFile = false;
 	debug = false;
 	variant = ASYNC_PUSH_TD;
-	framework = ONE;
+	framework = CLASSIC;
 	algorithm = SSSP;
 	energy = false;
 	unifiedMem = false;
-	subway = false;
 	hasAcc = false;
-	
+	large = false;
+
 	Parse();
 }
 	
@@ -102,20 +102,22 @@ bool ArgumentParser::Parse()
 					exit(0);
 				}
 			} else if (strcmp(argv[i], "--framework") == 0) {
-				if (strcmp(argv[i+1], "both") == 0) {
-					framework = BOTH;
+				if (strcmp(argv[i+1], "all") == 0) {
+					framework = ALL;
 					unifiedMem = true; 
-				} else if (strcmp(argv[i+1], "one") == 0) {
-					framework = ONE;
+				} else if (strcmp(argv[i+1], "classic") == 0) {
+					framework = CLASSIC;
+				} else if (strcmp(argv[i+1], "um") == 0) {
+					framework = UM;
 					unifiedMem = true;
+				} else if (strcmp(argv[i+1], "subway") == 0) {
+					framework = SUBWAY;
 				} else {
 					cout << "Framework not recognized\n";
 					exit(0);
 				}
 			} else if (strcmp(argv[i], "--algorithm") == 0) {
-				if (strcmp(argv[i+1], "all") == 0) {
-					algorithm = ALL;
-				} else if (strcmp(argv[i+1], "bfs") == 0) {
+				if (strcmp(argv[i+1], "bfs") == 0) {
 					algorithm = BFS;
 				} else if (strcmp(argv[i+1], "cc") == 0) {
 					algorithm = CC;
@@ -139,6 +141,11 @@ bool ArgumentParser::Parse()
 					strcmp(argv[i+1], "True") == 0 || 
 					strcmp(argv[i+1], "TRUE") == 0)
 					unifiedMem = true; 
+			} else if (strcmp(argv[i], "--large") == 0) {
+				if (strcmp(argv[i+1], "true") == 0 || 
+					strcmp(argv[i+1], "True") == 0 || 
+					strcmp(argv[i+1], "TRUE") == 0)
+					large = true; 
 			} else if (strcmp(argv[i], "--accuracy") == 0) {
 				acc = (float) atof(argv[i+1]);
 				hasAcc = true;
@@ -187,12 +194,13 @@ string ArgumentParser::GenerateHelpString(){
 		str += "\n    [--iteration]: Number of iterations (Default: 1). E.g., --iterations 10";
 	str += "\n    [--debug]: Check or observe information (Default: false). E.g. --debug true";
 	str += "\n    [--variant]: Algorithm variant option(Default: async_push_td). E.g. --variant async_push_td";
-	str += "\n    [--algorithm]: Algoriothm to run (Default: sssp). E.g. --algorithm all";
-	str += "\n    [--framework]: Choose both or one frameworks (um or classic) (Default: one). E.g. --framework both";
+	str += "\n    [--algorithm]: Algoriothm to run (Default: sssp). E.g. --algorithm bfs";
+	str += "\n    [--framework]: Choose one or all frameworks (classic, um, subway) (Default: classic). E.g. --framework all";
 	str += "\n    [--energy]: Measure and output GPU energy information (Default: false). E.g. --energy true";
 	str += "\n    [--efile]: Output file for energy (Required if energy == true). E.g. --efile my_experiment_energy";
 	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";
 	str += "\n    [--um]: Use unified memory for graph algorithms. E.g. --um true";
+	str += "\n    [--large]: Supplied graph is large so do not run classic. E.g. --large true";
 	str += "\n    [--acc]: supply accuracy for algorithm E.g. --accuracy 0.01";
 	str += "\n\n";
 	return str;
