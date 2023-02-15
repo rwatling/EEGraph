@@ -2,7 +2,7 @@
 #define PARTITIONER_CUH
 
 
-#include "globals.hpp"
+#include "subway_globals.hpp"
 #include "subgraph.cuh"
 
 template <class E>

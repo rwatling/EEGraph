@@ -20,6 +20,8 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	hasEnergyFile = false;
 	debug = false;
 	variant = ASYNC_PUSH_TD;
+	framework = ONE;
+	algorithm = SSSP;
 	energy = false;
 	unifiedMem = false;
 	subway = false;
@@ -99,6 +101,34 @@ bool ArgumentParser::Parse()
 					cout << "Variant not recognized\n";
 					exit(0);
 				}
+			} else if (strcmp(argv[i], "--framework") == 0) {
+				if (strcmp(argv[i+1], "both") == 0) {
+					framework = BOTH;
+					unifiedMem = true; 
+				} else if (strcmp(argv[i+1], "one") == 0) {
+					framework = ONE;
+					unifiedMem = true;
+				} else {
+					cout << "Framework not recognized\n";
+					exit(0);
+				}
+			} else if (strcmp(argv[i], "--algorithm") == 0) {
+				if (strcmp(argv[i+1], "all") == 0) {
+					algorithm = ALL;
+				} else if (strcmp(argv[i+1], "bfs") == 0) {
+					algorithm = BFS;
+				} else if (strcmp(argv[i+1], "cc") == 0) {
+					algorithm = CC;
+				} else if (strcmp(argv[i+1], "pr") == 0) {
+					algorithm = PR;
+				} else if (strcmp(argv[i+1], "sssp") == 0) {
+					algorithm = SSSP;
+				} else if (strcmp(argv[i+1], "sswp") == 0) {
+					algorithm = SSWP;
+				} else {
+					cout << "Algorithm not recognized\n";
+					exit(0);
+				}
 			} else if (strcmp(argv[i], "--energy") == 0) {
 				if (strcmp(argv[i+1], "true") == 0 || 
 					strcmp(argv[i+1], "True") == 0 || 
@@ -156,7 +186,9 @@ string ArgumentParser::GenerateHelpString(){
 	if(canHaveItrs)
 		str += "\n    [--iteration]: Number of iterations (Default: 1). E.g., --iterations 10";
 	str += "\n    [--debug]: Check or observe information (Default: false). E.g. --debug true";
-	str += "\n    [--variant]: Check or observe information (Default: async_push_td). E.g. --variant async_push_td";
+	str += "\n    [--variant]: Algorithm variant option(Default: async_push_td). E.g. --variant async_push_td";
+	str += "\n    [--algorithm]: Algoriothm to run (Default: sssp). E.g. --algorithm all";
+	str += "\n    [--framework]: Choose both or one frameworks (um or classic) (Default: one). E.g. --framework both";
 	str += "\n    [--energy]: Measure and output GPU energy information (Default: false). E.g. --energy true";
 	str += "\n    [--efile]: Output file for energy (Required if energy == true). E.g. --efile my_experiment_energy";
 	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";

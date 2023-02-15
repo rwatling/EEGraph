@@ -1,11 +1,11 @@
-#ifndef GRAPH_CUH
-#define GRAPH_CUH
+#ifndef SUBWAY_GRAPH_CUH
+#define SUBWAY_GRAPH_CUH
 
 
-#include "globals.hpp"
+#include "subway_globals.hpp"
 
 template <class E>
-class Graph
+class SubwayGraph
 {
 private:
 
@@ -26,7 +26,7 @@ public:
 	bool *d_label1;
 	bool *d_label2;
 	string graphFormat;
-    Graph(string graphFilePath, bool isWeighted);
+    SubwayGraph(string graphFilePath, bool isWeighted);
     string GetFileExtension(string fileName);
     void AssignW8(uint w8, uint index);
     void ReadGraph();

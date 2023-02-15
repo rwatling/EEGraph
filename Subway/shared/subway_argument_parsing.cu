@@ -1,8 +1,8 @@
-#include "argument_parsing.cuh"
+#include "subway_argument_parsing.cuh"
 
 
     
-ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool canHaveItrs)
+SubwayArgumentParser::SubwayArgumentParser(int argc, char **argv, bool canHaveSource, bool canHaveItrs)
 {
 	this->argc = argc;
 	this->argv = argv;
@@ -26,7 +26,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	Parse();
 }
 	
-bool ArgumentParser::Parse()
+bool SubwayArgumentParser::Parse()
 {
 	try
 	{
@@ -127,7 +127,7 @@ bool ArgumentParser::Parse()
 	}
 }
 
-string ArgumentParser::GenerateHelpString(){
+string SubwayArgumentParser::GenerateHelpString(){
 	string str = "\nRequired arguments:";
 	str += "\n    [--input]: Input graph file. E.g., --input FacebookGraph.txt";
 	str += "\nOptional arguments";

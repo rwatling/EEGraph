@@ -1,15 +1,13 @@
-#include "../shared/globals.hpp"
+#include "../shared/subway_globals.hpp"
 #include "../shared/timer.hpp"
-#include "../shared/argument_parsing.cuh"
-#include "../shared/graph.cuh"
+#include "../shared/subway_argument_parsing.cuh"
+#include "../shared/subway_graph.cuh"
 #include "../shared/subgraph.cuh"
 #include "../shared/partitioner.cuh"
 #include "../shared/subgraph_generator.cuh"
 #include "../shared/gpu_error_check.cuh"
 #include "../shared/gpu_kernels.cuh"
 #include "../shared/subway_utilities.hpp"
-#include "../shared/test.cuh"
-#include "../shared/test.cu"
 #include "../shared/nvmlClass.cuh"
 
 int main(int argc, char** argv)
@@ -21,7 +19,7 @@ int main(int argc, char** argv)
 	
 	cudaFree(0);
 
-	ArgumentParser arguments(argc, argv, true, false);
+	SubwayArgumentParser arguments(argc, argv, true, false);
 	
 	// Energy structures initilization
 	// Two cpu threads are used to coordinate energy consumption by chanding common flags in nvmlClass
@@ -39,7 +37,7 @@ int main(int argc, char** argv)
 	Timer timer;
 	timer.Start();
 	
-	Graph<OutEdgeWeighted> graph(arguments.input, true);
+	SubwayGraph<OutEdgeWeighted> graph(arguments.input, true);
 	graph.ReadGraph();
 
 	float readtime = timer.Finish();

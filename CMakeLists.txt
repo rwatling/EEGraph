@@ -10,6 +10,7 @@ set(PR_PROJECT "pr")
 set(SSWP_PROJECT "sswp")
 set(BFS_PROJECT "bfs")
 set(CC_PROJECT "cc")
+set(MAIN_PROJECT "main")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
@@ -24,6 +25,7 @@ file(GLOB pr_main "${CMAKE_SOURCE_DIR}/src/pr_main.cu")
 file(GLOB sswp_main "${CMAKE_SOURCE_DIR}/src/sswp_main.cu")
 file(GLOB bfs_main "${CMAKE_SOURCE_DIR}/src/bfs_main.cu")
 file(GLOB cc_main "${CMAKE_SOURCE_DIR}/src/cc_main.cu")
+file(GLOB main "${CMAKE_SOURCE_DIR}/src/main.cu")
 
 file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/argument_parsing.cpp"
@@ -51,7 +53,7 @@ include_directories(${CPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(${GPU_LIB} STATIC ${gpu_source_files})
 
 # Target compile feautes
-target_compile_features(${GPU_LIB} PUBLIC cxx_std_11)
+target_compile_features(${GPU_LIB} PUBLIC cxx_std_14)
 
 # We need to explicitly state that we need all CUDA files in ${GPU_LIB}
 # to be built with -dc
@@ -67,7 +69,7 @@ add_executable(${SSSP_PROJECT} ${sssp_main})
 target_link_libraries(${SSSP_PROJECT} PRIVATE ${GPU_LIB})
 target_link_libraries(${SSSP_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${SSSP_PROJECT} PUBLIC -lnvidia-ml)
-set_property(TARGET ${SSSP_PROJECT} PROPERTY CXX_STANDARD 11)
+set_property(TARGET ${SSSP_PROJECT} PROPERTY CXX_STANDARD 14)
 
 ##### Executables - PR
 add_executable(${PR_PROJECT} ${pr_main})
@@ -76,7 +78,7 @@ add_executable(${PR_PROJECT} ${pr_main})
 target_link_libraries(${PR_PROJECT} PRIVATE ${GPU_LIB})
 target_link_libraries(${PR_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${PR_PROJECT} PUBLIC -lnvidia-ml)
-set_property(TARGET ${PR_PROJECT} PROPERTY CXX_STANDARD 11)
+set_property(TARGET ${PR_PROJECT} PROPERTY CXX_STANDARD 14)
 
 ##### Executables - SSWP
 add_executable(${SSWP_PROJECT} ${sswp_main})
@@ -85,7 +87,7 @@ add_executable(${SSWP_PROJECT} ${sswp_main})
 target_link_libraries(${SSWP_PROJECT} PRIVATE ${GPU_LIB})
 target_link_libraries(${SSWP_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${SSWP_PROJECT} PUBLIC -lnvidia-ml)
-set_property(TARGET ${SSWP_PROJECT} PROPERTY CXX_STANDARD 11)
+set_property(TARGET ${SSWP_PROJECT} PROPERTY CXX_STANDARD 14)
 
 ##### Executables - BFS
 add_executable(${BFS_PROJECT} ${bfs_main})
@@ -94,7 +96,7 @@ add_executable(${BFS_PROJECT} ${bfs_main})
 target_link_libraries(${BFS_PROJECT} PRIVATE ${GPU_LIB})
 target_link_libraries(${BFS_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${BFS_PROJECT} PUBLIC -lnvidia-ml)
-set_property(TARGET ${BFS_PROJECT} PROPERTY CXX_STANDARD 11)
+set_property(TARGET ${BFS_PROJECT} PROPERTY CXX_STANDARD 14)
 
 ##### Executables - CC
 add_executable(${CC_PROJECT} ${cc_main})
@@ -103,4 +105,13 @@ add_executable(${CC_PROJECT} ${cc_main})
 target_link_libraries(${CC_PROJECT} PRIVATE ${GPU_LIB})
 target_link_libraries(${CC_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${CC_PROJECT} PUBLIC -lnvidia-ml)
-set_property(TARGET ${CC_PROJECT} PROPERTY CXX_STANDARD 11)
+set_property(TARGET ${CC_PROJECT} PROPERTY CXX_STANDARD 14)
+
+##### Executables - CC
+add_executable(${MAIN_PROJECT} ${main})
+
+##### Link libraries - MAIN PROJECT
+target_link_libraries(${MAIN_PROJECT} PRIVATE ${GPU_LIB})
+target_link_libraries(${MAIN_PROJECT} PRIVATE ${CPU_LIB})
+target_link_libraries(${MAIN_PROJECT} PUBLIC -lnvidia-ml)
+set_property(TARGET ${MAIN_PROJECT} PROPERTY CXX_STANDARD 14)

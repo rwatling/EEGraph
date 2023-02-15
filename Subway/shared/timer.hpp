@@ -2,7 +2,7 @@
 #define TIMER_HPP
 
 
-#include "globals.hpp"
+#include "subway_globals.hpp"
 #include <stdlib.h>
 #include <sys/time.h>
 

@@ -1,10 +1,10 @@
-#ifndef ARGUMENT_PARSING_HPP
-#define ARGUMENT_PARSING_HPP
+#ifndef SUBWAY_ARGUMENT_PARSING_HPP
+#define SUBWAY_ARGUMENT_PARSING_HPP
 
-#include "globals.hpp"
+#include "subway_globals.hpp"
 
 
-class ArgumentParser
+class SubwayArgumentParser
 {
 private:
 
@@ -32,7 +32,7 @@ public:
 	string energyFile;
 	string energyStats;
 	
-	ArgumentParser(int argc, char **argv, bool canHaveSource, bool canHaveItrs);
+	SubwayArgumentParser(int argc, char **argv, bool canHaveSource, bool canHaveItrs);
 	
 	bool Parse();
 	
@@ -41,4 +41,4 @@ public:
 };
 
 
-#endif	//	ARGUMENT_PARSING_HPP
+#endif	//	SUBWAY_ARGUMENT_PARSING_HPP

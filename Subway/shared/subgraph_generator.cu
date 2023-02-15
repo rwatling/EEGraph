@@ -1,5 +1,5 @@
 #include "subgraph_generator.cuh"
-#include "graph.cuh"
+#include "subway_graph.cuh"
 #include "subgraph.cuh"
 #include "gpu_error_check.cuh"
 
@@ -97,7 +97,7 @@ void dynamic(unsigned int tId,
 }
 
 template <class E>
-SubgraphGenerator<E>::SubgraphGenerator(Graph<E> &graph)
+SubgraphGenerator<E>::SubgraphGenerator(SubwayGraph<E> &graph)
 {
 	gpuErrorcheck(cudaMallocHost(&activeNodesLabeling, graph.num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMallocHost(&activeNodesDegree, graph.num_nodes * sizeof(unsigned int)));
@@ -125,7 +125,7 @@ SubgraphGenerator<E>::SubgraphGenerator(GraphPR<E> &graph)
 }
 
 template <class E>
-void SubgraphGenerator<E>::generate(Graph<E> &graph, Subgraph<E> &subgraph)
+void SubgraphGenerator<E>::generate(SubwayGraph<E> &graph, Subgraph<E> &subgraph)
 {
 	//std::chrono::time_point<std::chrono::system_clock> startDynG, finishDynG;
 	//startDynG = std::chrono::system_clock::now();

@@ -1,4 +1,4 @@
-#include "../shared/globals.hpp"
+#include "../shared/subway_globals.hpp"
 
 
 bool IsWeightedFormat(string format)

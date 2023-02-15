@@ -1,6 +1,6 @@
 
-#include "globals.hpp"
-#include "graph.cuh"
+#include "subway_globals.hpp"
+#include "subway_graph.cuh"
 #include "subgraph.cuh"
 
 

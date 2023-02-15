@@ -1,5 +1,5 @@
-#ifndef GLOBALS_HPP
-#define GLOBALS_HPP
+#ifndef SUBWAY_GLOBALS_HPP
+#define SUBWAY_GLOBALS_HPP
 
 #include <iostream>
 #include <stdlib.h>
@@ -53,4 +53,4 @@ struct EdgeWeighted{
 
 
 
-#endif 	//	GLOBALS_HPP
+#endif 	//	SUBWAY_GLOBALS_HPP

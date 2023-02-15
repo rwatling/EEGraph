@@ -2,7 +2,7 @@
 #define SUBGRAPH_HPP
 
 
-#include "globals.hpp"
+#include "subway_globals.hpp"
 
 
 template <class E>

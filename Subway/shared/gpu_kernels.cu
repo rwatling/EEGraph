@@ -1,8 +1,8 @@
 
 #include "gpu_kernels.cuh"
-#include "globals.hpp"
+#include "subway_globals.hpp"
 #include "gpu_error_check.cuh"
-#include "graph.cuh"
+#include "subway_graph.cuh"
 #include "subgraph.cuh"
 
 

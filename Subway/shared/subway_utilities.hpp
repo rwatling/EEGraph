@@ -2,7 +2,7 @@
 #define SUBWAY_UTILITIES_HPP
 
 
-#include "globals.hpp"
+#include "subway_globals.hpp"
 
 namespace utilities {
 	void PrintResults(uint *results, uint n);

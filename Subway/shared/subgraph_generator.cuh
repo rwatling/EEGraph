@@ -2,8 +2,8 @@
 #define SUBGRAPH_GENERATOR_HPP
 
 
-#include "globals.hpp"
-#include "graph.cuh"
+#include "subway_globals.hpp"
+#include "subway_graph.cuh"
 #include "subgraph.cuh"
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
@@ -23,9 +23,9 @@ public:
 	unsigned int *d_activeNodesDegree;
 	unsigned int *d_prefixLabeling;
 	unsigned int *d_prefixSumDegrees;
-	SubgraphGenerator(Graph<E> &graph);
+	SubgraphGenerator(SubwayGraph<E> &graph);
 	SubgraphGenerator(GraphPR<E> &graph);
-	void generate(Graph<E> &graph, Subgraph<E> &subgraph);
+	void generate(SubwayGraph<E> &graph, Subgraph<E> &subgraph);
 	void generate(GraphPR<E> &graph, Subgraph<E> &subgraph, float acc);
 };
 

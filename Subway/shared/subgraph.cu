@@ -1,7 +1,7 @@
 
 #include "subgraph.cuh"
 #include "gpu_error_check.cuh"
-#include "graph.cuh"
+#include "subway_graph.cuh"
 #include <cuda_profiler_api.h>
 
 

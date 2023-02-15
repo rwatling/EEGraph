@@ -1,15 +1,15 @@
-#include "graph.cuh"
+#include "subway_graph.cuh"
 #include "gpu_error_check.cuh"
 
 template <class E>
-Graph<E>::Graph(string graphFilePath, bool isWeighted)
+SubwayGraph<E>::SubwayGraph(string graphFilePath, bool isWeighted)
 {
 	this->graphFilePath = graphFilePath;
 	this->isWeighted = isWeighted;
 }
 
 template <class E>
-string Graph<E>::GetFileExtension(string fileName)
+string SubwayGraph<E>::GetFileExtension(string fileName)
 {
     if(fileName.find_last_of(".") != string::npos)
         return fileName.substr(fileName.find_last_of(".")+1);
@@ -17,19 +17,19 @@ string Graph<E>::GetFileExtension(string fileName)
 }
 
 template <>
-void Graph<OutEdgeWeighted>::AssignW8(uint w8, uint index)
+void SubwayGraph<OutEdgeWeighted>::AssignW8(uint w8, uint index)
 {
     edgeList[index].w8 = w8;
 }
 
 template <>
-void Graph<OutEdge>::AssignW8(uint w8, uint index)
+void SubwayGraph<OutEdge>::AssignW8(uint w8, uint index)
 {
     edgeList[index].end = edgeList[index].end; // do nothing
 }
 
 template <class E>
-void Graph<E>::ReadGraph()
+void SubwayGraph<E>::ReadGraph()
 {
 
 	cout << "Reading the input graph from the following file:\n>> " << graphFilePath << endl;
@@ -50,7 +50,7 @@ void Graph<E>::ReadGraph()
 		infile.read ((char*)edgeList, sizeof(E)*num_edges);
 		nodePointer[num_nodes] = num_edges;
 	}
-	else if(graphFormat == "el" || graphFormat == "wel")
+	else if(graphFormat == "el" || graphFormat == "wel" || graphFormat == "edgelist" || graphFormat == "txt")
 	{
 		ifstream infile;
 		infile.open(graphFilePath);
@@ -247,7 +247,7 @@ void GraphPR<E>::ReadGraph()
 		infile.read ((char*)edgeList, sizeof(E)*num_edges);
 		nodePointer[num_nodes] = num_edges;
 	}
-	else if(graphFormat == "el" || graphFormat == "wel")
+	else if(graphFormat == "el" || graphFormat == "wel" || graphFormat == "edgelist" || graphFormat == "txt")
 	{
 		ifstream infile;
 		infile.open(graphFilePath);
@@ -394,8 +394,8 @@ void GraphPR<E>::ReadGraph()
 }
 
 
-template class Graph<OutEdge>;
-template class Graph<OutEdgeWeighted>;
+template class SubwayGraph<OutEdge>;
+template class SubwayGraph<OutEdgeWeighted>;
 
 template class GraphPR<OutEdge>;
 template class GraphPR<OutEdgeWeighted>;
