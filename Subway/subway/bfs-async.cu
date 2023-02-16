@@ -51,7 +51,6 @@ int main(int argc, char** argv)
 	graph.value[arguments.sourceNode] = 0;
 	//graph.label[arguments.sourceNode] = true;
 
-
 	gpuErrorcheck(cudaMemcpy(graph.d_outDegree, graph.outDegree, graph.num_nodes * sizeof(unsigned int), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(graph.d_value, graph.value, graph.num_nodes * sizeof(unsigned int), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(graph.d_label1, graph.label1, graph.num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
@@ -147,6 +146,7 @@ int main(int argc, char** argv)
 
 		cpu_threads.clear();
 	}
+
 	utilities::PrintResults(graph.value, min(20, graph.num_nodes));
 			
 	if(arguments.hasOutput)

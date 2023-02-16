@@ -10,22 +10,22 @@
 #include "gpu_kernels.cuh"
 #include "nvmlClass.cuh"
 
-int bfs_async_driver(SubwayArgumentParser arguments, SubwayGraph<OutEdge> graph);
+int subway_bfs_async(SubwayArgumentParser arguments, SubwayGraph<OutEdge> graph);
 
-int bfs_sync_driver(SubwayArgumentParser arguments, SubwayGraph<OutEdge> graph);
+int subway_bfs_sync(SubwayArgumentParser arguments, SubwayGraph<OutEdge> graph);
 
-int cc_async_driver(SubwayArgumentParser arguments, SubwayGraph<OutEdge> graph);
+int subway_cc_async(SubwayArgumentParser arguments, SubwayGraph<OutEdge> graph);
 
-int cc_sync_driver(SubwayArgumentParser arguments, SubwayGraph<OutEdge> graph);
+int subway_cc_sync(SubwayArgumentParser arguments, SubwayGraph<OutEdge> graph);
 
-int pr_async_driver(SubwayArgumentParser arguments, GraphPR<OutEdge> graph);
+int subway_pr_async(SubwayArgumentParser arguments, GraphPR<OutEdge> graph);
 
-int pr_sync_driver(SubwayArgumentParser arguments, GraphPR<OutEdge> graph);
+int subway_pr_sync(SubwayArgumentParser arguments, GraphPR<OutEdge> graph);
 
-int sswp_async_driver(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
+int subway_sswp_async(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
 
-int sswp_sync_driver(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
+int subway_sswp_sync(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
 
-int sswp_async_driver(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
+int subway_sswp_async(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
 
-int sswp_sync_driver(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
+int subway_sswp_sync(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
