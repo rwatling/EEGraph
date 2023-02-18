@@ -43,6 +43,7 @@ file(GLOB cpp_source_files
     "${CMAKE_SOURCE_DIR}/src/um_graph.cu"
     "${CMAKE_SOURCE_DIR}/src/um_virtual_graph.cu"
     "${CMAKE_SOURCE_DIR}/src/cc.cu"
+    "${CMAKE_SOURCE_DIR}/src/eegraph_runable.cu"
     "${CMAKE_SOURCE_DIR}/Subway/shared/subway_graph.cu"
     "${CMAKE_SOURCE_DIR}/Subway/shared/subway_runnable.cu"
     "${CMAKE_SOURCE_DIR}/Subway/shared/subway_argument_parsing.cu"

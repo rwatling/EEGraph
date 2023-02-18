@@ -48,7 +48,7 @@ int main (int argc, char** argv) {
 	/*Graph graph(arguments.input, true);
 	graph.ReadGraph();
 
-    graph.~Graph();
+    UMGraph ...umgraph()
 
     SubwayGraph<OutEdgeWeighted> sssp_sswp_graph(arguments.input, true);
     sssp_sswp_graph.ReadGraph();
