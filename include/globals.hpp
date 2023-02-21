@@ -48,5 +48,10 @@ struct PartPointer{
 	unsigned int part;
 };
 
+struct Result{
+    float time;
+    double energy;
+};
+
 
 #endif 	//	GLOBALS_HPP

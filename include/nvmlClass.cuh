@@ -83,6 +83,8 @@ class nvmlClass {
 
         char name[nvml_device_name_buffer_size];
 
+        energy_ = 0.0;
+
         // Initialize NVML library
         NVML_RT_CALL( nvmlInit_v2( ) );
 
@@ -197,6 +199,10 @@ class nvmlClass {
       stat_pts_time_steps_.push_back(device_stats);
     }
 
+    double get_energy() {
+      return energy_;
+    }
+
   private:
     typedef struct _stats {
         std::time_t        timestamp;
@@ -239,6 +245,7 @@ class nvmlClass {
     std::ofstream             stats_file_;
     nvmlDevice_t              device_;
     bool                      loop_;
+    double                    energy_;
 
     void printHeader( ) {
 
@@ -333,6 +340,8 @@ class nvmlClass {
                     << " \n";
         stats_file_ << "Energy - WU/CD (mJ): " << energy << "\n";
         stats_file_ << "Total energy (mJ): " << total_energy << "\n";
+
+        energy_ = energy;
 
         // Print total time        
         total_time = (time_steps_[total_time_steps - 1].timestamp - time_steps_[0].timestamp);

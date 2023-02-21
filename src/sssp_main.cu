@@ -464,6 +464,8 @@ int main(int argc, char** argv) {
 		cpu_threads.clear();
 	}
 
+	//cout << "Energy = " << nvml.get_energy() << endl;
+
 	// Run sequential cpu version and print out useful information
 	if (arguments.debug) {
 		unsigned int* cpu_dist;
