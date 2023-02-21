@@ -31,6 +31,8 @@ public:
 	bool hasEnergyStats;
 	string energyFile;
 	string energyStats;
+
+	int benchmark;
 	
 	SubwayArgumentParser(int argc, char **argv, bool canHaveSource, bool canHaveItrs);
 	

@@ -8,7 +8,6 @@ SHARED=../shared
 
 all: bfs-sync.o cc-sync.o sssp-sync.o sswp-sync.o pr-sync.o bfs-async.o cc-async.o sssp-async.o sswp-async.o pr-async.o
 
-
 bfs-sync.o: bfs-sync.cu
 	$(NC) -c bfs-sync.cu $(CFLAGS) $(NFLAGS)
 	

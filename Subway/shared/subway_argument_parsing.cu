@@ -22,6 +22,8 @@ SubwayArgumentParser::SubwayArgumentParser(int argc, char **argv, bool canHaveSo
 	energy = false;
 	hasEnergyFile = false;
 	hasEnergyStats = false;
+
+	benchmark = 0;
 	
 	Parse();
 }
@@ -92,6 +94,8 @@ bool SubwayArgumentParser::Parse()
 			else if (strcmp(argv[i], "--estats") == 0) {
 				energyStats = string(argv[i+1]);
 				hasEnergyStats = true;
+			} else if (strcmp(argv[i], "--benchmark") == 0) {
+				benchmark = atoi(argv[i+1]);
 			} 
 			else
 			{

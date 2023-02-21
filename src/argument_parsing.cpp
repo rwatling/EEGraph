@@ -20,8 +20,6 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	hasEnergyFile = false;
 	debug = false;
 	variant = ASYNC_PUSH_TD;
-	framework = CLASSIC;
-	algorithm = SSSP;
 	energy = false;
 	unifiedMem = false;
 	hasAcc = false;
@@ -99,36 +97,6 @@ bool ArgumentParser::Parse()
 					variant = SYNC_PUSH_DD;
 				} else {
 					cout << "Variant not recognized\n";
-					exit(0);
-				}
-			} else if (strcmp(argv[i], "--framework") == 0) {
-				if (strcmp(argv[i+1], "all") == 0) {
-					framework = ALL;
-					unifiedMem = true; 
-				} else if (strcmp(argv[i+1], "classic") == 0) {
-					framework = CLASSIC;
-				} else if (strcmp(argv[i+1], "um") == 0) {
-					framework = UM;
-					unifiedMem = true;
-				} else if (strcmp(argv[i+1], "subway") == 0) {
-					framework = SUBWAY;
-				} else {
-					cout << "Framework not recognized\n";
-					exit(0);
-				}
-			} else if (strcmp(argv[i], "--algorithm") == 0) {
-				if (strcmp(argv[i+1], "bfs") == 0) {
-					algorithm = BFS;
-				} else if (strcmp(argv[i+1], "cc") == 0) {
-					algorithm = CC;
-				} else if (strcmp(argv[i+1], "pr") == 0) {
-					algorithm = PR;
-				} else if (strcmp(argv[i+1], "sssp") == 0) {
-					algorithm = SSSP;
-				} else if (strcmp(argv[i+1], "sswp") == 0) {
-					algorithm = SSWP;
-				} else {
-					cout << "Algorithm not recognized\n";
 					exit(0);
 				}
 			} else if (strcmp(argv[i], "--energy") == 0) {

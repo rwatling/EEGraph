@@ -9,7 +9,7 @@ SHARED=shared
 SUBWAY=subway
 TOOLS=tools
 
-DEP=$(SHARED)/timer.o $(SHARED)/subway_argument_parsing.o $(SHARED)/subway_graph.o $(SHARED)/subgraph.o $(SHARED)/partitioner.o $(SHARED)/subgraph_generator.o $(SHARED)/gpu_kernels.o $(SHARED)/subway_utilities.o 
+DEP=$(SHARED)/timer.o $(SHARED)/subway_argument_parsing.o $(SHARED)/subway_graph.o $(SHARED)/subgraph.o $(SHARED)/partitioner.o $(SHARED)/subgraph_generator.o $(SHARED)/gpu_kernels.o $(SHARED)/subway_utilities.o $(SHARED)/subway_runable.o
 
 all: make1 make2 make3 bfs-sync cc-sync sssp-sync sswp-sync pr-sync bfs-async cc-async sssp-async sswp-async pr-async
 

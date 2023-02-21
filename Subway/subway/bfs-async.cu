@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	graph.ReadGraph();
 	
 	float readtime = timer.Finish();
-	cout << "Graph Reading finished in " << readtime/1000 << " (s).\n";
+	cout << "Graph Reading finished in " << readtime << " (s).\n";
 	
 	Timer totalTimer;
 	totalTimer.Start();
@@ -132,8 +132,8 @@ int main(int argc, char** argv)
 	
 	float runtime = timer.Finish();
 	float total = totalTimer.Finish();
-	cout << "Processing finished in " << runtime/1000 << " (s).\n";
-	cout << "Total GPU activity finished in " << total/1000 << " (s).\n";
+	cout << "Processing finished in " << runtime << " (s).\n";
+	cout << "Total GPU activity finished in " << total << " (s).\n";
 	
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {

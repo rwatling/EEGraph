@@ -38,21 +38,6 @@ enum Variant : unsigned char {
     SYNC_PUSH_DD,
 };
 
-enum Algorithm : unsigned char {
-    BFS,
-    CC,
-    PR,
-    SSSP,
-    SSWP
-};
-
-enum Framework : unsigned char {
-    ALL,
-    CLASSIC,
-    UM,
-    SUBWAY
-};
-
 struct Edge{
     unsigned int source;
     unsigned int end;

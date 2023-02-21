@@ -1,6 +1,6 @@
 #include "subway_globals.hpp"
-#include "../../include/timer.hpp"
-#include "../../include/utilities.hpp"
+#include "timer.hpp"
+#include "subway_utilities.hpp"
 #include "subway_argument_parsing.cuh"
 #include "subway_graph.cuh"
 #include "subgraph.cuh"
@@ -22,9 +22,9 @@ int subway_pr_async(SubwayArgumentParser arguments, GraphPR<OutEdge> graph);
 
 int subway_pr_sync(SubwayArgumentParser arguments, GraphPR<OutEdge> graph);
 
-int subway_sswp_async(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
+int subway_sssp_async(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
 
-int subway_sswp_sync(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
+int subway_sssp_sync(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
 
 int subway_sswp_async(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph);
 

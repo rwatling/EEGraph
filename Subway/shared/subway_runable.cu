@@ -24,11 +24,11 @@ int subway_pr_sync(SubwayArgumentParser arguments, GraphPR<OutEdge> graph) {
 
 }
 
-int subway_sswp_async(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph) {
+int subway_sssp_async(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph) {
 
 }
 
-int subway_sswp_sync(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph) {
+int subway_sssp_sync(SubwayArgumentParser arguments, SubwayGraph<OutEdgeWeighted> graph) {
 
 }
 

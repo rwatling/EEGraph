@@ -40,8 +40,6 @@ public:
 	float acc;
 
 	Variant variant;
-	Framework framework;
-	Algorithm algorithm;
 	
 	ArgumentParser(int argc, char **argv, bool canHaveSource, bool canHaveItrs);
 	
