@@ -6,6 +6,7 @@
 #include "../include/gpu_utils.cuh"
 #include "../include/um_virtual_graph.cuh"
 #include "../include/um_graph.cuh"
+#include "../include/eegraph_runable.cuh"
 
 #include <iostream>
 #include <sys/stat.h>
@@ -290,4 +291,12 @@ int main (int argc, char** argv) {
             }
         }
     }
+}
+
+Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
+
+}
+
+Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
+
 }

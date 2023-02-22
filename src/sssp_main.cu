@@ -86,8 +86,8 @@ int main_unified_memory(ArgumentParser arguments) {
 	// Algorithm control variable declarations
 	Timer timer;
 	int itr = 0;
-	uint num_threads = 512;
-	uint num_blocks = vGraph.numParts / num_threads + 1;
+	int num_threads = 512;
+	int num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -338,8 +338,8 @@ int main(int argc, char** argv) {
 	// Algorithm control variable declarations
 	Timer timer;
 	int itr = 0;
-	uint num_threads = 512;
-	uint num_blocks = vGraph.numParts / num_threads + 1;
+	int num_threads = 512;
+	int num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
