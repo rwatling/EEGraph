@@ -124,7 +124,9 @@ int main (int argc, char** argv) {
                                 // Redirect cout to file
                                 cout.rdbuf(stream_buffer_file);
                             
-                                //eegraph_bfs(arguments, graph);
+                                gpuErrorcheck( cudaDeviceSynchronize() );
+                                eegraph_bfs(arguments, graph);
+								gpuErrorcheck( cudaDeviceSynchronize() );
                             
                                 // Redirect cout back to screen
                                 cout.rdbuf(stream_buffer_cout);                                
@@ -149,7 +151,9 @@ int main (int argc, char** argv) {
                                 // Redirect cout to file
                                 cout.rdbuf(stream_buffer_file);
                             
-                                //eegraph_bfs(arguments, graph);
+                                gpuErrorcheck( cudaDeviceSynchronize() );
+                                eegraph_bfs(arguments, graph);
+								gpuErrorcheck( cudaDeviceSynchronize() );
                             
                                 // Redirect cout back to screen
                                 cout.rdbuf(stream_buffer_cout);                                
@@ -174,7 +178,9 @@ int main (int argc, char** argv) {
                                 // Redirect cout to file
                                 cout.rdbuf(stream_buffer_file);
                             
-                                //eegraph_bfs(arguments, graph);
+                                gpuErrorcheck( cudaDeviceSynchronize() );
+                                eegraph_bfs(arguments, graph);
+								gpuErrorcheck( cudaDeviceSynchronize() );
                             
                                 // Redirect cout back to screen
                                 cout.rdbuf(stream_buffer_cout);                                

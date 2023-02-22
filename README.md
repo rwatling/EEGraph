@@ -15,14 +15,20 @@
 * nvcc 11.1
 * gcc 7.3.1
 * cmake 3.20.0-rc4
-* C++11 multithreading
-* C++14
+* C++14 (uses C++11 multithreading)
 
 ### Run executable examples
 
-`$ sssp --help`
+`$ ./sssp --help`
 
-`$ sssp --input <filename>`
+`$ ./sssp --input <filename>`
+
+`$ ./main --input all`
+
+Useful debugging tools
+* cuda-gdb
+* cuda-memcheck
+* compute-sanitzer
 
 ### Input graph format
 
