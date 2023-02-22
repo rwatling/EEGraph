@@ -42,8 +42,7 @@ file(GLOB cpp_source_files
     "${CMAKE_SOURCE_DIR}/src/gpu_utils.cu"
     "${CMAKE_SOURCE_DIR}/src/um_graph.cu"
     "${CMAKE_SOURCE_DIR}/src/um_virtual_graph.cu"
-    "${CMAKE_SOURCE_DIR}/src/cc.cu"
-    "${CMAKE_SOURCE_DIR}/src/eegraph_runable.cu")
+    "${CMAKE_SOURCE_DIR}/src/cc.cu")
 
 ##### Include directories
 include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -51,7 +50,7 @@ include_directories(${GPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 ##### GPU Library
-add_library(${GPU_LIB} STATIC ${gpu_source_files})
+add_library(${GPU_LIB} SHARED ${gpu_source_files})
 
 # Target compile feautes
 target_compile_features(${GPU_LIB} PUBLIC cxx_std_14)
@@ -61,7 +60,7 @@ target_compile_features(${GPU_LIB} PUBLIC cxx_std_14)
 set_target_properties(${GPU_LIB} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 ##### CPU Library
-add_library(${CPU_LIB} STATIC ${cpp_source_files})
+add_library(${CPU_LIB} SHARED ${cpp_source_files})
 
 ##### Executables - SSSP
 add_executable(${SSSP_PROJECT} ${sssp_main})
