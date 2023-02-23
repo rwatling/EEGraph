@@ -47,13 +47,12 @@ mkdir -p ./data/subway-energy/sswp/async
 mkdir -p ./data/subway-energy/sswp/sync
 
 inputs=("../datasets/Google/web-Google-trimmed.txt" 
-        "../datasets/LiveJournal/soc-LiveJournal1-trimmed.txt" 
-        "../datasets/Orkut/orkut-trimmed.el" 
-        "../datasets/Pokec/soc-pokec-relationships.txt" 
-        "../datasets/Road/roadNet-CA-trimmed.txt" 
-        "../datasets/Skitter/as-skitter-trimmed.txt")
+        "../datasets/LiveJournal/soc-LiveJournal1-trimmed.txt"
+        "../datasets/Road/roadNet-CA-trimmed.txt"
+        "../datasets/Skitter/as-skitter-trimmed.txt"
+        "../datasets/Wiki/wiki-Talk-trimmed.txt")
 
-names=("google" "livejournal" "orkut" "pokec" "road" "skitter")
+names=("google", "LiveJournal", "road", "skitter", "wiki")
 
 for i in {1..3}
 do

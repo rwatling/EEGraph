@@ -4,7 +4,7 @@ CFLAGS=-std=c++14 -O3
 NFLAGS=-arch=sm_60 -lnvidia-ml
 
 
-all: timer.o subway_argument_parsing.o subway_graph.o subgraph.o partitioner.o subgraph_generator.o gpu_kernels.o subway_utilities.o subway_runable.o
+all: timer.o subway_argument_parsing.o subway_graph.o subgraph.o partitioner.o subgraph_generator.o gpu_kernels.o subway_utilities.o
 
 
 timer.o: timer.cpp
@@ -30,9 +30,6 @@ gpu_kernels.o: gpu_kernels.cu
 
 subway_utilities.o: subway_utilities.cpp
 	$(CC) -c subway_utilities.cpp -o subway_utilities.o $(CFLAGS)
-
-subway_runable.o: subway_runable.cu
-	$(NC) -c subway_runable.cu -o subway_runable.o $(CFLAGS)
 
 
 clean:

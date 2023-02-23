@@ -12,8 +12,8 @@ set(BFS_PROJECT "bfs-main")
 set(CC_PROJECT "cc-main")
 set(MAIN_PROJECT "main")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3 -g")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g -G")
 
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES "52;60;72")
@@ -50,7 +50,7 @@ include_directories(${GPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CPU_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 ##### GPU Library
-add_library(${GPU_LIB} SHARED ${gpu_source_files})
+add_library(${GPU_LIB} STATIC ${gpu_source_files})
 
 # Target compile feautes
 target_compile_features(${GPU_LIB} PUBLIC cxx_std_14)
@@ -60,7 +60,7 @@ target_compile_features(${GPU_LIB} PUBLIC cxx_std_14)
 set_target_properties(${GPU_LIB} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 ##### CPU Library
-add_library(${CPU_LIB} SHARED ${cpp_source_files})
+add_library(${CPU_LIB} STATIC ${cpp_source_files})
 
 ##### Executables - SSSP
 add_executable(${SSSP_PROJECT} ${sssp_main})

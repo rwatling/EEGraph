@@ -14,6 +14,7 @@
 #include <iostream>
 
 int main_unified_memory(ArgumentParser arguments) {
+	
 	cout << "Unified memory version" << endl;
 
 	// Energy structures initilization

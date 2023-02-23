@@ -20,7 +20,7 @@
 
 Result eegraph_bfs(ArgumentParser &arguments, Graph &graph);
 
-Result eegraph_bfs_um(ArgumentParser &arguments, Graph &graph);
+Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph);
 
 Result eegraph_cc(ArgumentParser &arguments, Graph &graph);
 
