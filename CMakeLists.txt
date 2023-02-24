@@ -26,6 +26,7 @@ file(GLOB sswp_main "${CMAKE_SOURCE_DIR}/src/sswp_main.cu")
 file(GLOB bfs_main "${CMAKE_SOURCE_DIR}/src/bfs_main.cu")
 file(GLOB cc_main "${CMAKE_SOURCE_DIR}/src/cc_main.cu")
 file(GLOB main "${CMAKE_SOURCE_DIR}/src/main.cu")
+#file(GLOB eegraph "${CMAKE_SOURCE_DIR}/src/eegraph.cu")
 
 file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/argument_parsing.cpp"
@@ -42,7 +43,8 @@ file(GLOB cpp_source_files
     "${CMAKE_SOURCE_DIR}/src/gpu_utils.cu"
     "${CMAKE_SOURCE_DIR}/src/um_graph.cu"
     "${CMAKE_SOURCE_DIR}/src/um_virtual_graph.cu"
-    "${CMAKE_SOURCE_DIR}/src/cc.cu")
+    "${CMAKE_SOURCE_DIR}/src/cc.cu"
+    "${CMAKE_SOURCE_DIR}/src/eegraph.cu")
 
 ##### Include directories
 include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
