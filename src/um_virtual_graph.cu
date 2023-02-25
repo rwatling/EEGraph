@@ -70,6 +70,10 @@ void UMVirtualGraph::MakeGraph()
 		
 		uint location = nodePointer[source]+1+2*outDegreeCounter[source];
 
+		if (location >= graph->num_edges) {
+			continue;
+		}
+
 		edgeList[location] = end;
 		edgeList[location+1] = w8;
 

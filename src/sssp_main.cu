@@ -14,7 +14,6 @@
 #include <iostream>
 
 int main_unified_memory(ArgumentParser arguments) {
-	
 	cout << "Unified memory version" << endl;
 
 	// Energy structures initilization
@@ -246,7 +245,6 @@ int main_unified_memory(ArgumentParser arguments) {
 }
 
 int main(int argc, char** argv) {
-
 	ArgumentParser arguments(argc, argv, true, false);
 
 	if (arguments.unifiedMem) {

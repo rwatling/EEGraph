@@ -33,8 +33,11 @@ int main_unified_memory(ArgumentParser arguments) {
 	UMGraph graph(arguments.input, true);
 	graph.ReadGraph();
 
-	UMVirtualGraph vGraph(graph);
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
 
+	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
 	uint num_nodes = graph.num_nodes;
@@ -53,10 +56,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	unsigned int *dist;
 	bool *label1;
 	bool *label2;
-
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMallocManaged(&dist, sizeof(unsigned int) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
@@ -185,6 +184,8 @@ int main_unified_memory(ArgumentParser arguments) {
 		} while (!(*finished));
 	}
 
+	if (arguments.energy) nvml.log_point();
+
 	float runtime = timer.Finish();
 	float total = totalTimer.Finish();
 	cout << "Number of iterations = " << itr << endl;
@@ -245,7 +246,6 @@ int main_unified_memory(ArgumentParser arguments) {
 }
 
 int main(int argc, char** argv) {
-
 	ArgumentParser arguments(argc, argv, true, false);
 
 	if (arguments.unifiedMem) {
@@ -268,6 +268,10 @@ int main(int argc, char** argv) {
 	// Initialize graph and virtual graph
 	Graph graph(arguments.input, true);
 	graph.ReadGraph();
+
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
@@ -315,10 +319,6 @@ int main(int argc, char** argv) {
 	
 	bool finished;
 	bool *d_finished;
-	
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
@@ -442,8 +442,8 @@ int main(int argc, char** argv) {
 		} while (!(finished));
 	}
 
+	if (arguments.energy) nvml.log_point();
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
-
 	if (arguments.energy) nvml.log_point();
 
 	float runtime = timer.Finish();
