@@ -33,6 +33,10 @@ int main_unified_memory(ArgumentParser arguments) {
 	UMGraph graph(arguments.input, true);
 	graph.ReadGraph();
 
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -52,10 +56,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	bool *label2;
 	float *delta, *value;
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	gpuErrorcheck(cudaMallocManaged(&delta, sizeof(float) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&value, sizeof(float) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
@@ -65,8 +65,8 @@ int main_unified_memory(ArgumentParser arguments) {
 	float initPR = 0.15;
 	float acc = arguments.acc;
 	
-	cout << "Initialized value: " << initPR << endl;
-	cout << "Accuracy: " << acc << endl;
+	//cout << "Initialized value: " << initPR << endl;
+	//cout << "Accuracy: " << acc << endl;
 
 	for(int i=0; i<num_nodes; i++)
 	{
@@ -209,7 +209,6 @@ int main_unified_memory(ArgumentParser arguments) {
 
 	if (arguments.energy) nvml.log_point();
 
-
 	float runtime = timer.Finish();
 	float total = totalTimer.Finish();
 	cout << "Number of iterations = " << itr << endl;
@@ -275,6 +274,10 @@ int main(int argc, char** argv) {
 	Graph graph(arguments.input, true);
 	graph.ReadGraph();
 
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -304,8 +307,8 @@ int main(int argc, char** argv) {
 	float initPR = 0.15;
 	float acc = arguments.acc;
 	
-	cout << "Initialized value: " << initPR << endl;
-	cout << "Accuracy: " << acc << endl;
+	//cout << "Initialized value: " << initPR << endl;
+	//cout << "Accuracy: " << acc << endl;
 
 	for(int i=0; i<num_nodes; i++)
 	{
@@ -324,10 +327,6 @@ int main(int argc, char** argv) {
 	bool finished;
 	float *d_delta;
 	float *d_value;
-
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
@@ -460,6 +459,8 @@ int main(int argc, char** argv) {
 		} while (!finished);
 	}
 
+	if (arguments.energy) nvml.log_point();
+	gpuErrorcheck(cudaMemcpy(value, d_value, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
 	if (arguments.energy) nvml.log_point();
 
 	float runtime = timer.Finish();

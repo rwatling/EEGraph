@@ -33,8 +33,11 @@ int main_unified_memory(ArgumentParser arguments) {
 	UMGraph graph(arguments.input, true);
 	graph.ReadGraph();
 
-	UMVirtualGraph vGraph(graph);
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
 
+	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
 	uint num_nodes = graph.num_nodes;
@@ -63,7 +66,8 @@ int main_unified_memory(ArgumentParser arguments) {
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = i;
-		label1[i] = true;
+		if (arguments.variant == ASYNC_PUSH_DD)	label1[i] = true;
+		else label1[i]=false;
 		label2[i] = false;
 	}
 	
@@ -182,8 +186,10 @@ int main_unified_memory(ArgumentParser arguments) {
 	if (arguments.energy) nvml.log_point();
 
 	float runtime = timer.Finish();
+	float total = totalTimer.Finish();
 	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
+	cout << "Total GPU activity finished in " << total << " (ms).\n";
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
@@ -262,6 +268,10 @@ int main(int argc, char** argv) {
 	Graph graph(arguments.input, true);
 	graph.ReadGraph();
 
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -290,7 +300,8 @@ int main(int argc, char** argv) {
 	{
 		dist[i] = i;
 
-		label1[i] = true;
+		if (arguments.variant == ASYNC_PUSH_DD)	label1[i] = true;
+		else label1[i]=false;
 		label2[i] = false;
 	}
 
@@ -302,13 +313,9 @@ int main(int argc, char** argv) {
 	PartPointer *d_partNodePointer; 
 	bool *d_label1;
 	bool *d_label2;
-	
+
 	bool finished;
 	bool *d_finished;
-	
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
 
 	gpuErrorcheck(cudaMalloc(&d_nodePointer, num_nodes * sizeof(unsigned int)));
 	gpuErrorcheck(cudaMalloc(&d_edgeList, (2*num_edges + num_nodes) * sizeof(unsigned int)));
@@ -432,8 +439,8 @@ int main(int argc, char** argv) {
 		} while (!(finished));
 	}
 
+	if (arguments.energy) nvml.log_point();
 	gpuErrorcheck(cudaMemcpy(dist, d_dist, num_nodes*sizeof(unsigned int), cudaMemcpyDeviceToHost));
-
 	if (arguments.energy) nvml.log_point();
 
 	float runtime = timer.Finish();

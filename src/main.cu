@@ -18,7 +18,7 @@ int main (int argc, char** argv) {
     const int num_benchmarks = 5;
     const int num_frameworks = 2;
     const int num_algorithms = 5;
-    const int num_trials = 3;
+    const int num_trials = 1;
 
     string benchmarks[num_benchmarks] = {"../datasets/Google/web-Google-trimmed.txt", 
                                         "../datasets/LiveJournal/soc-LiveJournal1-trimmed.txt",
@@ -102,6 +102,14 @@ int main (int argc, char** argv) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
 									eegraph_bfs(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 1) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_cc(arguments, graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 2) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_pr(arguments, graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
 								// Redirect cout back to screen
@@ -135,6 +143,14 @@ int main (int argc, char** argv) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
 									eegraph_bfs(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 1) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_cc(arguments, graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 2) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_pr(arguments, graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
 								// Redirect cout back to screen
@@ -167,6 +183,14 @@ int main (int argc, char** argv) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
 									eegraph_bfs(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 1) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_cc(arguments, graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 2) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_pr(arguments, graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
 								// Redirect cout back to screen
@@ -198,6 +222,14 @@ int main (int argc, char** argv) {
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
 									eegraph_bfs(arguments, graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 1) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_cc(arguments, graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 2) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_pr(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
@@ -235,6 +267,14 @@ int main (int argc, char** argv) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
 									eegraph_bfs_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 1) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_cc_um(arguments, um_graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 2) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_pr_um(arguments, um_graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
 								// Redirect cout back to screen
@@ -266,6 +306,14 @@ int main (int argc, char** argv) {
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
 									eegraph_bfs_um(arguments, um_graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 1) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_cc_um(arguments, um_graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 2) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_pr_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
@@ -299,6 +347,14 @@ int main (int argc, char** argv) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
 									eegraph_bfs_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 1) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_cc_um(arguments, um_graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 2) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_pr_um(arguments, um_graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
 								// Redirect cout back to screen
@@ -330,6 +386,14 @@ int main (int argc, char** argv) {
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
 									eegraph_bfs_um(arguments, um_graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 1) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_cc_um(arguments, um_graph);
+									gpuErrorcheck( cudaDeviceSynchronize() );
+								} else if (k % num_algorithms == 2) {
+									gpuErrorcheck( cudaDeviceSynchronize() );
+									eegraph_pr_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
