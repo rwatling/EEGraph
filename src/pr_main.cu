@@ -33,10 +33,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	UMGraph graph(arguments.input, true);
 	graph.ReadGraph();
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -68,6 +64,10 @@ int main_unified_memory(ArgumentParser arguments) {
 	//cout << "Initialized value: " << initPR << endl;
 	//cout << "Accuracy: " << acc << endl;
 
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		delta[i] = 0;
@@ -77,7 +77,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	}
 
 	bool *finished;
-
 	gpuErrorcheck(cudaMallocManaged(&finished, sizeof(bool)));
 
 	// Tell GPU this data is mostly read
@@ -274,10 +273,6 @@ int main(int argc, char** argv) {
 	Graph graph(arguments.input, true);
 	graph.ReadGraph();
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -309,6 +304,10 @@ int main(int argc, char** argv) {
 	
 	//cout << "Initialized value: " << initPR << endl;
 	//cout << "Accuracy: " << acc << endl;
+
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	for(int i=0; i<num_nodes; i++)
 	{

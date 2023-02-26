@@ -33,10 +33,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	UMGraph graph(arguments.input, true);
 	graph.ReadGraph();
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -60,7 +56,11 @@ int main_unified_memory(ArgumentParser arguments) {
 	gpuErrorcheck(cudaMallocManaged(&dist, sizeof(unsigned int) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
-	
+
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = 0;
@@ -269,10 +269,6 @@ int main(int argc, char** argv) {
 	Graph graph(arguments.input, true);
 	graph.ReadGraph();
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -296,7 +292,11 @@ int main(int argc, char** argv) {
 	bool *label2;
 	label1 = new bool[num_nodes];
 	label2 = new bool[num_nodes];
-	
+
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = 0;

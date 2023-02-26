@@ -17,7 +17,7 @@ int main (int argc, char** argv) {
     const int num_benchmarks = 5;
     const int num_frameworks = 2;
     const int num_algorithms = 5;
-    const int num_trials = 1;
+    const int num_trials = 5;
 
     string benchmarks[num_benchmarks] = {"../datasets/Google/web-Google-trimmed.txt", 
                                         "../datasets/LiveJournal/soc-LiveJournal1-trimmed.txt",

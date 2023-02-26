@@ -15,10 +15,6 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -38,6 +34,10 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
 	label1 = new bool[num_nodes];
 	label2 = new bool[num_nodes];
 	
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = DIST_INFINITY;
@@ -253,10 +253,6 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -275,6 +271,10 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
 	gpuErrorcheck(cudaMallocManaged(&dist, sizeof(unsigned int) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
+
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
 	
 	for(int i=0; i<num_nodes; i++)
 	{
@@ -462,10 +462,6 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -485,6 +481,10 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 	label1 = new bool[num_nodes];
 	label2 = new bool[num_nodes];
 	
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = i;
@@ -702,10 +702,6 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -726,7 +722,11 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 	gpuErrorcheck(cudaMallocManaged(&dist, sizeof(unsigned int) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
-	
+
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = i;
@@ -736,7 +736,6 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 	}
 	
 	label1[arguments.sourceNode] = true;
-
 	bool *finished;
 
 	gpuErrorcheck(cudaMallocManaged(&finished, sizeof(bool)));
@@ -923,10 +922,6 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -953,6 +948,10 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 	
 	//cout << "Initialized value: " << initPR << endl;
 	//cout << "Accuracy: " << acc << endl;
+
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	for(int i=0; i<num_nodes; i++)
 	{
@@ -1167,10 +1166,6 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -1196,6 +1191,10 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 	
 	//cout << "Initialized value: " << initPR << endl;
 	//cout << "Accuracy: " << acc << endl;
+
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	for(int i=0; i<num_nodes; i++)
 	{
@@ -1394,10 +1393,6 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -1417,6 +1412,10 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 	label1 = new bool[num_nodes];
 	label2 = new bool[num_nodes];
 	
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = 0;
@@ -1639,10 +1638,6 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -1662,6 +1657,10 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
 	
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = 0;
@@ -1862,10 +1861,6 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	VirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -1885,6 +1880,10 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 	label1 = new bool[num_nodes];
 	label2 = new bool[num_nodes];
 	
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = DIST_INFINITY;
@@ -2106,10 +2105,6 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
   		nvml.log_start();
 	}
 
-	Timer totalTimer;
-	totalTimer.Start();
-	if (arguments.energy) nvml.log_point();
-
 	UMVirtualGraph vGraph(graph);
 	vGraph.MakeGraph();
 
@@ -2129,6 +2124,10 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
 	
+	Timer totalTimer;
+	totalTimer.Start();
+	if (arguments.energy) nvml.log_point();
+
 	for(int i=0; i<num_nodes; i++)
 	{
 		dist[i] = DIST_INFINITY;

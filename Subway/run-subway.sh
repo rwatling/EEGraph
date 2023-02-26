@@ -52,9 +52,9 @@ inputs=("../datasets/Google/web-Google-trimmed.txt"
         "../datasets/Skitter/as-skitter-trimmed.txt"
         "../datasets/Wiki/wiki-Talk-trimmed.txt")
 
-names=("google", "LiveJournal", "road", "skitter", "wiki")
+names=("google" "lj" "road" "skitter" "wiki")
 
-for i in {1..3}
+for i in {1..5}
 do
 
     echo $i
