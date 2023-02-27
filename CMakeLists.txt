@@ -12,8 +12,8 @@ set(BFS_PROJECT "bfs-main")
 set(CC_PROJECT "cc-main")
 set(MAIN_PROJECT "main")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3 -g")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g -G")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
 
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES "52;60;72")
@@ -26,7 +26,6 @@ file(GLOB sswp_main "${CMAKE_SOURCE_DIR}/src/sswp_main.cu")
 file(GLOB bfs_main "${CMAKE_SOURCE_DIR}/src/bfs_main.cu")
 file(GLOB cc_main "${CMAKE_SOURCE_DIR}/src/cc_main.cu")
 file(GLOB main "${CMAKE_SOURCE_DIR}/src/main.cu")
-#file(GLOB eegraph "${CMAKE_SOURCE_DIR}/src/eegraph.cu")
 
 file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/argument_parsing.cpp"
@@ -109,7 +108,7 @@ target_link_libraries(${CC_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${CC_PROJECT} PUBLIC -lnvidia-ml)
 set_property(TARGET ${CC_PROJECT} PROPERTY CXX_STANDARD 14)
 
-##### Executables - CC
+##### Executables - MAIN
 add_executable(${MAIN_PROJECT} ${main})
 
 ##### Link libraries - MAIN PROJECT
