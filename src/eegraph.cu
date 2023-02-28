@@ -564,7 +564,6 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -583,7 +582,6 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -603,7 +601,6 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -624,7 +621,6 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	}
 
@@ -787,7 +783,6 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -805,7 +800,6 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 			
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -824,7 +818,6 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 			
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -842,7 +835,6 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 														(itr%2==1) ? label2 : label1);
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	}
 
@@ -1036,7 +1028,6 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do {
@@ -1055,7 +1046,6 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!finished);
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -1077,7 +1067,6 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do {
@@ -1098,7 +1087,6 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!finished);
 	}
 
@@ -1200,7 +1188,7 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 	{
 		delta[i] = 0;
 		value[i] = initPR;
-		label1[i] = true;
+		label1[i] = true; //Major difference
 		label2[i] = false;
 	}
 
@@ -1259,7 +1247,6 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -1278,7 +1265,6 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-			if (arguments.energy) nvml.log_point();	
 		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -1298,7 +1284,6 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -1319,7 +1304,6 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	}
 
@@ -1497,7 +1481,6 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -1516,7 +1499,6 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -1536,7 +1518,6 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -1557,7 +1538,6 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	}
 
@@ -1725,7 +1705,6 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -1743,7 +1722,6 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 			
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -1762,7 +1740,6 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 			
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -1780,7 +1757,6 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 														(itr%2==1) ? label2 : label1);
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	}
 

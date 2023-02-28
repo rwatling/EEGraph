@@ -31,6 +31,8 @@ const unsigned int Part_Size = 8;
 
 const unsigned int DIST_INFINITY = UINT_MAX - 1;
 
+#define RAND_SEED 123456
+
 enum Variant : unsigned char {
     ASYNC_PUSH_TD,
     ASYNC_PUSH_DD,

@@ -14,17 +14,14 @@
 #include <unistd.h>
 
 int main (int argc, char** argv) {
-    const int num_benchmarks = 5;
+    const int num_benchmarks = 2;
     const int num_frameworks = 2;
     const int num_algorithms = 5;
-    const int num_trials = 5;
+    const int num_trials = 3;
 
-    string benchmarks[num_benchmarks] = {"../datasets/Google/web-Google-trimmed.txt", 
-                                        "../datasets/LiveJournal/soc-LiveJournal1-trimmed.txt",
-                                        "../datasets/Road/roadNet-CA-trimmed.txt", 
-                                        "../datasets/Skitter/as-skitter-trimmed.txt",
-										"../datasets/Wiki/wiki-Talk-trimmed.txt"}; //Dropped description headers for trimmed files
-    string benchnames[num_benchmarks] = {"google", "lj", "road", "skitter", "wiki"};
+    string benchmarks[num_benchmarks] = {"/home/share/graph_data/raw/twitter_mpi/twitter.el" 
+        								"/home/share/graph_data/raw/friendster_snap/fs.el"}; //Dropped description headers for trimmed files
+    string benchnames[num_benchmarks] = {"tw", "fs"};
     string frameworks[num_frameworks] = {"classic", "um"};
     string algorithms[num_algorithms] = {"bfs", "cc", "pr", "sssp", "sswp"};
 
@@ -44,7 +41,7 @@ int main (int argc, char** argv) {
 		UMGraph um_graph(arguments.input,true);
 		gpuErrorcheck( cudaDeviceSynchronize() );
 
-		for (int j = 0; j < num_frameworks; j++) {
+		for (int j = 1; j < num_frameworks; j++) {
 			if (j == 0) {
 				cout << "---graph---" << endl;
 				graph.ReadGraph();
@@ -54,7 +51,7 @@ int main (int argc, char** argv) {
 				gpuErrorcheck( cudaDeviceSynchronize() );
 			}
 
-			for (int k = num_algorithms; k < num_algorithms * 2; k++) {
+			for (int k = 0; k < num_algorithms * 2; k++) {
 				currentAlg = algorithms[k % num_algorithms];
 				
 				if (k >= num_algorithms) { arguments.energy = true; } 

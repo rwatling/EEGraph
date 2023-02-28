@@ -1,9 +1,6 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
-#define RAND_SEED 123456
-#define RAND_RANGE 256
-
 #include <iostream>
 #include <stdlib.h>
 #include <ctime>
@@ -51,7 +48,22 @@ public:
     string getFileExtension(string fileName);
 };
 
+/*class EdgeSubgraph : public Graph
+{
+    public:
+        float pct;
+        bool* selected;
+        Graph* parentGraph;
+        void MakeSubgraph(Graph &graph, float pct);
+};*/
+
+/*class VertexSubgraph : public Graph
+{
+    public:
+        float pct;
+        bool* selected;
+        Graph* parentGraph;
+        VertexSubgraph(Graph &graph, float pct);
+};*/
+
 #endif	//	GRAPH_HPP
-
-
-

@@ -118,3 +118,65 @@ string Graph::getFileExtension(string fileName)
         return fileName.substr(fileName.find_last_of(".")+1);
     return "";
 }
+
+/*void EdgeSubgraph::MakeSubgraph(Graph &graph, float pct) {
+	this->parentGraph = &graph;
+	graphLoaded = graph.graphLoaded;
+
+	if (this->graphLoaded = false) {
+		cerr << "Graph has not been loaded" << endl;
+	}
+
+	this->num_edges = pct * num_edges;
+	srand(RAND_SEED);
+
+	Edge newEdge;
+	uint max=0;
+	selected = new bool[this->num_edges];
+
+	for (unsigned int i = 0; i < this->num_edges; i++) {
+		selected[i] = false;
+	}
+
+	for (unsigned int i = 0; i < this->num_edges; i++) {
+		unsigned int rand_edge;
+		bool add = false;
+		while (!add) {
+			rand_edge = (rand() % graph.num_edges);
+
+			if (selected[rand_edge]) {
+				add = false;
+			} else {
+				add = true;
+			}
+		}
+
+		uint source = graph.edges[rand_edge].source;
+		uint end = graph.edges[rand_edge].end;
+		uint w8 = graph.weights[rand_edge];
+
+		newEdge.source = source;
+		newEdge.end = end;
+
+		this->edges.push_back(newEdge);
+
+		if (newEdge.source == 0)
+			hasZeroID = true;
+		if (newEdge.end == 0)
+			hasZeroID = true;			
+		if(max < newEdge.source)
+			max = newEdge.source;
+		if(max < newEdge.end)
+			max = newEdge.end;
+		
+		if (isWeighted)
+		{
+			weights.push_back(w8);
+		}
+	}
+
+	this->num_nodes = max;
+	cout << "Done generating subgraph.\n";
+	cout << "Number of nodes = " << this->num_nodes << endl;
+	cout << "Number of edges = " << this->num_edges << endl;
+}*/

@@ -11,6 +11,7 @@ set(SSWP_PROJECT "sswp-main")
 set(BFS_PROJECT "bfs-main")
 set(CC_PROJECT "cc-main")
 set(MAIN_PROJECT "main")
+set(MAIN_LARGE_PROJECT "main-large")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
@@ -26,6 +27,7 @@ file(GLOB sswp_main "${CMAKE_SOURCE_DIR}/src/sswp_main.cu")
 file(GLOB bfs_main "${CMAKE_SOURCE_DIR}/src/bfs_main.cu")
 file(GLOB cc_main "${CMAKE_SOURCE_DIR}/src/cc_main.cu")
 file(GLOB main "${CMAKE_SOURCE_DIR}/src/main.cu")
+file(GLOB main_large "${CMAKE_SOURCE_DIR}/src/main_large.cu")
 
 file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/argument_parsing.cpp"
@@ -116,3 +118,12 @@ target_link_libraries(${MAIN_PROJECT} PRIVATE ${GPU_LIB})
 target_link_libraries(${MAIN_PROJECT} PRIVATE ${CPU_LIB})
 target_link_libraries(${MAIN_PROJECT} PUBLIC -lnvidia-ml)
 set_property(TARGET ${MAIN_PROJECT} PROPERTY CXX_STANDARD 14)
+
+##### Executables - MAIN LARGE
+add_executable(${MAIN_LARGE_PROJECT} ${main_large})
+
+##### Link libraries - MAIN PROJECT
+target_link_libraries(${MAIN_LARGE_PROJECT} PRIVATE ${GPU_LIB})
+target_link_libraries(${MAIN_LARGE_PROJECT} PRIVATE ${CPU_LIB})
+target_link_libraries(${MAIN_LARGE_PROJECT} PUBLIC -lnvidia-ml)
+set_property(TARGET ${MAIN_LARGE_PROJECT} PROPERTY CXX_STANDARD 14)
