@@ -713,8 +713,6 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 	bool *label1;
 	bool *label2;
 
-	if (arguments.energy) nvml.log_point();
-
 	gpuErrorcheck(cudaMallocManaged(&dist, sizeof(unsigned int) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
@@ -947,8 +945,8 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 
 	for(int i=0; i<num_nodes; i++)
 	{
-		delta[i] = 0;
-		value[i] = initPR;
+		delta[i] = initPR;
+		value[i] = 0;
 		label1[i] = true;
 		label2[i] = false;
 	}
@@ -980,8 +978,6 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 	gpuErrorcheck(cudaMemcpy(d_label1, label1, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_label2, label2, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
 
-	if (arguments.energy) nvml.log_point();
-
 	// Algorithm control variable declarations
 	Timer timer;
 	int itr = 0;
@@ -989,6 +985,7 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 	int num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
 		do
@@ -1002,8 +999,8 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 																d_nodePointer,
 																d_partNodePointer,
 																d_edgeList, 
-																d_delta,
 																d_value,
+																d_delta,
 																d_finished,
 																acc,
 																d_label1,
@@ -1016,8 +1013,8 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
-															d_delta,
 															d_value,
+															d_delta,
 															d_finished,
 															acc,
 															d_label2,
@@ -1039,8 +1036,8 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
-															d_delta,
 															d_value,
+															d_delta,
 															d_finished,
 															acc);
 			gpuErrorcheck( cudaDeviceSynchronize() );
@@ -1058,8 +1055,8 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
-															d_delta,
 															d_value,
+															d_delta,
 															d_finished,
 															acc,
 															(itr % 2 == 1) ? true : false);
@@ -1078,8 +1075,8 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
-															d_delta,
 															d_value,
+															d_delta,
 															d_finished,
 															acc,
 															(itr%2==1) ? d_label1 : d_label2,
@@ -1099,8 +1096,6 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
 	cout << "Total GPU activity finished in " << total << " (ms).\n";
-
-	gpuErrorcheck(cudaMemcpy(value, d_value, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
@@ -1186,14 +1181,13 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 
 	for(int i=0; i<num_nodes; i++)
 	{
-		delta[i] = 0;
-		value[i] = initPR;
-		label1[i] = true; //Major difference
+		delta[i] = initPR;
+		value[i] = 0;
+		label1[i] = true;
 		label2[i] = false;
 	}
 
 	bool *finished;
-
 	gpuErrorcheck(cudaMallocManaged(&finished, sizeof(bool)));
 
 	// Tell GPU this data is mostly read
@@ -1222,8 +1216,8 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 															vGraph.nodePointer,
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
-															delta,
 															value,
+															delta,
 															finished,
 															acc,
 															label1,
@@ -1236,8 +1230,8 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 															vGraph.nodePointer,
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
-															delta,
 															value,
+															delta,
 															finished,
 															acc,
 															label2,
@@ -1258,8 +1252,8 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 															vGraph.nodePointer,
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
-															delta,
 															value,
+															delta,
 															finished,
 															acc);
 
@@ -1276,8 +1270,8 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 															vGraph.nodePointer,
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
-															delta,
 															value,
+															delta,
 															finished,
 															acc,
 															(itr % 2 == 1) ? true : false);
@@ -1295,8 +1289,8 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 														vGraph.nodePointer,
 														vGraph.partNodePointer,
 														vGraph.edgeList, 
-														delta,
-														value, 
+														value,
+														delta, 
 														finished,
 														acc,
 														(itr%2==1) ? label1 : label2,

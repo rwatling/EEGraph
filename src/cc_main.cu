@@ -53,8 +53,6 @@ int main_unified_memory(ArgumentParser arguments) {
 	bool *label1;
 	bool *label2;
 
-	if (arguments.energy) nvml.log_point();
-
 	gpuErrorcheck(cudaMallocManaged(&dist, sizeof(unsigned int) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label1, sizeof(bool) * num_nodes));
 	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
@@ -124,7 +122,6 @@ int main_unified_memory(ArgumentParser arguments) {
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -142,7 +139,6 @@ int main_unified_memory(ArgumentParser arguments) {
 			
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -161,7 +157,6 @@ int main_unified_memory(ArgumentParser arguments) {
 			
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -179,7 +174,6 @@ int main_unified_memory(ArgumentParser arguments) {
 														(itr%2==1) ? label2 : label1);
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	}
 
@@ -375,7 +369,6 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -394,7 +387,6 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -414,7 +406,6 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -435,7 +426,6 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	}
 

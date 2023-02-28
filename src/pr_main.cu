@@ -70,8 +70,8 @@ int main_unified_memory(ArgumentParser arguments) {
 
 	for(int i=0; i<num_nodes; i++)
 	{
-		delta[i] = 0;
-		value[i] = initPR;
+		delta[i] = initPR;
+		value[i] = 0;
 		label1[i] = true;
 		label2[i] = false;
 	}
@@ -105,8 +105,8 @@ int main_unified_memory(ArgumentParser arguments) {
 															vGraph.nodePointer,
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
-															delta,
 															value,
+															delta,
 															finished,
 															acc,
 															label1,
@@ -119,8 +119,8 @@ int main_unified_memory(ArgumentParser arguments) {
 															vGraph.nodePointer,
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
-															delta,
 															value,
+															delta,
 															finished,
 															acc,
 															label2,
@@ -130,7 +130,6 @@ int main_unified_memory(ArgumentParser arguments) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -142,14 +141,13 @@ int main_unified_memory(ArgumentParser arguments) {
 															vGraph.nodePointer,
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
-															delta,
 															value,
+															delta,
 															finished,
 															acc);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-			if (arguments.energy) nvml.log_point();	
 		} while (!(*finished));
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -161,15 +159,14 @@ int main_unified_memory(ArgumentParser arguments) {
 															vGraph.nodePointer,
 															vGraph.partNodePointer,
 															vGraph.edgeList, 
-															delta,
 															value,
+															delta,
 															finished,
 															acc,
 															(itr % 2 == 1) ? true : false);
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do
@@ -181,8 +178,8 @@ int main_unified_memory(ArgumentParser arguments) {
 														vGraph.nodePointer,
 														vGraph.partNodePointer,
 														vGraph.edgeList, 
-														delta,
-														value, 
+														value,
+														delta, 
 														finished,
 														acc,
 														(itr%2==1) ? label1 : label2,
@@ -190,7 +187,6 @@ int main_unified_memory(ArgumentParser arguments) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
-			if (arguments.energy) nvml.log_point();
 		} while (!(*finished));
 	}
 
@@ -249,7 +245,6 @@ int main_unified_memory(ArgumentParser arguments) {
 }
 
 int main(int argc, char** argv) {
-
 	ArgumentParser arguments(argc, argv, true, true);
 
 	if (arguments.unifiedMem) {
@@ -311,8 +306,8 @@ int main(int argc, char** argv) {
 
 	for(int i=0; i<num_nodes; i++)
 	{
-		delta[i] = 0;
-		value[i] = initPR;
+		delta[i] = initPR;
+		value[i] = 0;
 		label1[i] = true;
 		label2[i] = false;
 	}
@@ -344,8 +339,6 @@ int main(int argc, char** argv) {
 	gpuErrorcheck(cudaMemcpy(d_label1, label1, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
 	gpuErrorcheck(cudaMemcpy(d_label2, label2, num_nodes * sizeof(bool), cudaMemcpyHostToDevice));
 
-	if (arguments.energy) nvml.log_point();
-
 	// Algorithm control variable declarations
 	Timer timer;
 	int itr = 0;
@@ -353,6 +346,7 @@ int main(int argc, char** argv) {
 	int num_blocks = vGraph.numParts / num_threads + 1;
 
 	timer.Start();
+	if (arguments.energy) nvml.log_point();
 
 	if (arguments.variant == SYNC_PUSH_DD) {
 		do
@@ -366,8 +360,8 @@ int main(int argc, char** argv) {
 																d_nodePointer,
 																d_partNodePointer,
 																d_edgeList, 
-																d_delta,
 																d_value,
+																d_delta,
 																d_finished,
 																acc,
 																d_label1,
@@ -380,8 +374,8 @@ int main(int argc, char** argv) {
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
-															d_delta,
 															d_value,
+															d_delta,
 															d_finished,
 															acc,
 															d_label2,
@@ -392,7 +386,6 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do {
@@ -404,14 +397,13 @@ int main(int argc, char** argv) {
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
-															d_delta,
 															d_value,
+															d_delta,
 															d_finished,
 															acc);
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!finished);
 	} else if (arguments.variant == SYNC_PUSH_TD) {
 		do
@@ -424,8 +416,8 @@ int main(int argc, char** argv) {
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
-															d_delta,
 															d_value,
+															d_delta,
 															d_finished,
 															acc,
 															(itr % 2 == 1) ? true : false);
@@ -433,7 +425,6 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_DD) {
 		do {
@@ -445,8 +436,8 @@ int main(int argc, char** argv) {
 															d_nodePointer,
 															d_partNodePointer,
 															d_edgeList, 
-															d_delta,
 															d_value,
+															d_delta,
 															d_finished,
 															acc,
 															(itr%2==1) ? d_label1 : d_label2,
@@ -454,7 +445,6 @@ int main(int argc, char** argv) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
-			if (arguments.energy) nvml.log_point();
 		} while (!finished);
 	}
 
@@ -467,8 +457,6 @@ int main(int argc, char** argv) {
 	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
 	cout << "Total GPU activity finished in " << total << " (ms).\n";
-
-	gpuErrorcheck(cudaMemcpy(value, d_value, num_nodes*sizeof(float), cudaMemcpyDeviceToHost));
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
