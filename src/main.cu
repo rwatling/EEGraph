@@ -54,7 +54,7 @@ int main (int argc, char** argv) {
 				gpuErrorcheck( cudaDeviceSynchronize() );
 			}
 
-			for (int k = num_algorithms; k < num_algorithms * 2; k++) {
+			for (int k = 0; k < num_algorithms * 2; k++) {
 				currentAlg = algorithms[k % num_algorithms];
 				
 				if (k >= num_algorithms) { arguments.energy = true; } 
