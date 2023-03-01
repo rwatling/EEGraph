@@ -24,7 +24,10 @@ UMVirtualGraph::UMVirtualGraph(UMGraph &graph)
 	
 	for(int i=0; i<graph.num_edges; i++)
 	{
+		if (graph.edges[i].source >= graph.num_nodes) continue;
 		outDegree[graph.edges[i].source]++;
+
+		if (graph.edges[i].end >= graph.num_nodes) continue;
 		inDegree[graph.edges[i].end]++;
 	}
 	
@@ -68,6 +71,10 @@ void UMVirtualGraph::MakeGraph()
 		end = graph->edges[i].end;
 		w8 = graph->weights[i];
 		
+		if (source >= graph->num_nodes) {
+			continue;
+		}
+
 		uint location = nodePointer[source]+1+2*outDegreeCounter[source];
 
 		if (location >= graph->num_edges) {
