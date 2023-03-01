@@ -119,64 +119,72 @@ string Graph::getFileExtension(string fileName)
     return "";
 }
 
-/*void EdgeSubgraph::MakeSubgraph(Graph &graph, float pct) {
+VertexSubgraph::VertexSubgraph(Graph &graph, string graphFilePath, bool isWeighted) : Graph(graphFilePath, isWeighted) {
 	this->parentGraph = &graph;
-	graphLoaded = graph.graphLoaded;
+}
+
+void VertexSubgraph::MakeSubgraph(float pct, int sourceNode) {
+	this->graphLoaded = parentGraph->graphLoaded;
+	this->pct = pct;
 
 	if (this->graphLoaded = false) {
-		cerr << "Graph has not been loaded" << endl;
+		cout << "Graph has not been loaded" << endl;
+		return;
 	}
 
-	this->num_edges = pct * num_edges;
-	srand(RAND_SEED);
+	this->subgraph_num_nodes = pct * parentGraph->num_nodes;
+	this->num_nodes = parentGraph->num_nodes;
 
-	Edge newEdge;
-	uint max=0;
-	selected = new bool[this->num_edges];
-
-	for (unsigned int i = 0; i < this->num_edges; i++) {
+	//Set up selected array
+	selected = new bool[this->num_nodes];
+	for (unsigned int i = 0; i < this->num_nodes; i++) {
 		selected[i] = false;
 	}
+	selected[sourceNode] = true;
 
-	for (unsigned int i = 0; i < this->num_edges; i++) {
-		unsigned int rand_edge;
-		bool add = false;
-		while (!add) {
-			rand_edge = (rand() % graph.num_edges);
-
-			if (selected[rand_edge]) {
-				add = false;
-			} else {
-				add = true;
-			}
-		}
-
-		uint source = graph.edges[rand_edge].source;
-		uint end = graph.edges[rand_edge].end;
-		uint w8 = graph.weights[rand_edge];
-
-		newEdge.source = source;
-		newEdge.end = end;
-
-		this->edges.push_back(newEdge);
-
-		if (newEdge.source == 0)
-			hasZeroID = true;
-		if (newEdge.end == 0)
-			hasZeroID = true;			
-		if(max < newEdge.source)
-			max = newEdge.source;
-		if(max < newEdge.end)
-			max = newEdge.end;
+	//Select nodes
+	unsigned int count = 1;
+	srand(RAND_SEED);
+	while (count < this->subgraph_num_nodes) {
+		unsigned int rand_node = (rand() % parentGraph->num_nodes);
 		
-		if (isWeighted)
-		{
-			weights.push_back(w8);
+		if (!selected[rand_node]) {
+			selected[rand_node] = true;
+			count++;
 		}
 	}
 
-	this->num_nodes = max;
+	//Select induced edges
+	this->num_edges = 0;
+	uint max;
+	for (unsigned int i = 0; i < parentGraph->num_edges; i++) {
+		Edge newEdge;
+		unsigned int source = parentGraph->edges[i].source;
+		unsigned int end = parentGraph->edges[i].end;
+		unsigned int w8 = parentGraph->weights[i];
+
+		if (selected[source] && selected[end]) {
+			this->num_edges = this->num_edges + 1;
+
+			newEdge.source = source;
+			newEdge.end = end;
+
+			if (source == 0)
+				this->hasZeroID = true;
+			if (end == 0)
+				this->hasZeroID = true;
+			
+			if (isWeighted)
+			{
+				this->weights.push_back(w8);
+			}
+
+			this->edges.push_back(newEdge);
+		}
+	}
+
 	cout << "Done generating subgraph.\n";
-	cout << "Number of nodes = " << this->num_nodes << endl;
+	cout << "Number of nodes = " << this->subgraph_num_nodes << endl;
+	cout << "Virtual graph assumed number of nodes = " << this->num_nodes << endl;
 	cout << "Number of edges = " << this->num_edges << endl;
-}*/
+}

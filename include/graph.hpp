@@ -48,22 +48,17 @@ public:
     string getFileExtension(string fileName);
 };
 
-/*class EdgeSubgraph : public Graph
+class VertexSubgraph : public Graph
 {
     public:
+        Graph* parentGraph;
         float pct;
         bool* selected;
-        Graph* parentGraph;
-        void MakeSubgraph(Graph &graph, float pct);
-};*/
 
-/*class VertexSubgraph : public Graph
-{
-    public:
-        float pct;
-        bool* selected;
-        Graph* parentGraph;
-        VertexSubgraph(Graph &graph, float pct);
-};*/
+        uint subgraph_num_nodes; // To allow for passing into VirtualGraph
+
+        VertexSubgraph(Graph &graph, string graphFilePath, bool isWeighted);
+        void MakeSubgraph(float pct, int sourceNode);
+};
 
 #endif	//	GRAPH_HPP

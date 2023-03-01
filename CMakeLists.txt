@@ -13,6 +13,7 @@ set(CC_PROJECT "cc-main")
 set(MAIN_PROJECT "main")
 set(MAIN_LARGE_PROJECT "main-large")
 set(GRAPH_INFO_PROJECT "graph-info")
+set(MAIN_SUBGRAPH_PROJECT "main-subgraph")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3 -g")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g -G")
@@ -30,6 +31,7 @@ file(GLOB cc_main "${CMAKE_SOURCE_DIR}/src/cc_main.cu")
 file(GLOB main "${CMAKE_SOURCE_DIR}/src/main.cu")
 file(GLOB main_large "${CMAKE_SOURCE_DIR}/src/main_large.cu")
 file(GLOB graph_info "${CMAKE_SOURCE_DIR}/src/graph_info.cpp")
+file(GLOB main_subgraph "${CMAKE_SOURCE_DIR}/src/main_subgraph.cu")
 
 file(GLOB cpp_source_files
   "${CMAKE_SOURCE_DIR}/src/argument_parsing.cpp"
@@ -136,3 +138,12 @@ add_executable(${GRAPH_INFO_PROJECT} ${graph_info})
 ##### Link libraries - Graph Info PROJECT
 target_link_libraries(${GRAPH_INFO_PROJECT} PRIVATE ${CPU_LIB})
 set_property(TARGET ${GRAPH_INFO_PROJECT} PROPERTY CXX_STANDARD 14)
+
+##### Executables - MAIN SUBGRAPH
+add_executable(${MAIN_SUBGRAPH_PROJECT} ${main_subgraph})
+
+##### Link libraries - MAIN SUBGRAPH PROJECT
+target_link_libraries(${MAIN_SUBGRAPH_PROJECT} PRIVATE ${GPU_LIB})
+target_link_libraries(${MAIN_SUBGRAPH_PROJECT} PRIVATE ${CPU_LIB})
+target_link_libraries(${MAIN_SUBGRAPH_PROJECT} PUBLIC -lnvidia-ml)
+set_property(TARGET ${MAIN_SUBGRAPH_PROJECT} PROPERTY CXX_STANDARD 14)
