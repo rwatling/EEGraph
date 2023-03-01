@@ -60,9 +60,9 @@ int main (int argc, char** argv) {
 				string trialDir;
 
 				if (!arguments.energy) {
-					trialDir = "./" + currentAlg + "/" + currentBench + "/";
+					trialDir = "./" + currentAlg + "-large/" + currentBench + "/";
 				} else {
-					trialDir = "./" + currentAlg + "/" + currentBench + "-energy/";
+					trialDir = "./" + currentAlg + "-large/" + currentBench + "-energy/";
 				}
 
 				system(("mkdir -p " + trialDir).c_str());

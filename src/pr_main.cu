@@ -190,18 +190,6 @@ int main_unified_memory(ArgumentParser arguments) {
 		} while (!(*finished));
 	}
 
-	// Stop measuring energy consumption, clean up structures
-	if (arguments.energy) {
-		cpu_threads.emplace_back(thread( &nvmlClass::killThread, &nvml));
-
-		for (auto& th : cpu_threads) {
-			th.join();
-			th.~thread();
-		}
-
-		cpu_threads.clear();
-	}
-
 	if (arguments.energy) nvml.log_point();
 
 	float runtime = timer.Finish();
