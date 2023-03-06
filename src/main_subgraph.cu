@@ -20,8 +20,20 @@ int main(int argc, char** argv) {
     graph.ReadGraph();
 
     VertexSubgraph subgraph(graph, arguments.input, true);
-    subgraph.MakeSubgraph(0.01, arguments.sourceNode);
+    subgraph.MakeSubgraph(0.05, arguments.sourceNode);
 
     VirtualGraph vGraph(subgraph);
 	vGraph.MakeGraph();
+
+    UMGraph um_graph(arguments.input, true);
+    um_graph.ReadGraph();
+
+    UMVertexSubgraph um_subgraph(um_graph, arguments.input, true);
+    um_subgraph.MakeSubgraph(0.05, arguments.sourceNode);
+
+    if (arguments.unifiedMem) {
+        eegraph_sssp_um(arguments, um_subgraph);
+    } else {
+        eegraph_sssp(arguments, subgraph);
+    }
 }

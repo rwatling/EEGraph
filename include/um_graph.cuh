@@ -48,6 +48,19 @@ public:
     string getFileExtension(string fileName);
 };
 
+class UMVertexSubgraph : public UMGraph
+{
+    public:
+        UMGraph* parentGraph;
+        float pct;
+        bool* selected;
+
+        uint subgraph_num_nodes; // To allow for passing into UMVirtualGraph
+
+        UMVertexSubgraph(UMGraph &graph, string graphFilePath, bool isWeighted);
+        void MakeSubgraph(float pct, int sourceNode);
+};
+
 #endif	//	UM_GRAPH_CUH
 
 

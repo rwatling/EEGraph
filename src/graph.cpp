@@ -127,7 +127,7 @@ void VertexSubgraph::MakeSubgraph(float pct, int sourceNode) {
 	this->graphLoaded = parentGraph->graphLoaded;
 	this->pct = pct;
 
-	if (this->graphLoaded = false) {
+	if (this->graphLoaded == false) {
 		cout << "Graph has not been loaded" << endl;
 		return;
 	}
@@ -184,7 +184,7 @@ void VertexSubgraph::MakeSubgraph(float pct, int sourceNode) {
 	}
 
 	cout << "Done generating subgraph.\n";
-	cout << "Number of nodes = " << this->subgraph_num_nodes << endl;
+	cout << "Subgraph number of nodes = " << this->subgraph_num_nodes << endl;
 	cout << "Virtual graph assumed number of nodes = " << this->num_nodes << endl;
-	cout << "Number of edges = " << this->num_edges << endl;
+	cout << "Subgraph number of edges = " << this->num_edges << endl;
 }

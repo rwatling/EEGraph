@@ -120,3 +120,80 @@ string UMGraph::getFileExtension(string fileName)
         return fileName.substr(fileName.find_last_of(".")+1);
     return "";
 }
+
+UMVertexSubgraph::UMVertexSubgraph(UMGraph &graph, string graphFilePath, bool isWeighted) : UMGraph(graphFilePath, isWeighted) {
+	this->parentGraph = &graph;
+}
+
+void UMVertexSubgraph::MakeSubgraph(float pct, int sourceNode) {
+	this->graphLoaded = parentGraph->graphLoaded;
+	this->pct = pct;
+
+	if (this->graphLoaded == false) {
+		cout << "Graph has not been loaded" << endl;
+		return;
+	}
+
+	this->subgraph_num_nodes = pct * parentGraph->num_nodes;
+	this->num_nodes = parentGraph->num_nodes;
+
+	//Set up selected array
+	selected = new bool[this->num_nodes];
+	for (unsigned int i = 0; i < this->num_nodes; i++) {
+		selected[i] = false;
+	}
+	selected[sourceNode] = true;
+
+	//Select nodes
+	unsigned int count = 1;
+	srand(RAND_SEED);
+	while (count < this->subgraph_num_nodes) {
+		unsigned int rand_node = (rand() % parentGraph->num_nodes);
+		
+		if (!selected[rand_node]) {
+			selected[rand_node] = true;
+			count++;
+		}
+	}
+
+	//Select induced edges
+	this->num_edges = 0;
+	vector<Edge> temp_edges;
+	vector<uint> temp_weights;
+	for (unsigned int i = 0; i < parentGraph->num_edges; i++) {
+		Edge newEdge;
+		unsigned int source = parentGraph->edges[i].source;
+		unsigned int end = parentGraph->edges[i].end;
+		unsigned int w8 = parentGraph->weights[i];
+
+		if (selected[source] && selected[end]) {
+			this->num_edges = this->num_edges + 1;
+
+			newEdge.source = source;
+			newEdge.end = end;
+
+			if (source == 0)
+				this->hasZeroID = true;
+			if (end == 0)
+				this->hasZeroID = true;
+			
+			if (isWeighted)
+			{
+				temp_weights.push_back(w8);
+			}
+
+			temp_edges.push_back(newEdge);
+		}
+	}
+
+	cudaMallocManaged(&edges, num_edges * sizeof(Edge));
+	cudaMallocManaged(&weights, num_edges * sizeof(unsigned int));
+
+	copy(temp_edges.begin(), temp_edges.end(), edges);
+	copy(temp_weights.begin(), temp_weights.end(), weights);
+
+	cout << "Done generating subgraph.\n";
+	cout << "Subgraph number of nodes = " << this->subgraph_num_nodes << endl;
+	cout << "Virtual graph assumed number of nodes = " << this->num_nodes << endl;
+	cout << "Subgraph number of edges = " << this->num_edges << endl;
+}
