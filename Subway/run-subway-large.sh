@@ -46,12 +46,15 @@ mkdir -p ./data/subway-large-energy/sswp
 mkdir -p ./data/subway-large-energy/sswp/async
 mkdir -p ./data/subway-large-energy/sswp/sync
 
-inputs=("/home/share/graph_data/raw/twitter_mpi/twitter.el"
-        "/home/share/graph_data/raw/friendster_snap/fs.el")
+#inputs=("/home/share/graph_data/raw/twitter_mpi/twitter.el"
+#        "/home/share/graph_data/raw/friendster_snap/fs.el")
 
-names=("tw" "fs")
+inputs=("/home/share/graph_data/raw/friendster_snap/fs.el")
 
-for i in {1..3}
+#names=("tw" "fs")
+names=("fs")
+
+for i in {1..1}
 do
 
     echo $i
@@ -62,17 +65,16 @@ do
         file="${names[count]}"
         echo $file
 
-        ./bfs-async --input "${j}" > "./data/subway-large/bfs/async/${i}-${file}"
-        ./bfs-sync --input "${j}" > "./data/subway-large/bfs/sync/${i}-${file}"
-        ./bfs-async --input "${j}" --energy true --efile "./data/subway-large-energy/bfs/async/${i}-${file}-readings" --estats "./data/subway-large-energy/bfs/async/${i}-${file}-stats" > "./data/subway-large-energy/bfs/async/${i}-${file}"
-        ./bfs-sync --input "${j}" --energy true --efile "./data/subway-large-energy/bfs/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/bfs/sync/${i}-${file}-stats" > "./data/subway-large-energy/bfs/sync/${i}-${file}"
+        #./bfs-async --input "${j}" > "./data/subway-large/bfs/async/${i}-${file}"
+        #./bfs-sync --input "${j}" > "./data/subway-large/bfs/sync/${i}-${file}"
+        #./bfs-async --input "${j}" --energy true --efile "./data/subway-large-energy/bfs/async/${i}-${file}-readings" --estats "./data/subway-large-energy/bfs/async/${i}-${file}-stats" > "./data/subway-large-energy/bfs/async/${i}-${file}"
+        #./bfs-sync --input "${j}" --energy true --efile "./data/subway-large-energy/bfs/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/bfs/sync/${i}-${file}-stats" > "./data/subway-large-energy/bfs/sync/${i}-${file}"
         
 
-        ./cc-async --input "${j}" > "./data/subway-large/cc/async/${i}-${file}"
-        ./cc-sync --input "${j}" > "./data/subway-large/cc/sync/${i}-${file}"
-        ./cc-async --input "${j}" --energy true --efile "./data/subway-large-energy/cc/async/${i}-${file}-readings" --estats "./data/subway-large-energy/cc/async/${i}-${file}-stats" > "./data/subway-large-energy/cc/async/${i}-${file}"
-        ./cc-sync --input "${j}" --energy true --efile "./data/subway-large-energy/cc/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/cc/sync/${i}-${file}-stats" > "./data/subway-large-energy/cc/sync/${i}-${file}"
-        
+        #./cc-async --input "${j}" > "./data/subway-large/cc/async/${i}-${file}"
+        #./cc-sync --input "${j}" > "./data/subway-large/cc/sync/${i}-${file}"
+        #./cc-async --input "${j}" --energy true --efile "./data/subway-large-energy/cc/async/${i}-${file}-readings" --estats "./data/subway-large-energy/cc/async/${i}-${file}-stats" > "./data/subway-large-energy/cc/async/${i}-${file}"
+        #./cc-sync --input "${j}" --energy true --efile "./data/subway-large-energy/cc/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/cc/sync/${i}-${file}-stats" > "./data/subway-large-energy/cc/sync/${i}-${file}"
 
         ./pr-async --input "${j}" > "./data/subway-large/pr/async/${i}-${file}"
         ./pr-sync --input "${j}" > "./data/subway-large/pr/sync/${i}-${file}"
@@ -88,7 +90,7 @@ do
 
         ./sswp-async --input "${j}" > "./data/subway-large/sswp/async/${i}-${file}"
         ./sswp-sync --input "${j}" > "./data/subway-large/sswp/sync/${i}-${file}"
-        #./sswp-async --input "${j}" --energy true --efile "./data/subway-large-energy/sswp/async/${j}-${file}-readings" --estats "./data/subway-large-energy/sswp/async/${j}-${file}-stats" > "./data/subway-large-energy/sswp/async/${i}-${file}"
+        ./sswp-async --input "${j}" --energy true --efile "./data/subway-large-energy/sswp/async/${j}-${file}-readings" --estats "./data/subway-large-energy/sswp/async/${j}-${file}-stats" > "./data/subway-large-energy/sswp/async/${i}-${file}"
         ./sswp-sync --input "${j}" --energy true --efile "./data/subway-large-energy/sswp/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/sswp/sync/${i}-${file}-stats" > "./data/subway-large-energy/sswp/sync/${i}-${file}"
         
 

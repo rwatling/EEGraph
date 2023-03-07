@@ -32,7 +32,7 @@ int main (int argc, char** argv) {
 
     ArgumentParser arguments(argc, argv, true, false);
 
-	for (int i = 0; i < num_benchmarks; i++) {
+	for (int i = 0; i < 1; i++) {
 		currentBench = benchnames[i];
 
 		//Read in graphs
@@ -51,11 +51,11 @@ int main (int argc, char** argv) {
 				gpuErrorcheck( cudaDeviceSynchronize() );
 			}
 
-			for (int k = (num_algorithms * 2) - 1; k < num_algorithms * 2; k++) {
+			for (int k = num_algorithms; k < num_algorithms * 2; k++) {
 				currentAlg = algorithms[k % num_algorithms];
 
-				//Run PR separate for large graph for tw
-				if (k % num_algorithms == 2) {
+				//Just sssp energy and sswp energy
+				if ((k % num_algorithms) != 3 && (k % num_algorithms) != 4) {
 					continue;
 				}
 				

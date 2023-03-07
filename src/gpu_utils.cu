@@ -24,3 +24,11 @@ __global__ void moveUpLabels(bool *label1, bool *label2, unsigned int size)
 		label2[id] = false;	
 	}
 }
+
+__global__ void sumLabels(bool *label, unsigned int size, unsigned int* sum)
+{
+	unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
+	if(id < size) {
+		if (label[id]) atomicAdd(sum, 1);
+	}
+}

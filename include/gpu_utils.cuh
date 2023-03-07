@@ -8,4 +8,6 @@ __global__ void mixLabels(bool *label1, bool *label2, unsigned int size);
 
 __global__ void moveUpLabels(bool *label1, bool *label2, unsigned int size);
 
+__global__ void sumLabels(bool *label, unsigned int size, unsigned int* sum);
+
 #endif //GPU_UTILS_H

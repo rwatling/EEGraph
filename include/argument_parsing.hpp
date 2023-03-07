@@ -26,7 +26,7 @@ public:
 	bool debug;
 	bool energy;
 	bool unifiedMem;
-	bool large;
+	bool nodeActivity;
 
 	string input;
 	string output;

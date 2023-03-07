@@ -77,7 +77,7 @@ int main(int argc, char** argv)
 	bool finished;
 	bool *d_finished;
 	gpuErrorcheck(cudaMalloc(&d_finished, sizeof(bool)));
-		
+
 	while (subgraph.numActiveNodes>0)
 	{
 		gItr++;
@@ -94,7 +94,6 @@ int main(int argc, char** argv)
 			//mixLabels<<<partitioner.partitionNodeSize[i]/512 + 1 , 512>>>(subgraph.d_activeNodes, graph.d_label1, graph.d_label2, partitioner.partitionNodeSize[i], partitioner.fromNode[i]);
 			
 			uint itr = 0;
-			if (arguments.energy) nvml.log_point();
 			do
 			{
 				itr++;

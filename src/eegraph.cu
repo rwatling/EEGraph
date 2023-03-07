@@ -75,6 +75,7 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
 
 	// Algorithm control variable declarations
 	Timer timer;
+	Result result;
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
@@ -198,7 +199,6 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 
@@ -273,6 +273,7 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
 	gpuErrorcheck(cudaMallocManaged(&label2, sizeof(bool) * num_nodes));
 
 	Timer totalTimer;
+	Result result;
 	totalTimer.Start();
 	if (arguments.energy) nvml.log_point();
 	
@@ -410,7 +411,6 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 
@@ -523,6 +523,7 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 
 	// Algorithm control variable declarations
 	Timer timer;
+	Result result;
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
@@ -646,7 +647,6 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 
@@ -741,6 +741,7 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 
 	// Algorithm control variable declarations
 	Timer timer;
+	Result result;
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
@@ -856,7 +857,6 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 
@@ -980,6 +980,7 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 
 	// Algorithm control variable declarations
 	Timer timer;
+	Result result;
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
@@ -1109,7 +1110,6 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 
@@ -1197,6 +1197,7 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 
 	// Algorithm control variable declarations
 	Timer timer;
+	Result result;
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
@@ -1321,7 +1322,6 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 
@@ -1422,6 +1422,7 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 
 	// Algorithm control variable declarations
 	Timer timer;
+	Result result;
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
@@ -1545,7 +1546,6 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 
@@ -1566,7 +1566,6 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 
 		utilities::PrintResults(cpu_dist, min(30, num_nodes));
 		utilities::PrintResults(dist, min(30, num_nodes));
-
 		utilities::CompareArrays(cpu_dist, dist, num_nodes);
 	}
 
@@ -1647,6 +1646,7 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 
 	// Algorithm control variable declarations
 	Timer timer;
+	Result result;
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
@@ -1762,7 +1762,6 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 
@@ -1882,6 +1881,7 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 
 	// Algorithm control variable declarations
 	Timer timer;
+	Result result;
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
@@ -2009,7 +2009,6 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 
@@ -2110,6 +2109,7 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
 
 	// Algorithm control variable declarations
 	Timer timer;
+	Result result;
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
@@ -2228,7 +2228,6 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
 		cpu_threads.clear();
 	}
 
-	Result result;
 	result.time = total;
 	result.energy = nvml.get_energy();
 

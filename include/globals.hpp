@@ -53,6 +53,7 @@ struct PartPointer{
 struct Result{
     float time;
     double energy;
+    vector<unsigned int> sumLabelsVec;
 };
 
 

@@ -23,7 +23,7 @@ ArgumentParser::ArgumentParser(int argc, char **argv, bool canHaveSource, bool c
 	energy = false;
 	unifiedMem = false;
 	hasAcc = false;
-	large = false;
+	nodeActivity = false;
 
 	Parse();
 }
@@ -86,6 +86,11 @@ bool ArgumentParser::Parse()
 					strcmp(argv[i+1], "True") == 0 || 
 					strcmp(argv[i+1], "TRUE") == 0)
 					debug = true;
+			} else if (strcmp(argv[i], "--activity") == 0) {
+				if (strcmp(argv[i+1], "true") == 0 || 
+					strcmp(argv[i+1], "True") == 0 || 
+					strcmp(argv[i+1], "TRUE") == 0)
+					nodeActivity = true;
 			} else if (strcmp(argv[i], "--variant") == 0) {
 				if (strcmp(argv[i+1], "async_push_td") == 0) {
 					variant = ASYNC_PUSH_TD;
@@ -109,11 +114,6 @@ bool ArgumentParser::Parse()
 					strcmp(argv[i+1], "True") == 0 || 
 					strcmp(argv[i+1], "TRUE") == 0)
 					unifiedMem = true; 
-			} else if (strcmp(argv[i], "--large") == 0) {
-				if (strcmp(argv[i+1], "true") == 0 || 
-					strcmp(argv[i+1], "True") == 0 || 
-					strcmp(argv[i+1], "TRUE") == 0)
-					large = true; 
 			} else if (strcmp(argv[i], "--accuracy") == 0) {
 				acc = (float) atof(argv[i+1]);
 				hasAcc = true;
