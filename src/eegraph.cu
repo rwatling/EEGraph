@@ -79,6 +79,9 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int temp_sum;
+	unsigned int* d_sum;
+    gpuErrorcheck(cudaMalloc(&d_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -89,6 +92,12 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
+			
 			if(itr % 2 == 1)
 			{
 				bfs::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
@@ -99,6 +108,8 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
 																d_finished,
 																d_label1,
 																d_label2);
+				
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(d_label2, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
@@ -111,12 +122,19 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
 																d_finished,
 																d_label2,
 																d_label1);
+				
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+
+			if (arguments.nodeActivity) {
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -161,7 +179,12 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
+			
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
+			
 			bfs::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														d_nodePointer,
 														d_partNodePointer,
@@ -170,6 +193,16 @@ Result eegraph_bfs(ArgumentParser &arguments, Graph &graph) {
 														d_finished,
 														(itr%2==1) ? d_label1 : d_label2,
 														(itr%2==1) ? d_label2 : d_label1);
+			
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label2, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
 
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck( cudaPeekAtLastError() );
@@ -301,6 +334,8 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int* temp_sum;
+	gpuErrorcheck(cudaMallocManaged(&temp_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -310,6 +345,9 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
 		{
 			itr++;
 			*finished = true;
+			if (arguments.nodeActivity) {
+				*temp_sum = 0;
+			}
 
 			if(itr % 2 == 1)
 			{
@@ -321,6 +359,7 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
 																finished,
 																label1,
 																label2);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label2, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
 			}
 			else
@@ -333,11 +372,17 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
 																finished,
 																label2,
 																label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label1, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
+
+			if (arguments.nodeActivity) {
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
+
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -378,6 +423,8 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
 			itr++;
 			*finished = true;
 
+			if (arguments.nodeActivity) *temp_sum = 0;
+
 			bfs::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														vGraph.nodePointer,
 														vGraph.partNodePointer,
@@ -386,8 +433,17 @@ Result eegraph_bfs_um(ArgumentParser &arguments, UMGraph &graph) {
 														finished,
 														(itr%2==1) ? label1 : label2,
 														(itr%2==1) ? label2 : label1);
+
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
+
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (label2, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (label1, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
 		} while (!(*finished));
 	}
 
@@ -527,6 +583,9 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int temp_sum;
+	unsigned int* d_sum;
+    gpuErrorcheck(cudaMalloc(&d_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -537,6 +596,12 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
+
 			if(itr % 2 == 1)
 			{
 				cc::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
@@ -547,6 +612,8 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 															d_finished,
 															d_label1,
 															d_label2);
+				
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(d_label2, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
@@ -559,12 +626,18 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 															d_finished,
 															d_label2,
 															d_label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+
+			if (arguments.nodeActivity) {
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -609,6 +682,11 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+						
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
 
 			cc::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														d_nodePointer,
@@ -619,6 +697,15 @@ Result eegraph_cc(ArgumentParser &arguments, Graph &graph) {
 														(itr%2==1) ? d_label1 : d_label2,
 														(itr%2==1) ? d_label2 : d_label1);
 
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label2, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
@@ -745,6 +832,8 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int* temp_sum;
+	gpuErrorcheck(cudaMallocManaged(&temp_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -754,6 +843,9 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 		{
 			itr++;
 			*finished = true;
+			if (arguments.nodeActivity) {
+				*temp_sum = 0;
+			}
 
 			if(itr % 2 == 1)
 			{
@@ -765,6 +857,7 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 															finished,
 															label1,
 															label2);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label2, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
 			}
 			else
@@ -777,11 +870,17 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 															finished,
 															label2,
 															label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label1, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
+
+			if (arguments.nodeActivity) {
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
+
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -824,6 +923,8 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 			itr++;
 			*finished = true;
 
+			if (arguments.nodeActivity) *temp_sum = 0;
+
 			cc::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														vGraph.nodePointer,
 														vGraph.partNodePointer,
@@ -832,8 +933,17 @@ Result eegraph_cc_um(ArgumentParser &arguments, UMGraph &graph) {
 														finished,
 														(itr%2==1) ? label1 : label2,
 														(itr%2==1) ? label2 : label1);
+
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
+
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (label2, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (label1, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
 		} while (!(*finished));
 	}
 
@@ -984,6 +1094,9 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int temp_sum;
+	unsigned int* d_sum;
+    gpuErrorcheck(cudaMalloc(&d_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -994,6 +1107,12 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
+
 			if(itr % 2 == 1)
 			{
 				pr::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
@@ -1006,6 +1125,7 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 																acc,
 																d_label1,
 																d_label2);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(d_label2, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
@@ -1020,12 +1140,18 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 															acc,
 															d_label2,
 															d_label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+			
+			if (arguments.nodeActivity) {
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do {
@@ -1072,6 +1198,11 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
 
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
+
 			pr::async_push_dd<<< num_blocks, num_threads >>>(vGraph.numParts, 
 															d_nodePointer,
 															d_partNodePointer,
@@ -1082,6 +1213,17 @@ Result eegraph_pr(ArgumentParser &arguments, Graph &graph) {
 															acc,
 															(itr%2==1) ? d_label1 : d_label2,
 															(itr%2==1) ? d_label2 : d_label1);
+			
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label2, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
+
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );	
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
@@ -1201,6 +1343,8 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int* temp_sum;
+	gpuErrorcheck(cudaMallocManaged(&temp_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -1210,6 +1354,9 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 		{
 			itr++;
 			*finished = true;
+			if (arguments.nodeActivity) {
+				*temp_sum = 0;
+			}
 
 			if(itr % 2 == 1)
 			{
@@ -1223,6 +1370,7 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 															acc,
 															label1,
 															label2);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label2, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
 			}
 			else
@@ -1237,11 +1385,17 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 															acc,
 															label2,
 															label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label1, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
+
+			if (arguments.nodeActivity) {
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
+
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -1286,6 +1440,8 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 			itr++;
 			*finished = true;
 
+			if (arguments.nodeActivity) *temp_sum = 0;
+
 			pr::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														vGraph.nodePointer,
 														vGraph.partNodePointer,
@@ -1299,6 +1455,14 @@ Result eegraph_pr_um(ArgumentParser &arguments, UMGraph &graph) {
 
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck( cudaDeviceSynchronize() );
+
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (label2, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (label1, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
 		} while (!(*finished));
 	}
 
@@ -1426,6 +1590,9 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int temp_sum;
+	unsigned int* d_sum;
+    gpuErrorcheck(cudaMalloc(&d_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -1436,6 +1603,12 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
+			
 			if(itr % 2 == 1)
 			{
 				sswp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
@@ -1446,6 +1619,7 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 															d_finished,
 															d_label1,
 															d_label2);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(d_label2, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
@@ -1458,12 +1632,18 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 															d_finished,
 															d_label2,
 															d_label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+		
+			if (arguments.nodeActivity) {
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}	
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -1508,7 +1688,12 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
+			
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
+			
 			sswp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														d_nodePointer,
 														d_partNodePointer,
@@ -1518,6 +1703,16 @@ Result eegraph_sswp(ArgumentParser &arguments, Graph &graph) {
 														(itr%2==1) ? d_label1 : d_label2,
 														(itr%2==1) ? d_label2 : d_label1);
 
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label2, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
+			
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
@@ -1650,6 +1845,8 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int* temp_sum;
+	gpuErrorcheck(cudaMallocManaged(&temp_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -1659,6 +1856,9 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 		{
 			itr++;
 			*finished = true;
+			if (arguments.nodeActivity) {
+				*temp_sum = 0;
+			}
 
 			if(itr % 2 == 1)
 			{
@@ -1670,6 +1870,7 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 															finished,
 															label1,
 															label2);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label2, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
 			}
 			else
@@ -1682,11 +1883,17 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 															finished,
 															label2,
 															label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label1, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
+
+			if (arguments.nodeActivity) {
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
+
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -1729,6 +1936,8 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 			itr++;
 			*finished = true;
 
+			if (arguments.nodeActivity) *temp_sum = 0;
+
 			sswp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														vGraph.nodePointer,
 														vGraph.partNodePointer,
@@ -1737,8 +1946,17 @@ Result eegraph_sswp_um(ArgumentParser &arguments, UMGraph &graph) {
 														finished,
 														(itr%2==1) ? label1 : label2,
 														(itr%2==1) ? label2 : label1);
+
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
+
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (label2, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (label1, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
 		} while (!(*finished));
 	}
 
@@ -1885,6 +2103,9 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int temp_sum;
+	unsigned int* d_sum;
+    gpuErrorcheck(cudaMalloc(&d_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -1895,6 +2116,12 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
+			
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
+
 			if(itr % 2 == 1)
 			{
 				sssp::sync_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
@@ -1905,6 +2132,7 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 															d_finished,
 															d_label1,
 															d_label2);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(d_label2, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
@@ -1917,6 +2145,7 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 															d_finished,
 															d_label2,
 															d_label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(d_label1, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
@@ -1924,6 +2153,10 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
 
+			if (arguments.nodeActivity) {
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -1970,7 +2203,12 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 			itr++;
 			finished = true;
 			gpuErrorcheck(cudaMemcpy(d_finished, &finished, sizeof(bool), cudaMemcpyHostToDevice));
-
+			
+			if (arguments.nodeActivity) {
+				temp_sum = 0;
+				gpuErrorcheck(cudaMemcpy(d_sum, &temp_sum, sizeof(unsigned int), cudaMemcpyHostToDevice));
+			}
+			
 			sssp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														d_nodePointer,
 														d_partNodePointer,
@@ -1983,6 +2221,16 @@ Result eegraph_sssp(ArgumentParser &arguments, Graph &graph) {
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label2, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
 
 		} while (!(finished));
 	}
@@ -2113,6 +2361,8 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int* temp_sum;
+	gpuErrorcheck(cudaMallocManaged(&temp_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -2122,6 +2372,9 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
 		{
 			itr++;
 			*finished = true;
+			if (arguments.nodeActivity) {
+				*temp_sum = 0;
+			}
 
 			if(itr % 2 == 1)
 			{
@@ -2133,6 +2386,7 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
 															finished,
 															label1,
 															label2);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label2, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label1, num_nodes);
 			}
 			else
@@ -2145,11 +2399,16 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
 															finished,
 															label2,
 															label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>>(label1, num_nodes, temp_sum);
 				clearLabel<<< num_blocks , num_threads >>>(label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
+
+			if (arguments.nodeActivity) {
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
 
 		} while (!(*finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
@@ -2194,6 +2453,8 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
 			itr++;
 			*finished = true;
 
+			if (arguments.nodeActivity) *temp_sum = 0;
+
 			sssp::async_push_dd<<< num_blocks , num_threads >>>(vGraph.numParts, 
 														vGraph.nodePointer,
 														vGraph.partNodePointer,
@@ -2202,8 +2463,17 @@ Result eegraph_sssp_um(ArgumentParser &arguments, UMGraph &graph) {
 														finished,
 														(itr%2==1) ? label1 : label2,
 														(itr%2==1) ? label2 : label1);
+
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
+
+			if (arguments.nodeActivity && (itr % 2 == 1)) {
+				sumLabels<<< num_blocks, num_threads >>> (label2, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			} else if (arguments.nodeActivity) {
+				sumLabels<<< num_blocks, num_threads >>> (label1, num_nodes, temp_sum);
+				result.sumLabelsVec.push_back(*temp_sum);
+			}
 
 		} while (!(*finished));
 	}

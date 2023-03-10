@@ -24,7 +24,10 @@ VirtualGraph::VirtualGraph(Graph &graph)
 	
 	for(int i=0; i<graph.num_edges; i++)
 	{
+		if (graph.edges[i].source >= graph.num_nodes) continue;
 		outDegree[graph.edges[i].source]++;
+
+		if (graph.edges[i].end >= graph.num_nodes) continue;
 		inDegree[graph.edges[i].end]++;
 	}
 	
@@ -69,6 +72,14 @@ void VirtualGraph::MakeGraph()
 		w8 = graph->weights[i];
 		
 		weights.push_back(w8);
+
+		if (source >= graph->num_nodes) {
+			continue;
+		}
+
+		if (end >= graph->num_nodes) {
+			continue;
+		}
 
 		uint location = nodePointer[source]+1+2*outDegreeCounter[source];
 

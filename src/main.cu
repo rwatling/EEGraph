@@ -17,14 +17,14 @@ int main (int argc, char** argv) {
     const int num_benchmarks = 5;
     const int num_frameworks = 2;
     const int num_algorithms = 5;
-    const int num_trials = 5;
+    const int num_trials = 1;
 
     string benchmarks[num_benchmarks] = {"../datasets/Google/web-Google-trimmed.txt", 
                                         "../datasets/LiveJournal/soc-LiveJournal1-trimmed.txt",
                                         "../datasets/Road/roadNet-CA-trimmed.txt", 
                                         "../datasets/Skitter/as-skitter-trimmed.txt",
-										"../datasets/Wiki/wiki-Talk-trimmed.txt"}; //Dropped description headers for trimmed files
-    string benchnames[num_benchmarks] = {"google", "lj", "road", "skitter", "wiki"};
+										"../datasets/Pokec/soc-pokec-relationships.txt"}; //Dropped description headers for trimmed files
+    string benchnames[num_benchmarks] = {"google", "lj", "road", "skitter", "pokec"};
     string frameworks[num_frameworks] = {"classic", "um"};
     string algorithms[num_algorithms] = {"bfs", "cc", "pr", "sssp", "sswp"};
 
@@ -33,6 +33,7 @@ int main (int argc, char** argv) {
     string currentAlg;
     string currentVariant;
 
+	Result result;
     ArgumentParser arguments(argc, argv, true, false);
 
 	for (int i = 0; i < num_benchmarks; i++) {
@@ -44,7 +45,7 @@ int main (int argc, char** argv) {
 		UMGraph um_graph(arguments.input,true);
 		gpuErrorcheck( cudaDeviceSynchronize() );
 
-		for (int j = 0; j < num_frameworks; j++) {
+		for (int j = 0; j < num_frameworks - 1; j++) {
 			if (j == 0) {
 				cout << "---graph---" << endl;
 				graph.ReadGraph();
@@ -54,7 +55,7 @@ int main (int argc, char** argv) {
 				gpuErrorcheck( cudaDeviceSynchronize() );
 			}
 
-			for (int k = 0; k < num_algorithms * 2; k++) {
+			for (int k = 0; k < num_algorithms /*num_algorithms * 2*/; k++) {
 				currentAlg = algorithms[k % num_algorithms];
 				
 				if (k >= num_algorithms) { arguments.energy = true; } 
@@ -99,23 +100,23 @@ int main (int argc, char** argv) {
 							
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_bfs(arguments, graph);
+									result = eegraph_bfs(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 1) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_cc(arguments, graph);
+									result = eegraph_cc(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 2) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_pr(arguments, graph);
+									result = eegraph_pr(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 3) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sssp(arguments, graph);
+									result = eegraph_sssp(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 4) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sswp(arguments, graph);
+									result = eegraph_sswp(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
@@ -147,26 +148,31 @@ int main (int argc, char** argv) {
 							
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_bfs(arguments, graph);
+									result = eegraph_bfs(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 1) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_cc(arguments, graph);
+									result = eegraph_cc(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 2) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_pr(arguments, graph);
+									result = eegraph_pr(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 3) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sssp(arguments, graph);
+									result = eegraph_sssp(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 4) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sswp(arguments, graph);
+									result = eegraph_sswp(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
+								if (arguments.nodeActivity) {
+									cout << "Max active pct: " << utilities::maxActivePct(result.sumLabelsVec, graph.num_nodes) << endl;
+									cout << "Pct over threshold: " << utilities::pctIterOverThreshold(result.sumLabelsVec, graph.num_nodes, .50);
+								}
+
 								// Redirect cout back to screen
 								cout.rdbuf(stream_buffer_cout);                                
 								file.close();
@@ -195,23 +201,23 @@ int main (int argc, char** argv) {
 							
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_bfs(arguments, graph);
+									result = eegraph_bfs(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 1) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_cc(arguments, graph);
+									result = eegraph_cc(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 2) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_pr(arguments, graph);
+									result = eegraph_pr(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 3) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sssp(arguments, graph);
+									result = eegraph_sssp(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 4) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sswp(arguments, graph);
+									result = eegraph_sswp(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
@@ -243,24 +249,29 @@ int main (int argc, char** argv) {
 							
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_bfs(arguments, graph);
+									result = eegraph_bfs(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 1) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_cc(arguments, graph);
+									result = eegraph_cc(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 2) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_pr(arguments, graph);
+									result = eegraph_pr(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 3) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sssp(arguments, graph);
+									result = eegraph_sssp(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 4) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sswp(arguments, graph);
+									result = eegraph_sswp(arguments, graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
+								}
+
+								if (arguments.nodeActivity) {
+									cout << "Max active pct: " << utilities::maxActivePct(result.sumLabelsVec, graph.num_nodes) << endl;
+									cout << "Pct over threshold: " << utilities::pctIterOverThreshold(result.sumLabelsVec, graph.num_nodes, .50);
 								}
 							
 								// Redirect cout back to screen
@@ -295,23 +306,23 @@ int main (int argc, char** argv) {
 							
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_bfs_um(arguments, um_graph);
+									result = eegraph_bfs_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 1) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_cc_um(arguments, um_graph);
+									result = eegraph_cc_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 2) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_pr_um(arguments, um_graph);
+									result = eegraph_pr_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 3) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sssp_um(arguments, um_graph);
+									result = eegraph_sssp_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 4) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sswp_um(arguments, um_graph);
+									result = eegraph_sswp_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
@@ -343,23 +354,23 @@ int main (int argc, char** argv) {
 							
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_bfs_um(arguments, um_graph);
+									result = eegraph_bfs_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 1) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_cc_um(arguments, um_graph);
+									result = eegraph_cc_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 2) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_pr_um(arguments, um_graph);
+									result = eegraph_pr_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 3) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sssp_um(arguments, um_graph);
+									result = eegraph_sssp_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 4) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sswp_um(arguments, um_graph);
+									result = eegraph_sswp_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
@@ -391,23 +402,23 @@ int main (int argc, char** argv) {
 							
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_bfs_um(arguments, um_graph);
+									result = eegraph_bfs_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 1) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_cc_um(arguments, um_graph);
+									result = eegraph_cc_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 2) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_pr_um(arguments, um_graph);
+									result = eegraph_pr_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 3) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sssp_um(arguments, um_graph);
+									result = eegraph_sssp_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 4) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sswp_um(arguments, um_graph);
+									result = eegraph_sswp_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							
@@ -439,23 +450,23 @@ int main (int argc, char** argv) {
 							
 								if (k % num_algorithms == 0) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_bfs_um(arguments, um_graph);
+									result = eegraph_bfs_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 1) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_cc_um(arguments, um_graph);
+									result = eegraph_cc_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 2) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_pr_um(arguments, um_graph);
+									result = eegraph_pr_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 3) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sssp_um(arguments, um_graph);
+									result = eegraph_sssp_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								} else if (k % num_algorithms == 4) {
 									gpuErrorcheck( cudaDeviceSynchronize() );
-									eegraph_sswp_um(arguments, um_graph);
+									result = eegraph_sswp_um(arguments, um_graph);
 									gpuErrorcheck( cudaDeviceSynchronize() );
 								}
 							

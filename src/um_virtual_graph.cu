@@ -75,6 +75,10 @@ void UMVirtualGraph::MakeGraph()
 			continue;
 		}
 
+		if (end >= graph->num_nodes) {
+			continue;
+		}
+
 		uint location = nodePointer[source]+1+2*outDegreeCounter[source];
 
 		if (location >= graph->num_edges) {

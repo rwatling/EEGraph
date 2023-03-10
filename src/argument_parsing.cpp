@@ -169,7 +169,8 @@ string ArgumentParser::GenerateHelpString(){
 	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";
 	str += "\n    [--um]: Use unified memory for graph algorithms. E.g. --um true";
 	str += "\n    [--large]: Supplied graph is large so do not run classic. E.g. --large true";
-	str += "\n    [--acc]: supply accuracy for algorithm E.g. --accuracy 0.01";
+	str += "\n    [--acc]: supply accuracy for algorithm (PageRank) E.g. --accuracy 0.01";
+	str += "\n    [--activity]: sum node activity vector in results(Default false) E.g. --activity true";
 	str += "\n\n";
 	return str;
 }

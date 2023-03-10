@@ -145,10 +145,17 @@ void UMVertexSubgraph::MakeSubgraph(float pct, int sourceNode) {
 	selected[sourceNode] = true;
 
 	//Select nodes
+	// First 1/2 of subgraph nodes contain first 1/5 of full graph nodes
+	// Therefore 0.5 * subgraph nodes < ~20% of full graph, so pct arg < 40%
 	unsigned int count = 1;
-	srand(RAND_SEED);
+	srand(RANDOM_SEED);
 	while (count < this->subgraph_num_nodes) {
-		unsigned int rand_node = (rand() % parentGraph->num_nodes);
+		unsigned int rand_node;
+		if (count < (this->subgraph_num_nodes / 2)) {
+			rand_node = (rand() % (parentGraph->num_nodes / 5));
+		} else {
+			rand_node = (rand() % (parentGraph->num_nodes));
+		}
 		
 		if (!selected[rand_node]) {
 			selected[rand_node] = true;

@@ -58,3 +58,24 @@ void utilities::CompareArrays(unsigned int* arr1, unsigned int* arr2, int n) {
 		}
 	}
 }
+
+double utilities::maxActivePct(vector<unsigned int> activeNodes, unsigned int total){
+	unsigned int max = 0;
+	for (unsigned int itrActive : activeNodes) {
+		if (itrActive > max) {
+			max = itrActive;
+		}
+	}
+	return (double) max / (double) total;
+}
+
+double utilities::pctIterOverThreshold(vector<unsigned int> activeNodes, unsigned int total, double threshold){
+	unsigned int count = 0;
+	for (unsigned int itrActive : activeNodes) {
+		double itrPct = (double) itrActive / (double) total;
+		if (itrPct > threshold) {
+			count++;
+		}
+	}
+	return (double) count / (double) activeNodes.size();
+}
