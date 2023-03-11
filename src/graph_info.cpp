@@ -2,12 +2,13 @@
 #include "../include/argument_parsing.hpp"
 
 int main(int argc, char** argv) {
-    const int num_benchmarks = 5;
-    string benchmarks[num_benchmarks] = {"../datasets/Google/web-Google-trimmed.txt", 
+    const int num_benchmarks = 1;
+    /*string benchmarks[num_benchmarks] = {"../datasets/Google/web-Google-trimmed.txt", 
                                         "../datasets/LiveJournal/soc-LiveJournal1-trimmed.txt",
                                         "../datasets/Road/roadNet-CA-trimmed.txt", 
                                         "../datasets/Skitter/as-skitter-trimmed.txt",
-										"../datasets/Pokec/soc-pokec-relationships.txt"};
+										"../datasets/Pokec/soc-pokec-relationships.txt"};*/
+    string benchmarks[num_benchmarks] = {"/home/share/graph_data/raw/twitter_mpi/twitter.el"};
 
 
     ArgumentParser arguments(argc, argv, true, false);

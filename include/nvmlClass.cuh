@@ -52,7 +52,7 @@
 #include <cuda_runtime.h>
 #include <nvml.h>
 
-int constexpr size_of_vector { 100000 };
+int constexpr size_of_vector { 10000000 };
 int constexpr nvml_device_name_buffer_size { 100 };
 
 // *************** FOR ERROR CHECKING *******************
@@ -135,7 +135,7 @@ class nvmlClass {
 
             time_steps_.push_back( device_stats );
 
-            std::this_thread::sleep_for( std::chrono::microseconds(250)); //.25 ms
+            std::this_thread::sleep_for( std::chrono::microseconds(250)); //.25 ms, 0.5 ms for subway-large
         }
 
         // Collect information for a short period of time (cooldown) after loop_ is flagged to be false

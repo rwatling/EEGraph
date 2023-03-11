@@ -14,14 +14,15 @@
 #include <unistd.h>
 
 int main (int argc, char** argv) {
-    const int num_benchmarks = 2;
+    const int num_benchmarks = 3;
     const int num_frameworks = 2;
     const int num_algorithms = 5;
     const int num_trials = 3;
 
     string benchmarks[num_benchmarks] = {"/home/share/graph_data/raw/twitter_mpi/twitter.el",
-        								"/home/share/graph_data/raw/friendster_snap/fs.el"};
-    string benchnames[num_benchmarks] = {"tw", "fs"};
+        								"/home/share/graph_data/raw/friendster_snap/fs.el",
+										"/home/share/graph_data/raw/twitter_www/twitter.www.el"};
+    string benchnames[num_benchmarks] = {"tw", "fs", "tw2"};
     string frameworks[num_frameworks] = {"classic", "um"};
     string algorithms[num_algorithms] = {"bfs", "cc", "pr", "sssp", "sswp"};
 
@@ -32,7 +33,7 @@ int main (int argc, char** argv) {
 
     ArgumentParser arguments(argc, argv, true, false);
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 2; i < num_benchmarks; i++) {
 		currentBench = benchnames[i];
 
 		//Read in graphs
@@ -51,13 +52,8 @@ int main (int argc, char** argv) {
 				gpuErrorcheck( cudaDeviceSynchronize() );
 			}
 
-			for (int k = num_algorithms; k < num_algorithms * 2; k++) {
+			for (int k = 0; k < num_algorithms * 2; k++) {
 				currentAlg = algorithms[k % num_algorithms];
-
-				//Just sssp energy and sswp energy
-				if ((k % num_algorithms) != 3 && (k % num_algorithms) != 4) {
-					continue;
-				}
 				
 				if (k >= num_algorithms) { arguments.energy = true; } 
 				else { arguments.energy = false; }

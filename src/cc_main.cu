@@ -240,6 +240,7 @@ int main_unified_memory(ArgumentParser arguments) {
 int main(int argc, char** argv) {
 
 	ArgumentParser arguments(argc, argv, true, false);
+	Result result;
 
 	if (arguments.unifiedMem) {
 		main_unified_memory(arguments);
@@ -331,6 +332,9 @@ int main(int argc, char** argv) {
 	int itr = 0;
 	int num_threads = 512;
 	int num_blocks = vGraph.numParts / num_threads + 1;
+	unsigned int temp_sum;
+	unsigned int* d_sum;
+    gpuErrorcheck(cudaMalloc(&d_sum, sizeof(unsigned int)));
 
 	timer.Start();
 	if (arguments.energy) nvml.log_point();
@@ -351,6 +355,7 @@ int main(int argc, char** argv) {
 															d_finished,
 															d_label1,
 															d_label2);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>> (d_label2, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label1, num_nodes);
 			}
 			else
@@ -363,12 +368,18 @@ int main(int argc, char** argv) {
 															d_finished,
 															d_label2,
 															d_label1);
+				if (arguments.nodeActivity) sumLabels<<< num_blocks, num_threads >>> (d_label1, num_nodes, d_sum);
 				clearLabel<<< num_blocks , num_threads >>>(d_label2, num_nodes);
 			}
 
 			gpuErrorcheck( cudaDeviceSynchronize() );
 			gpuErrorcheck( cudaPeekAtLastError() );
 			gpuErrorcheck(cudaMemcpy(&finished, d_finished, sizeof(bool), cudaMemcpyDeviceToHost));
+		
+			if (arguments.nodeActivity) {
+				gpuErrorcheck(cudaMemcpy(&temp_sum, d_sum, sizeof(unsigned int), cudaMemcpyDeviceToHost));
+				result.sumLabelsVec.push_back(temp_sum);
+			}
 		} while (!(finished));
 	} else if (arguments.variant == ASYNC_PUSH_TD) {
 		do
@@ -438,6 +449,11 @@ int main(int argc, char** argv) {
 	cout << "Number of iterations = " << itr << endl;
 	cout << "Processing finished in " << runtime << " (ms).\n";
 	cout << "Total GPU activity finished in " << total << " (ms).\n";
+
+	if (arguments.nodeActivity) {
+		cout << "Max active pct: " << utilities::maxActivePct(result.sumLabelsVec, graph.num_nodes) << endl;
+		cout << "Pct over threshold: " << utilities::pctIterOverThreshold(result.sumLabelsVec, graph.num_nodes, .50);
+	}
 
 	// Stop measuring energy consumption, clean up structures
 	if (arguments.energy) {
