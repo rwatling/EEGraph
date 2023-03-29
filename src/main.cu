@@ -17,7 +17,7 @@ int main (int argc, char** argv) {
     const int num_benchmarks = 5;
     const int num_frameworks = 2;
     const int num_algorithms = 5;
-    const int num_trials = 1;
+    const int num_trials = 5;
 
     string benchmarks[num_benchmarks] = {"../datasets/Google/web-Google-trimmed.txt", 
                                         "../datasets/LiveJournal/soc-LiveJournal1-trimmed.txt",
@@ -45,7 +45,7 @@ int main (int argc, char** argv) {
 		UMGraph um_graph(arguments.input,true);
 		gpuErrorcheck( cudaDeviceSynchronize() );
 
-		for (int j = 0; j < num_frameworks - 1; j++) {
+		for (int j = 0; j < num_frameworks; j++) {
 			if (j == 0) {
 				cout << "---graph---" << endl;
 				graph.ReadGraph();
@@ -55,7 +55,7 @@ int main (int argc, char** argv) {
 				gpuErrorcheck( cudaDeviceSynchronize() );
 			}
 
-			for (int k = 0; k < num_algorithms /*num_algorithms * 2*/; k++) {
+			for (int k = 0; k < num_algorithms * 2; k++) {
 				currentAlg = algorithms[k % num_algorithms];
 				
 				if (k >= num_algorithms) { arguments.energy = true; } 

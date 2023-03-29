@@ -20,6 +20,7 @@
 #include <chrono>
 
 #include "globals.hpp"
+#include "timer.hpp"
 
 typedef unsigned int uint;
 using namespace std;
@@ -58,7 +59,7 @@ class VertexSubgraph : public Graph
         uint subgraph_num_nodes; // To allow for passing into VirtualGraph
 
         VertexSubgraph(Graph &graph, string graphFilePath, bool isWeighted);
-        void MakeSubgraph(float pct, int sourceNode);
+        void MakeSubgraph(float pct, int sourceNode, time_t seed);
 };
 
 #endif	//	GRAPH_HPP

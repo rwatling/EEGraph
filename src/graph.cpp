@@ -123,7 +123,7 @@ VertexSubgraph::VertexSubgraph(Graph &graph, string graphFilePath, bool isWeight
 	this->parentGraph = &graph;
 }
 
-void VertexSubgraph::MakeSubgraph(float pct, int sourceNode) {
+void VertexSubgraph::MakeSubgraph(float pct, int sourceNode, time_t seed) {
 	this->graphLoaded = parentGraph->graphLoaded;
 	this->pct = pct;
 
@@ -134,6 +134,9 @@ void VertexSubgraph::MakeSubgraph(float pct, int sourceNode) {
 
 	this->subgraph_num_nodes = this->subgraph_num_nodes = pct * parentGraph->num_nodes;
 	this->num_nodes = parentGraph->num_nodes;
+
+	Timer overhead;
+	overhead.Start();
 
 	//Set up selected array
 	selected = new bool[this->num_nodes];
@@ -146,7 +149,7 @@ void VertexSubgraph::MakeSubgraph(float pct, int sourceNode) {
 	// First 1/2 of subgraph nodes contain first 1/5 of full graph nodes
 	// Therefore 0.5 * subgraph nodes < ~20% of full graph, so pct arg < 40%
 	unsigned int count = 1;
-	srand(RANDOM_SEED);
+	srand(seed);
 	while (count < this->subgraph_num_nodes) {
 		unsigned int rand_node;
 		if (count < (this->subgraph_num_nodes / 2)) {
@@ -190,7 +193,10 @@ void VertexSubgraph::MakeSubgraph(float pct, int sourceNode) {
 		}
 	}
 
+	float overheadTime = overhead.Finish();
+
 	cout << "Done generating subgraph.\n";
+	cout << "Subgraph generated in " << overheadTime << " (ms)" << endl;
 	cout << "Subgraph number of nodes = " << this->subgraph_num_nodes << endl;
 	cout << "Virtual graph assumed number of nodes = " << this->num_nodes << endl;
 	cout << "Subgraph number of edges = " << this->num_edges << endl;

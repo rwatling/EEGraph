@@ -64,47 +64,47 @@ do
         echo $file
 
         ./bfs-async --input "${j}" > "./data/subway-large/bfs/async/${i}-${file}"
-        sleep 10
+        sleep 5
         ./bfs-sync --input "${j}" > "./data/subway-large/bfs/sync/${i}-${file}"
-        sleep 10
+        sleep 5
         ./bfs-async --input "${j}" --energy true --efile "./data/subway-large-energy/bfs/async/${i}-${file}-readings" --estats "./data/subway-large-energy/bfs/async/${i}-${file}-stats" > "./data/subway-large-energy/bfs/async/${i}-${file}"
-        sleep 10
+        sleep 5
         ./bfs-sync --input "${j}" --energy true --efile "./data/subway-large-energy/bfs/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/bfs/sync/${i}-${file}-stats" > "./data/subway-large-energy/bfs/sync/${i}-${file}"
-        sleep 10
+        sleep 5
 
         ./cc-async --input "${j}" > "./data/subway-large/cc/async/${i}-${file}"
-        sleep 10
+        sleep 5
         ./cc-sync --input "${j}" > "./data/subway-large/cc/sync/${i}-${file}"
-        sleep 10
+        sleep 5
         ./cc-async --input "${j}" --energy true --efile "./data/subway-large-energy/cc/async/${i}-${file}-readings" --estats "./data/subway-large-energy/cc/async/${i}-${file}-stats" > "./data/subway-large-energy/cc/async/${i}-${file}"
-        sleep 10
+        sleep 5
         ./cc-sync --input "${j}" --energy true --efile "./data/subway-large-energy/cc/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/cc/sync/${i}-${file}-stats" > "./data/subway-large-energy/cc/sync/${i}-${file}"
 
         ./pr-async --input "${j}" > "./data/subway-large/pr/async/${i}-${file}"
-        sleep 10
+        sleep 5
         ./pr-sync --input "${j}" > "./data/subway-large/pr/sync/${i}-${file}"
-        sleep 10
+        sleep 5
         ./pr-async --input "${j}" --energy true --efile "./data/subway-large-energy/pr/async/${i}-${file}-readings" --estats "./data/subway-large-energy/pr/async/${i}-${file}-stats" > "./data/subway-large-energy/pr/async/${i}-${file}"
-        sleep 10
+        sleep 5
         ./pr-sync --input "${j}" --energy true --efile "./data/subway-large-energy/pr/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/pr/sync/${i}-${file}-stats" > "./data/subway-large-energy/pr/sync/${i}-${file}"
-        sleep 10
+        sleep 5
 
         ./sssp-async --input "${j}" > "./data/subway-large/sssp/async/${i}-${file}"
-        sleep 10
+        sleep 5
         ./sssp-sync --input "${j}" > "./data/subway-large/sssp/sync/${i}-${file}"
-        sleep 10
+        sleep 5
         ./sssp-async --input "${j}" --energy true --efile "./data/subway-large-energy/sssp/async/${i}-${file}-readings" --estats "./data/subway-large-energy/sssp/async/${i}-${file}-stats" > "./data/subway-large-energy/sssp/async/${i}-${file}"
-        sleep 10
+        sleep 5
         ./sssp-sync --input "${j}" --energy true --efile "./data/subway-large-energy/sssp/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/sssp/sync/${i}-${file}-stats" > "./data/subway-large-energy/sssp/sync/${i}-${file}"
-        sleep 10
+        sleep 5
 
         ./sswp-async --input "${j}" > "./data/subway-large/sswp/async/${i}-${file}"
-        sleep 10
+        sleep 5
         ./sswp-sync --input "${j}" > "./data/subway-large/sswp/sync/${i}-${file}"
-        sleep 10
+        sleep 5
         #./sswp-async --input "${j}" --energy true --efile "./data/subway-large-energy/sswp/async/${j}-${file}-readings" --estats "./data/subway-large-energy/sswp/async/${j}-${file}-stats" > "./data/subway-large-energy/sswp/async/${i}-${file}"
         ./sswp-sync --input "${j}" --energy true --efile "./data/subway-large-energy/sswp/sync/${i}-${file}-readings" --estats "./data/subway-large-energy/sswp/sync/${i}-${file}-stats" > "./data/subway-large-energy/sswp/sync/${i}-${file}"
-        sleep 10
+        sleep 5
 
         count=$((count+1))
     done

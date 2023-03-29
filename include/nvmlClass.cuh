@@ -135,12 +135,13 @@ class nvmlClass {
 
             time_steps_.push_back( device_stats );
 
-            std::this_thread::sleep_for( std::chrono::microseconds(250)); //.25 ms, 0.5 ms for subway-large
+            std::this_thread::sleep_for( std::chrono::microseconds(50)); //.25 ms for large, .05 ms for small
         }
 
         // Collect information for a short period of time (cooldown) after loop_ is flagged to be false
-        //500 * 10 ms = 5s
-        for (int i = 0; i < 500; i++) {
+        //5000 * 1 ms = ~5s
+        //500 * 10 ms = ~ 5s
+        for (int i = 0; i < 5000; i++) {
 
           device_stats.timestamp = std::chrono::duration<double, std::micro>(std::chrono::high_resolution_clock::now( ).time_since_epoch( )).count( );
           NVML_RT_CALL( nvmlDeviceGetTemperature( device_, NVML_TEMPERATURE_GPU, &device_stats.temperature ) );
@@ -154,7 +155,7 @@ class nvmlClass {
           time_steps_.push_back( device_stats );
 
           // Sleep for a short period of time
-          std::this_thread::sleep_for( std::chrono::milliseconds(10));
+          std::this_thread::sleep_for( std::chrono::milliseconds(1)); //10 ms for large, 1 ms for small
         }
 
         writeData();
