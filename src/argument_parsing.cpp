@@ -163,7 +163,6 @@ string ArgumentParser::GenerateHelpString(){
 	str += "\n    [--debug]: Check or observe information (Default: false). E.g. --debug true";
 	str += "\n    [--variant]: Algorithm variant option(Default: async_push_td). E.g. --variant async_push_td";
 	str += "\n    [--algorithm]: Algoriothm to run (Default: sssp). E.g. --algorithm bfs";
-	str += "\n    [--framework]: Choose one or all frameworks (classic, um, subway) (Default: classic). E.g. --framework all";
 	str += "\n    [--energy]: Measure and output GPU energy information (Default: false). E.g. --energy true";
 	str += "\n    [--efile]: Output file for energy (Required if energy == true). E.g. --efile my_experiment_energy";
 	str += "\n    [--estats]: Output file for energy (Required if energy == true). E.g. --estats my_experiment_stats";
