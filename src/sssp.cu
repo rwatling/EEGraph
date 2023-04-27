@@ -50,7 +50,7 @@ __global__ void sssp::async_push_td(  unsigned int numParts,
 		
 		unsigned int end;
 		unsigned int w8;
-		unsigned int finalDist;
+		unsigned int finalDist; // new value
 		unsigned int ofs = thisPointer + 2*part +1;
 
 		for(int i=0; i<Part_Size; i++)
@@ -66,6 +66,34 @@ __global__ void sssp::async_push_td(  unsigned int numParts,
 				*finished = false;
 			}
 		}
+
+		/*finalDist = sourceWeight;
+
+		for (int i = 0; i < Part_Size; i++) {
+			if(part + i*numParts >= degree)
+				break;
+			end = ofs + i*numParts*2;
+			w8 = end + 1;
+
+			unsigned int temp;
+			temp = dist[edgeList[end]] + edgeList[w8];
+
+			finalDist = min(temp, finalDist);
+		}
+
+		if (finalDist < sourceWeight) {
+			for (int i = 0; i < Part_Size; i++) {
+				if(part + i*numParts >= degree)
+					break;
+				end = ofs + i*numParts*2;
+				w8 = end + 1;
+
+				if (dist[edgeList[end]] > finalDist) {
+					atomicMin(&dist[edgeList[end]], finalDist);
+					*finished = false;
+				}
+			}
+		}*/
 	
 	}
 }
