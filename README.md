@@ -1,4 +1,5 @@
-# EEGraph
+# EEGraph - Robbie Watling Masters Thesis
+Available on Proquest and Michigan Tech Digital Commons (https://doi.org/10.37099/mtu.dc.etdr/1564)
 
 ### Compilation
 
